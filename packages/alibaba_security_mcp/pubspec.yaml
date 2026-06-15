@@ -1,0 +1,30 @@
+name: alibaba_security_mcp
+version: 0.1.0
+description: >-
+  MCP (Model Context Protocol) server for Alibaba Cloud Security Center and
+  Agentic SOC. Exposes security events, alerts, vulnerabilities, and response
+  policies as MCP tools for AI agents.
+repository: https://github.com/cdavis-code/alibaba_security_workspace
+issue_tracker: https://github.com/cdavis-code/alibaba_security_workspace/issues
+
+topics:
+  - alibaba-cloud
+  - security
+  - mcp
+  - model-context-protocol
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  alibaba_security_api: ^0.1.0
+  dart_mcp: ^0.5.1
+  easy_api_annotations: ^1.2.2
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  easy_api_generator: ^1.2.2
+  lints: ^6.0.0
+  test: ^1.25.0

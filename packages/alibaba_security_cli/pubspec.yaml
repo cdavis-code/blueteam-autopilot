@@ -1,0 +1,22 @@
+name: alibaba_security_cli
+description: CLI application for Alibaba Cloud Security Center, Agentic SOC, and Cloud SIEM.
+version: 0.1.0
+publish_to: none
+
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  alibaba_security_api: ^0.1.0
+  args: ^2.7.0
+  ansicolor: ^2.0.3
+  yaml: ^3.1.3
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0
+
+executables:
+  alsec: alsec

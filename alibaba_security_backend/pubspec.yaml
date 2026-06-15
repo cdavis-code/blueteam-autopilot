@@ -1,0 +1,33 @@
+name: alibaba_security_backend
+version: 0.1.0
+description: >-
+  Backend service for BlueTeam Autopilot. Provides REST API endpoints for
+  incident management, AI-driven analysis via Qwen Cloud, and persistence
+  to Alibaba Cloud TableStore. Orchestrates the alibaba_security_api and
+  alibaba_security_agent packages.
+repository: https://github.com/cdavis-code/alibaba_security_workspace
+issue_tracker: https://github.com/cdavis-code/alibaba_security_workspace/issues
+
+topics:
+  - alibaba-cloud
+  - security
+  - secops
+  - backend
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  alibaba_security_agent: ^0.1.0
+  alibaba_security_api: ^0.1.0
+  crypto: ^3.0.6
+  dio: ^5.9.0
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+  ulid: ^2.0.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

@@ -1,0 +1,58 @@
+name: alibaba_security_workspace
+
+environment:
+  sdk: ^3.10.0
+
+workspace:
+  - alibaba_security_backend
+  - packages/alibaba_security_agent
+  - packages/alibaba_security_api
+  - packages/alibaba_security_cli
+  - packages/alibaba_security_mcp
+
+
+dev_dependencies:
+  melos: ^7.8.2
+
+melos:
+  packages:
+    - alibaba_security_backend
+    - packages/**
+    - app/**
+
+  command:
+    version:
+      branch: main
+      message: "chore(release): publish %s"
+
+  bootstrap:
+    runPubGetInParallel: false
+    usePubspecOverrides: true
+
+  scripts:
+    dep:
+      exec: dart pub get
+
+    analyze:
+      exec: dart analyze .
+      description: Run `dart analyze` in all packages.
+
+    format:
+      run: melos exec dart format .
+      description: Run `dart format` for all packages.
+
+    format-check:
+      run: melos exec dart format . --set-exit-if-changed
+      description: Run `dart format` checks for all packages.
+
+    lint:all:
+      run: melos run analyze && melos run format-check
+      description: Run all static analysis checks.
+
+    build:
+      exec: dart run build_runner build --delete-conflicting-outputs
+      description: Run build_runner in all packages that use code generation.
+
+    test:
+      exec: dart test
+      description: Run tests in all packages.

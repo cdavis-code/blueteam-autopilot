@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls /Users/chrisdavis/projects/scratch/cyber/skills 2>&1)",
+      "Bash(rtk ls /Users/chrisdavis/projects/scratch/cyber/skills/blueteam-autopilot-prep 2>&1)",
+      "Bash(rtk ls /Users/chrisdavis/projects/scratch/cyber/skills/blueteam-autopilot-prep/scripts 2>&1)"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+# Sensitive files
+.env
+*.env
+
+# Design documents
+design/research.md
+
+# Dart/Flutter build outputs
+.dart_tool/
+build/
+*.iml
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Lock files (optional - uncomment if you don't want to commit them)
+# pubspec.lock

@@ -1,0 +1,42 @@
+name: blueteam_autopilot
+description: >-
+  BlueTeam Autopilot — Flutter web/mobile dashboard for AI-driven security
+  incident triage and response, consuming the alibaba_security_backend API.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_bloc: ^9.1.0
+  equatable: ^2.0.7
+
+  # Networking
+  dio: ^5.9.0
+
+  # Routing
+  go_router: ^15.1.0
+
+  # UI
+  flutter_markdown: ^0.7.7
+  google_fonts: ^6.2.1
+
+  # Shared workspace models
+  alibaba_security_agent: ^0.1.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true

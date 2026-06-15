@@ -1,0 +1,18 @@
+{
+  "name": "BlueTeam Autopilot",
+  "version": "0.1.0",
+  "description": "AI-powered SecOps copilot for Alibaba Cloud Security Center and Agentic SOC.",
+  "systemPrompt": "<Generated at runtime by SystemPrompt.build() — see lib/src/prompts/system_prompt.dart>",
+  "mcpServers": [
+    {
+      "name": "alibaba-security-mcp",
+      "endpoint": "stdio",
+      "transport": "stdio"
+    }
+  ],
+  "parameters": {
+    "defaultTimeRangeMinutes": 60,
+    "defaultDryRun": true,
+    "maxIncidentsPerRun": 10
+  }
+}

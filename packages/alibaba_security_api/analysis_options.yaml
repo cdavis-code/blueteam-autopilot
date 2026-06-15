@@ -1,0 +1,8 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Generated .g.dart files may not exist until build_runner runs
+    uri_has_not_been_generated: ignore
+  exclude:
+    - "**/*.g.dart"

@@ -1,0 +1,5 @@
+dependency_overrides:
+  alibaba_security_agent:
+    path: ../../packages/alibaba_security_agent
+  alibaba_security_api:
+    path: ../../packages/alibaba_security_api

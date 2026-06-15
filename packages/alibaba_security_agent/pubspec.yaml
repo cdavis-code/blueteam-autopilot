@@ -1,0 +1,29 @@
+name: alibaba_security_agent
+version: 0.1.0
+description: >-
+  Qwen Autopilot Agent for Alibaba Cloud Security Center and Agentic SOC.
+  Provides system prompts, SecOps knowledge base, structured output models,
+  and Markdown report templates for AI-driven incident triage and response.
+repository: https://github.com/cdavis-code/alibaba_security_workspace
+issue_tracker: https://github.com/cdavis-code/alibaba_security_workspace/issues
+
+topics:
+  - alibaba-cloud
+  - security
+  - ai-agent
+  - secops
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  alibaba_security_api: ^0.1.0
+  json_annotation: ^4.11.0
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  json_serializable: ^6.13.0
+  lints: ^6.0.0
+  test: ^1.25.0
