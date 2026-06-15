@@ -3,7 +3,7 @@
 *.env
 
 # Design documents
-design/research.md
+design/**
 
 # Dart/Flutter build outputs
 .dart_tool/
