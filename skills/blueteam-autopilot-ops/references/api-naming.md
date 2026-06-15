@@ -14,6 +14,8 @@ Alibaba Cloud CLI uses different naming conventions than the Dart SDK. This docu
 | `describe-susp-event-detail` | `DescribeSuspEventDetail` | Get event detail |
 | `describe-version-config` | `DescribeVersionConfig` | Get Security Center edition |
 | `describe-cloud-center-instances` | `DescribeCloudCenterInstances` | List assets |
+| `describe-vul-list` | `DescribeVulList` | List vulnerabilities |
+| `describe-vul-details` | `DescribeVulDetails` | Get vulnerability detail |
 
 **Product Code:** `sas` (not `tds`)
 
@@ -37,6 +39,8 @@ await client.describeAlarmEventList(DescribeAlarmEventListRequest(regionId: regi
 | `describe-domains` | `DescribeDomains` | 2021-10-01 | Uses `--InstanceId` |
 | `describe-log-service-status` | `DescribeLogServiceStatus` | 2019-09-10 | Uses `--instance-id` |
 | `describe-resource-log-status` | `DescribeResourceLogStatus` | 2019-09-10 | Uses `--instance-id` |
+| `describe-rule-hits-top-rule-id` | `DescribeRuleHitsTopRuleId` | 2021-10-01 | Uses `--InstanceId`, `--StartTimestamp`, `--EndTimestamp` |
+| `describe-rule-hits-top-client-ip` | `DescribeRuleHitsTopClientIp` | 2021-10-01 | Uses `--InstanceId`, `--StartTimestamp`, `--EndTimestamp` |
 
 **Product Code:** `waf-openapi`
 
@@ -171,6 +175,7 @@ aliyun sas describe-susp-events --region "$ALIBABA_REGION"
 | SLS | `sls` | Standard |
 | RAM | `ram` | Standard |
 | STS | `sts` | Standard |
+| Agentic SOC | `siem-socket` | Response policies |
 
 ---
 
@@ -191,4 +196,18 @@ aliyun waf-openapi describe-log-service-status --region "$REGION" --instance-id 
 
 # SLS
 aliyun sls get-logs --project "$PROJECT" --logstore "$LOGSTORE" --from "$FROM" --to "$TO" --region "$REGION"
+
+# Vulnerabilities
+aliyun sas describe-vul-list --region "$REGION" --current-page 1 --page-size 20 --type cve
+aliyun sas describe-vul-details --region "$REGION" --vul-id "$VUL_ID"
+
+# Assets
+aliyun sas describe-cloud-center-instances --region "$REGION" --current-page 1 --page-size 20
+
+# WAF Analytics (newer API — PascalCase params)
+aliyun waf-openapi describe-rule-hits-top-rule-id --region "$REGION" --InstanceId "$ID" --StartTimestamp "$START" --EndTimestamp "$END"
+aliyun waf-openapi describe-rule-hits-top-client-ip --region "$REGION" --InstanceId "$ID" --StartTimestamp "$START" --EndTimestamp "$END"
+
+# Agentic SOC
+aliyun siem-socket list-automate-response-configs --region "$REGION" --page-size 50 --page-number 1
 ```
