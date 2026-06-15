@@ -26,3 +26,5 @@ Thumbs.db
 
 # Lock files (optional - uncomment if you don't want to commit them)
 # pubspec.lock
+
+.qoder/
