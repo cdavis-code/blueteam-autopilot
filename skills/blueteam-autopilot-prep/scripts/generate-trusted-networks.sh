@@ -1,124 +1,146 @@
 #!/usr/bin/env bash
-# Generate trusted-networks.md from Alibaba Cloud VPC/VPN configuration
-# Usage: ./generate-trusted-networks.sh
-#
-# This script queries your Alibaba Cloud environment to discover:
-# - VPC CIDR blocks
-# - VPN gateway configurations
-# - RAM policy trusted CIDRs
-#
-# Prerequisites:
-# - aliyun CLI installed and configured
-# - ALIBABA_REGION environment variable set
-# - Appropriate RAM permissions (VPC, VPN Gateway)
-
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KNOWLEDGE_DIR="${SCRIPT_DIR}/../../blueteam-autopilot-knowledge"
-OUTPUT_FILE="${KNOWLEDGE_DIR}/documents/trusted-networks.md"
+# =============================================================================
+# generate-trusted-networks.sh
+#
+# Auto-generates trusted-networks.md from Alibaba Cloud VPC/VPN configuration.
+# Outputs to blueteam-autopilot-knowledge/documents/trusted-networks.md
+# =============================================================================
 
-# Check prerequisites
-if ! command -v aliyun &> /dev/null; then
-  echo "Error: aliyun CLI not found"
-  echo "Install from: https://github.com/aliyun/aliyun-cli"
-  exit 1
-fi
+SKILLS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+OUTPUT_FILE="${SKILLS_ROOT}/blueteam-autopilot-knowledge/documents/trusted-networks.md"
 
-if [ -z "${ALIBABA_REGION:-}" ]; then
-  echo "Error: ALIBABA_REGION not set"
-  echo "Create a .env file or export ALIBABA_REGION=<your-region>"
-  exit 1
-fi
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# Verify knowledge directory exists
-if [ ! -d "${KNOWLEDGE_DIR}/documents" ]; then
-  echo "Error: Knowledge directory not found at ${KNOWLEDGE_DIR}"
-  echo "Ensure blueteam-autopilot-knowledge skill is installed"
-  exit 1
-fi
-
-echo "Generating trusted-networks.md from Alibaba Cloud configuration..."
-echo "Region: ${ALIBABA_REGION}"
+echo "=== BlueTeam Autopilot: Trusted Networks Generator ==="
 echo ""
 
-# Initialize output file
-cat > "${OUTPUT_FILE}" << 'HEADER'
+# Verify aliyun CLI is available
+if ! command -v aliyun &>/dev/null; then
+  echo -e "${RED}Error: aliyun CLI not found${NC}"
+  echo "Install: https://www.alibabacloud.com/help/doc-detail/139506.htm"
+  exit 1
+fi
+
+# Use region from environment or default
+ALIBABA_REGION="${ALIBABA_REGION:-ap-southeast-1}"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+echo "Region: ${ALIBABA_REGION}"
+echo "Output: ${OUTPUT_FILE}"
+echo ""
+
+# Ensure output directory exists
+mkdir -p "$(dirname "${OUTPUT_FILE}")"
+
+# Create the document header
+cat > "${OUTPUT_FILE}" << 'EOF'
 # Trusted Networks
 
-> **AUTO-GENERATED** - Do not edit manually. Run `./scripts/generate-trusted-networks.sh` to regenerate.
->
-> **Generated:** TIMESTAMP_PLACEHOLDER
-> **Region:** REGION_PLACEHOLDER
+> **CRITICAL:** This file is auto-generated. Do NOT edit manually.
+> Run `skills/blueteam-autopilot-prep/scripts/generate-trusted-networks.sh` to regenerate.
 
-Corporate VPN and monitoring service IP ranges that must never be blindly blocked.
+## Purpose
 
----
+This file contains the authoritative list of trusted internal networks for
+BlueTeam Autopilot incident correlation and response.
 
-HEADER
+## Auto-Discovered Networks
 
-# Replace placeholders
-TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-sed -i.bak "s/TIMESTAMP_PLACEHOLDER/${TIMESTAMP}/" "${OUTPUT_FILE}"
-sed -i.bak "s/REGION_PLACEHOLDER/${ALIBABA_REGION}/" "${OUTPUT_FILE}"
-rm -f "${OUTPUT_FILE}.bak"
+The following networks were discovered from the Alibaba Cloud environment
+at generation time.
 
-# Fetch VPC CIDR blocks
-echo "Fetching VPC configurations..."
-VPC_COUNT=0
-cat >> "${OUTPUT_FILE}" << 'EOF'
-## Corporate VPN
+### VPCs
 
-| Network | CIDR | Purpose |
-|---------|------|---------|
 EOF
 
-if VPCS=$(aliyun vpc DescribeVpcs --region "$ALIBABA_REGION" --output json 2>/dev/null); then
-  VPC_COUNT=$(echo "$VPCS" | grep -c '"VpcId"' || echo "0")
+# Initialize counters BEFORE discovery
+VPC_COUNT=0
+VPN_COUNT=0
+
+# Discover VPCs - avoid subshell variable loss by using heredoc
+echo "Discovering VPCs in ${ALIBABA_REGION}..."
+VPCS_OUTPUT=$(aliyun vpc DescribeVpcs --region "$ALIBABA_REGION" --output json 2>&1) || {
+  echo -e "${RED}Failed to query VPCs${NC}"
+  echo "Error: ${VPCS_OUTPUT}"
+  exit 1
+}
+
+# Count VPCs
+VPC_COUNT=$(echo "$VPCS_OUTPUT" | grep -c '"VpcId"' || echo "0")
+
+if [ "$VPC_COUNT" -gt 0 ]; then
+  echo -e "${GREEN}Found ${VPC_COUNT} VPC(s)${NC}"
   
-  if [ "$VPC_COUNT" -gt 0 ]; then
-    echo "$VPCS" | grep '"VpcId"' | while read -r line; do
-      VPC_ID=$(echo "$line" | grep -o '"VpcId":"[^"]*"' | cut -d'"' -f4)
-      CIDR=$(aliyun vpc DescribeVpcAttribute --region "$ALIBABA_REGION" --VpcId "$VPC_ID" --output json 2>/dev/null | grep '"CidrBlock"' | head -1 | cut -d'"' -f4)
-      VPC_NAME=$(aliyun vpc DescribeVpcAttribute --region "$ALIBABA_REGION" --VpcId "$VPC_ID" --output json 2>/dev/null | grep '"VpcName"' | head -1 | cut -d'"' -f4)
+  # Extract VPC IDs to a temporary variable to avoid subshell
+  VPC_IDS=$(echo "$VPCS_OUTPUT" | grep '"VpcId"' | sed 's/.*"VpcId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+  
+  # Process each VPC ID using here-string (avoids subshell)
+  while IFS= read -r VPC_ID; do
+    if [ -n "$VPC_ID" ]; then
+      VPC_ATTR=$(aliyun vpc DescribeVpcAttribute --region "$ALIBABA_REGION" --VpcId "$VPC_ID" --output json 2>&1) || {
+        echo -e "${YELLOW}  Warning: Failed to get attributes for ${VPC_ID}${NC}"
+        continue
+      }
+      
+      CIDR=$(echo "$VPC_ATTR" | grep '"CidrBlock"' | head -1 | cut -d'"' -f4)
+      VPC_NAME=$(echo "$VPC_ATTR" | grep '"VpcName"' | head -1 | cut -d'"' -f4)
       
       if [ -n "$CIDR" ]; then
         NAME="${VPC_NAME:-$VPC_ID}"
         echo "| ${NAME} | ${CIDR} | VPC |" >> "${OUTPUT_FILE}"
       fi
-    done
-  fi
+    fi
+  done <<< "$VPC_IDS"
+else
+  echo -e "${YELLOW}No VPCs found in region ${ALIBABA_REGION}${NC}"
 fi
 
 if [ "$VPC_COUNT" -eq 0 ]; then
   echo "| No VPCs found | - | - |" >> "${OUTPUT_FILE}"
-  echo "Warning: No VPCs discovered. Check ALIBABA_REGION and RAM permissions." >&2
+  echo -e "${YELLOW}Warning: No VPCs discovered. Check ALIBABA_REGION and RAM permissions.${NC}" >&2
 fi
 
 echo "" >> "${OUTPUT_FILE}"
 
-# Fetch VPN Gateway configurations
-echo "Fetching VPN Gateway configurations..."
+# Add VPN section header
 cat >> "${OUTPUT_FILE}" << 'EOF'
----
-
-## VPN Gateways
+### VPN Gateways
 
 | Network | CIDR | Purpose |
 |---------|------|---------|
 EOF
 
-VPN_COUNT=0
-if VPNS=$(aliyun vpc DescribeVpnGateways --region "$ALIBABA_REGION" --output json 2>/dev/null); then
-  VPN_COUNT=$(echo "$VPNS" | grep -c '"VpnGatewayId"' || echo "0")
+# Discover VPN Gateways - avoid subshell variable loss
+echo "Discovering VPN Gateways..."
+VPNS_OUTPUT=$(aliyun vpc DescribeVpnGateways --region "$ALIBABA_REGION" --output json 2>&1) || {
+  echo -e "${RED}Failed to query VPN Gateways${NC}"
+  echo "Error: ${VPNS_OUTPUT}"
+  exit 1
+}
+
+# Count VPNs
+VPN_COUNT=$(echo "$VPNS_OUTPUT" | grep -c '"VpnGatewayId"' || echo "0")
+
+if [ "$VPN_COUNT" -gt 0 ]; then
+  echo -e "${GREEN}Found ${VPN_COUNT} VPN Gateway(s)${NC}"
   
-  if [ "$VPN_COUNT" -gt 0 ]; then
-    echo "$VPNS" | grep '"VpnGatewayId"' | while read -r line; do
-      VPN_ID=$(echo "$line" | grep -o '"VpnGatewayId":"[^"]*"' | cut -d'"' -f4)
-      # VPN gateways don't have a single CIDR, so we note the gateway
+  # Extract VPN Gateway IDs to avoid subshell
+  VPN_IDS=$(echo "$VPNS_OUTPUT" | grep '"VpnGatewayId"' | sed 's/.*"VpnGatewayId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+  
+  # Process each VPN ID using here-string (avoids subshell)
+  while IFS= read -r VPN_ID; do
+    if [ -n "$VPN_ID" ]; then
       echo "| ${VPN_ID} | See VPN customer gateway | VPN Gateway |" >> "${OUTPUT_FILE}"
-    done
-  fi
+    fi
+  done <<< "$VPN_IDS"
+else
+  echo -e "${YELLOW}No VPN Gateways found${NC}"
 fi
 
 if [ "$VPN_COUNT" -eq 0 ]; then
@@ -129,18 +151,34 @@ echo "" >> "${OUTPUT_FILE}"
 
 # Add static sections
 cat >> "${OUTPUT_FILE}" << 'EOF'
----
+## Manual Additions
 
-## Monitoring Services
-
-> Add your monitoring service IP ranges below
-> Query from your cloud monitoring configuration or APM settings
+Add any monitoring service IPs, on-premise networks, or partner networks here:
 
 | Network | CIDR | Purpose |
 |---------|------|---------|
-| (Add your monitoring IPs) | - | - |
+| CloudMonitor | 100.100.0.0/16 | Alibaba Cloud monitoring |
+| Internal DNS | 100.64.0.0/16 | Alibaba Cloud internal DNS |
 
----
+## Security Policy
+
+All networks listed in this file are considered **trusted internal networks**
+for the purposes of BlueTeam Autopilot incident correlation.
+
+### Incident Correlation Rules
+
+When an attack is detected, BlueTeam Autopilot MUST check the source IP
+against this trusted network list:
+
+1. **External Source (not in this file):**
+   - Proceed with normal incident response
+   - Propose perimeter blocking if warranted
+
+2. **Internal Source (matches this file):**
+   - **STOP** — do NOT propose immediate blocking
+   - Flag as "Potentially Compromised Internal Asset"
+   - Escalate to security team for investigation
+   - Correlate with other internal security signals
 
 ## Rule
 
@@ -153,48 +191,11 @@ cat >> "${OUTPUT_FILE}" << 'EOF'
 2. **DO** escalate to security team for investigation
 3. **Document** as potential insider threat or compromised asset
 4. **Correlate** with other internal security signals
-
-### Rationale
-
-Traffic from trusted networks indicates:
-- Compromised corporate device
-- Rogue insider activity
-- Misconfigured monitoring service
-- VPN tunnel abuse
-
-Blocking these IPs would:
-- Disrupt legitimate corporate operations
-- Mask the actual security incident
-- Prevent proper forensic investigation
-
----
-
-## Compliance Reference
-
-- **SOC 2 CC6.8:** Unauthorized activity triage must distinguish external vs. internal threats
-- **NIST CSF DE.AE-2:** Anomalous event analysis must consider source context
-
----
-
-## Update Procedure
-
-To regenerate this file from cloud configuration:
-
-```bash
-./scripts/generate-trusted-networks.sh
-```
-
-To manually add/remove trusted networks:
-
-1. Run the generation script (recommended)
-2. OR edit the "Monitoring Services" section above
-3. Update WAF whitelist in console
-4. Notify BlueTeam Autopilot users
-
 EOF
 
 # Add generation metadata
 cat >> "${OUTPUT_FILE}" << EOF
+
 **Last Generated:** ${TIMESTAMP}
 **Region:** ${ALIBABA_REGION}
 **VPCs Discovered:** ${VPC_COUNT}
@@ -202,7 +203,7 @@ cat >> "${OUTPUT_FILE}" << EOF
 EOF
 
 echo ""
-echo "✓ Generated ${OUTPUT_FILE}"
+echo -e "${GREEN}✓ Generated ${OUTPUT_FILE}${NC}"
 echo "  - VPCs discovered: ${VPC_COUNT}"
 echo "  - VPN gateways: ${VPN_COUNT}"
 echo ""

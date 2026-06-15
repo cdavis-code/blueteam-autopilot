@@ -40,6 +40,7 @@ FOUND_ISSUES=0
 # Function to check for hardcoded regions
 check_regions() {
   echo "Checking for hardcoded regions..."
+  local region_found=0
   
   # Search for common Alibaba Cloud region patterns
   REGIONS=$(grep -r --include="*.md" \
@@ -49,7 +50,7 @@ check_regions() {
   
   if [ -n "$REGIONS" ]; then
     echo -e "${YELLOW}⚠ Found region references:${NC}"
-    echo "$REGIONS" | while IFS= read -r line; do
+    while IFS= read -r line; do
       FILE=$(echo "$line" | cut -d: -f1)
       LINE_NUM=$(echo "$line" | cut -d: -f2)
       CONTENT=$(echo "$line" | cut -d: -f3-)
@@ -60,11 +61,16 @@ check_regions() {
       else
         echo -e "  ${RED}✗${NC} ${FILE}:${LINE_NUM} (needs remediation)"
         echo "    ${CONTENT}"
-        FOUND_ISSUES=1
+        region_found=1
       fi
-    done
+    done <<< "$REGIONS"
   else
     echo -e "${GREEN}✓ No hardcoded regions found${NC}"
+  fi
+  
+  # Return status via global variable (avoids subshell loss)
+  if [ "$region_found" -eq 1 ]; then
+    FOUND_ISSUES=1
   fi
   
   echo ""
@@ -73,6 +79,7 @@ check_regions() {
 # Function to check for hardcoded IPs
 check_ips() {
   echo "Checking for hardcoded IP addresses..."
+  local ip_found=0
   
   # Search for IP addresses (excluding localhost and documentation ranges)
   IPS=$(grep -r --include="*.md" \
@@ -82,7 +89,7 @@ check_ips() {
   
   if [ -n "$IPS" ]; then
     echo -e "${YELLOW}⚠ Found IP address references:${NC}"
-    echo "$IPS" | while IFS= read -r line; do
+    while IFS= read -r line; do
       FILE=$(echo "$line" | cut -d: -f1)
       LINE_NUM=$(echo "$line" | cut -d: -f2)
       CONTENT=$(echo "$line" | cut -d: -f3-)
@@ -93,11 +100,16 @@ check_ips() {
       else
         echo -e "  ${RED}✗${NC} ${FILE}:${LINE_NUM} (needs review)"
         echo "    ${CONTENT}"
-        FOUND_ISSUES=1
+        ip_found=1
       fi
-    done
+    done <<< "$IPS"
   else
     echo -e "${GREEN}✓ No hardcoded IP addresses found${NC}"
+  fi
+  
+  # Return status via global variable (avoids subshell loss)
+  if [ "$ip_found" -eq 1 ]; then
+    FOUND_ISSUES=1
   fi
   
   echo ""
@@ -106,6 +118,7 @@ check_ips() {
 # Function to check for hardcoded instance IDs
 check_instance_ids() {
   echo "Checking for hardcoded instance/resource IDs..."
+  local id_found=0
   
   # Search for Alibaba Cloud resource ID patterns
   IDS=$(grep -r --include="*.md" \
@@ -115,7 +128,7 @@ check_instance_ids() {
   
   if [ -n "$IDS" ]; then
     echo -e "${YELLOW}⚠ Found resource ID references:${NC}"
-    echo "$IDS" | while IFS= read -r line; do
+    while IFS= read -r line; do
       FILE=$(echo "$line" | cut -d: -f1)
       LINE_NUM=$(echo "$line" | cut -d: -f2)
       CONTENT=$(echo "$line" | cut -d: -f3-)
@@ -126,11 +139,16 @@ check_instance_ids() {
       else
         echo -e "  ${RED}✗${NC} ${FILE}:${LINE_NUM} (needs review)"
         echo "    ${CONTENT}"
-        FOUND_ISSUES=1
+        id_found=1
       fi
-    done
+    done <<< "$IDS"
   else
     echo -e "${GREEN}✓ No hardcoded instance IDs found${NC}"
+  fi
+  
+  # Return status via global variable (avoids subshell loss)
+  if [ "$id_found" -eq 1 ]; then
+    FOUND_ISSUES=1
   fi
   
   echo ""

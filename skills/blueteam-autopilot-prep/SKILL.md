@@ -123,9 +123,18 @@ echo "$CALLER_IDENTITY"
 # Extract the short RAM username from the Arn (e.g. acs:ram::<account-id>:user/alibaba-security-mcp → alibaba-security-mcp)
 export RAM_USERNAME=$(echo "$CALLER_IDENTITY" | grep -o '"Arn":"[^"]*"' | sed 's/.*:user\///'  | tr -d '"')
 echo "✓ Derived RAM_USERNAME=$RAM_USERNAME"
+
+# Extract the Alibaba Cloud Account ID for use in SLS project names and resource ARNs
+export ACCOUNT_ID=$(echo "$CALLER_IDENTITY" | grep -o '"AccountId":"[^"]*"' | cut -d'"' -f4)
+if [ -n "$ACCOUNT_ID" ]; then
+  echo "✓ Derived ACCOUNT_ID=$ACCOUNT_ID"
+else
+  echo "⚠️  Could not extract ACCOUNT_ID from GetCallerIdentity response"
+  echo "   You will need to manually replace YOUR_ACCOUNT_ID placeholders in later stages"
+fi
 ```
 
-**Expected:** A JSON response with `AccountId`, `Arn`, and `Type` fields. `RAM_USERNAME` is extracted from the Arn and exported for use in Stage 3.
+**Expected:** A JSON response with `AccountId`, `Arn`, and `Type` fields. `RAM_USERNAME` and `ACCOUNT_ID` are extracted from the response and exported for use in later stages.
 
 **If FAIL — common issues and remedies:**
 
@@ -378,7 +387,7 @@ aliyun waf-openapi describe-resource-log-status \
    FROM_TS=$(date -u -v-30M +%s 2>/dev/null || date -u -d '30 minutes ago' +%s)
    TO_TS=$(date -u +%s)
    aliyun sls GetLogs \
-     --project "wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION" \
+     --project "wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION" \
      --logstore "wafnew-logstore" \
      --from "$FROM_TS" \
      --to "$TO_TS" \
@@ -417,12 +426,12 @@ aliyun sls ListProject --region "$ALIBABA_REGION" 2>&1 | grep -i waf
 
 # Check for WAF logstore in the project (replace PROJECT_NAME)
 aliyun sls ListLogStores \
-  --project "wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION" \
+  --project "wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION" \
   --region "$ALIBABA_REGION" 2>&1
 
 # Verify index exists on the logstore
 aliyun sls GetIndex \
-  --project "wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION" \
+  --project "wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION" \
   --logstore "wafnew-logstore" \
   --region "$ALIBABA_REGION" 2>&1 | head -20
 ```
@@ -528,7 +537,7 @@ sleep 30
 FROM_TS=$(date -u -v-10M +%s 2>/dev/null || date -u -d '10 minutes ago' +%s)
 TO_TS=$(date -u +%s)
 aliyun sls GetLogs \
-  --project "wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION" \
+  --project "wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION" \
   --logstore "wafnew-logstore" \
   --from "$FROM_TS" \
   --to "$TO_TS" \
@@ -670,7 +679,7 @@ aliyun ecs DescribeInstances --region "$ALIBABA_REGION" --output json > /tmp/ecs
 # (See scripts/generate-asset-inventory.sh if available)
 ```
 
-**Note:** Asset inventory is typically discovered dynamically via `list_assets` MCP tool at runtime. Pre-generating the document is optional and主要用于 reference purposes only.
+**Note:** Asset inventory is typically discovered dynamically via `list_assets` MCP tool at runtime. Pre-generating the document is optional and for reference purposes only.
 
 ---
 
@@ -780,7 +789,7 @@ aliyun sas DescribeVersionConfig --region "$ALIBABA_REGION" 2>&1 | grep -o '"Edi
 FROM_TS=$(date -u -v-30M +%s 2>/dev/null || date -u -d '30 minutes ago' +%s)
 TO_TS=$(date -u +%s)
 aliyun sls GetLogs \
-  --project "wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION" \
+  --project "wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION" \
   --logstore "wafnew-logstore" \
   --from "$FROM_TS" \
   --to "$TO_TS" \
