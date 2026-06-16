@@ -18,7 +18,7 @@
 
 ## Quick Install
 
-No repository clone needed. Install directly into your project:
+**Prerequisite:** [Node.js 18+](https://nodejs.org) (for `npx`). No repository clone needed. Install directly into your project:
 
 ```bash
 mkdir secops && cd secops
@@ -104,6 +104,7 @@ For production use with live Alibaba Cloud data:
 
 ### Prerequisites
 
+- [Node.js 18+](https://nodejs.org) (for `npx`)
 - [aliyun CLI](https://github.com/aliyun/aliyun-cli) installed
 - RAM user with these policies:
   - `AliyunYundunSASReadOnlyAccess` — Security Center
@@ -147,7 +148,7 @@ EOF
 #    "Deep-dive into event evt-xxx-yyy"
 ```
 
-See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKILL.md) for the full environment validation procedure, and [skills/MODES.md](skills/MODES.md) for mode reference.
+See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKILL.md) for the full environment validation procedure.
 
 ---
 
@@ -157,10 +158,6 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 .
 ├── README.md                          # This file
 └── skills/
-    ├── MODES.md                       # Mode reference (single source of truth)
-    ├── AUTONOMOUS_SETUP.md            # Self-deployment guide
-    ├── ENVIRONMENT_INDEPENDENCE.md     # Region-agnostic design
-    │
     ├── blueteam-autopilot-core/       # Core agent: 5-behavior triage cycle
     │   ├── SKILL.md                   # Main prompt — role, tools, guardrails
     │   ├── BEHAVIORS.md               # Detailed workflow for each behavior
@@ -267,7 +264,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 ### Do I need an Alibaba Cloud account to try this?
 
-**No!** Install the skills via `npx skills add`, create a `.env` with `SECURITY_CENTER_MODE=demo`, and everything runs offline using bundled fixture files. No credentials, no API calls, no cloud account. No repository clone required.
+**No!** With Node.js 18+ installed, run `npx skills add`, create a `.env` with `SECURITY_CENTER_MODE=demo`, and everything runs offline using bundled fixture files. No credentials, no API calls, no cloud account. No repository clone required.
 
 ### Is this production-ready?
 
@@ -279,7 +276,7 @@ Only with **explicit human approval**. All state-changing actions require the `-
 
 ### Can I use this with my own Alibaba Cloud region?
 
-Yes! All region values are dynamically discovered via `get_account_context` / `get-account-context.sh`. See [ENVIRONMENT_INDEPENDENCE.md](skills/ENVIRONMENT_INDEPENDENCE.md).
+Yes! All region values are dynamically discovered via `get_account_context` / `get-account-context.sh`.
 
 ### How do I contribute or report issues?
 
