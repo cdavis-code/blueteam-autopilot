@@ -1,0 +1,62 @@
+[
+  {
+    "vulnId": "vuln-demo-20260614-001",
+    "name": "OpenSSL Buffer Overflow (CVE-2024-5678)",
+    "severity": "CRITICAL",
+    "cveId": "CVE-2024-5678",
+    "assetId": "i-prod-db-01",
+    "assetName": "production-db-primary",
+    "type": "system",
+    "status": "unfixed",
+    "firstDetected": "2026-06-14T07:10:33Z",
+    "cvss": 9.8
+  },
+  {
+    "vulnId": "vuln-demo-20260614-002",
+    "name": "Apache HTTP Server Path Traversal (CVE-2024-3456)",
+    "severity": "HIGH",
+    "cveId": "CVE-2024-3456",
+    "assetId": "i-prod-web-01",
+    "assetName": "production-web-server-01",
+    "type": "application",
+    "status": "unfixed",
+    "firstDetected": "2026-06-13T14:22:00Z",
+    "cvss": 7.5
+  },
+  {
+    "vulnId": "vuln-demo-20260614-003",
+    "name": "OpenSSH User Enumeration (CVE-2024-2345)",
+    "severity": "MEDIUM",
+    "cveId": "CVE-2024-2345",
+    "assetId": "i-dev-api-01",
+    "assetName": "dev-api-server",
+    "type": "system",
+    "status": "unfixed",
+    "firstDetected": "2026-06-12T09:00:00Z",
+    "cvss": 5.3
+  },
+  {
+    "vulnId": "vuln-demo-20260614-004",
+    "name": "WordPress Plugin XSS (CVE-2024-7890)",
+    "severity": "MEDIUM",
+    "cveId": "CVE-2024-7890",
+    "assetId": "i-prod-web-02",
+    "assetName": "production-web-server-02",
+    "type": "application",
+    "status": "unfixed",
+    "firstDetected": "2026-06-14T06:45:00Z",
+    "cvss": 6.1
+  },
+  {
+    "vulnId": "vuln-demo-20260614-005",
+    "name": "Kernel Module Information Disclosure",
+    "severity": "LOW",
+    "cveId": "CVE-2024-9012",
+    "assetId": "i-monitoring-01",
+    "assetName": "monitoring-server",
+    "type": "system",
+    "status": "unfixed",
+    "firstDetected": "2026-06-10T00:00:00Z",
+    "cvss": 3.3
+  }
+]

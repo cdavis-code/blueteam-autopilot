@@ -1,0 +1,52 @@
+[
+  {
+    "timestamp": "2026-06-14T08:23:15Z",
+    "sourceIp": "203.0.113.100",
+    "attackType": "sqli",
+    "url": "/api/v1/search?q=product",
+    "action": "blocked",
+    "ruleId": "waf-rule-sqli-042",
+    "httpMethod": "GET",
+    "hitCount": 47
+  },
+  {
+    "timestamp": "2026-06-14T08:45:02Z",
+    "sourceIp": "203.0.113.101",
+    "attackType": "xss",
+    "url": "/login?redirect=%3Cscript%3E",
+    "action": "blocked",
+    "ruleId": "waf-rule-xss-018",
+    "httpMethod": "GET",
+    "hitCount": 12
+  },
+  {
+    "timestamp": "2026-06-14T09:12:44Z",
+    "sourceIp": "203.0.113.100",
+    "attackType": "lfi",
+    "url": "/upload/../../../etc/passwd",
+    "action": "blocked",
+    "ruleId": "waf-rule-lfi-005",
+    "httpMethod": "POST",
+    "hitCount": 23
+  },
+  {
+    "timestamp": "2026-06-14T09:30:18Z",
+    "sourceIp": "203.0.113.102",
+    "attackType": "scanner_behavior",
+    "url": "/admin/config.php",
+    "action": "observed",
+    "ruleId": "waf-rule-scanner-001",
+    "httpMethod": "GET",
+    "hitCount": 156
+  },
+  {
+    "timestamp": "2026-06-14T10:05:22Z",
+    "sourceIp": "203.0.113.103",
+    "attackType": "sqli",
+    "url": "/api/v1/users?id=1' OR '1'='1",
+    "action": "blocked",
+    "ruleId": "waf-rule-sqli-042",
+    "httpMethod": "GET",
+    "hitCount": 8
+  }
+]

@@ -1,0 +1,5 @@
+[
+  {"alertId": "alert-demo-waf-sqli-001", "dataSource": "WAF", "severity": "HIGH", "ruleName": "SQL Injection - UNION SELECT", "hitCount": 32, "firstSeen": "2026-06-14T08:23:15Z", "lastSeen": "2026-06-14T08:25:47Z"},
+  {"alertId": "alert-demo-waf-sqli-002", "dataSource": "WAF", "severity": "MEDIUM", "ruleName": "SQL Injection - Boolean Blind", "hitCount": 15, "firstSeen": "2026-06-14T08:24:01Z", "lastSeen": "2026-06-14T08:26:12Z"},
+  {"alertId": "alert-demo-cwpp-001", "dataSource": "CWPP", "severity": "LOW", "ruleName": "Unusual Process Execution", "hitCount": 1, "firstSeen": "2026-06-14T08:30:00Z", "lastSeen": "2026-06-14T08:30:00Z"}
+]

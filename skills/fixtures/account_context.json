@@ -1,0 +1,9 @@
+{
+  "region": "ap-southeast-1",
+  "edition": "Enterprise",
+  "editionCode": 4,
+  "agenticSocEnabled": true,
+  "mode": "demo",
+  "accountId": "123456789012",
+  "note": "EXAMPLE — fixture data. Replace with your actual environment."
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IncidentReport",
+  "description": "Security incident report with attack chain and compliance references",
+  "type": "object",
+  "required": ["eventId", "title", "severity", "aiSummary", "rootCause", "businessImpact"],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "description": "Security Center event ID",
+      "examples": ["evt-20260614-001"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable incident title",
+      "examples": ["SQL Injection Attack on Production WAF"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+      "description": "Incident severity level"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Report generation timestamp (ISO 8601)"
+    },
+    "aiSummary": {
+      "type": "string",
+      "description": "AI-generated incident summary"
+    },
+    "rootCause": {
+      "type": "string",
+      "description": "Root cause analysis"
+    },
+    "businessImpact": {
+      "type": "string",
+      "description": "Business impact assessment"
+    },
+    "attackChain": {
+      "type": "array",
+      "description": "Attack chain stages",
+      "items": {
+        "type": "object",
+        "required": ["stage", "description"],
+        "properties": {
+          "stage": {
+            "type": "string",
+            "description": "Attack stage name",
+            "examples": ["Reconnaissance", "Exploitation", "Impact"]
+          },
+          "description": {
+            "type": "string",
+            "description": "Stage description"
+          }
+        }
+      }
+    },
+    "affectedAssets": {
+      "type": "array",
+      "description": "List of affected asset IDs",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceIps": {
+      "type": "array",
+      "description": "Source IP addresses involved in the attack",
+      "items": {
+        "type": "string",
+        "format": "ipv4"
+      }
+    },
+    "relatedCves": {
+      "type": "array",
+      "description": "Related CVE identifiers",
+      "items": {
+        "type": "string",
+        "pattern": "^CVE-\\d{4}-\\d+$"
+      }
+    },
+    "complianceControls": {
+      "type": "array",
+      "description": "Applicable compliance control references",
+      "items": {
+        "type": "string",
+        "examples": ["NIST CSF DE.AE-2", "SOC 2 CC6.8"]
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "policyId": "policy-ip-block-24h",
+    "name": "Block Attacker IP — 24 Hours",
+    "description": "Add source IP to WAF IP blacklist for 24 hours. Suitable for automated SQLi/XSS/LFI scanners.",
+    "status": "active",
+    "actions": ["block_ip", "create_waf_rule", "notify_security_ops"],
+    "applicableAttackTypes": ["sqli", "xss", "lfi", "scanner_behavior"]
+  },
+  {
+    "policyId": "policy-ip-block-permanent",
+    "name": "Block Attacker IP — Permanent",
+    "description": "Permanently blacklist IP after human review. Requires manager approval. For confirmed malicious actors.",
+    "status": "active",
+    "actions": ["block_ip_permanent", "create_waf_rule", "notify_manager"],
+    "applicableAttackTypes": ["sqli", "rce", "data_exfiltration"]
+  },
+  {
+    "policyId": "policy-isolate-host",
+    "name": "Isolate Compromised Host",
+    "description": "Isolate ECS instance from network via Security Center. Preserves forensic evidence. Reversible.",
+    "status": "active",
+    "actions": ["isolate_instance", "create_snapshot", "notify_incident_response"],
+    "applicableAttackTypes": ["rce", "webshell", "malware", "crypto_mining"]
+  },
+  {
+    "policyId": "policy-vuln-remediate",
+    "name": "Apply Vulnerability Fix",
+    "description": "Execute Security Center vulnerability fix (patching, config change). For verified CVEs with known fixes.",
+    "status": "active",
+    "actions": ["apply_fix", "verify_fix", "create_ticket"],
+    "applicableAttackTypes": ["vulnerability", "cve_exploit"]
+  },
+  {
+    "policyId": "policy-notify-only",
+    "name": "Notify Security Operations Only",
+    "description": "Log event and notify SOC team without automated action. For MEDIUM/LOW severity events.",
+    "status": "active",
+    "actions": ["create_ticket", "notify_security_ops"],
+    "applicableAttackTypes": ["brute_force", "recon", "policy_violation"]
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "type": "compliance_nist",
+    "title": "NIST Cybersecurity Framework v2.0 — Full Controls",
+    "source": "security-knowledge-base",
+    "lastUpdated": "2026-06-01T00:00:00Z",
+    "description": "Complete NIST CSF controls including IDENTIFY, PROTECT, DETECT, RESPOND, RECOVER functions mapped to Security Center features."
+  },
+  {
+    "type": "compliance_soc2",
+    "title": "SOC 2 Type II — CC6 Control Suite",
+    "source": "security-knowledge-base",
+    "lastUpdated": "2026-05-15T00:00:00Z",
+    "description": "SOC 2 CC6 logical and physical access controls. Includes CC6.8 (change management) guardrail details."
+  },
+  {
+    "type": "runbook_waf_triage",
+    "title": "RUN-SEC-042 — WAF Incident Triage and Response",
+    "source": "security-knowledge-base",
+    "lastUpdated": "2026-06-10T00:00:00Z",
+    "description": "Standard operating procedure for WAF alert triage: initial assessment, attack validation, IP investigation, and escalation criteria."
+  },
+  {
+    "type": "policy_change_mgmt",
+    "title": "Change Management Policy — Security Operations",
+    "source": "security-knowledge-base",
+    "lastUpdated": "2026-04-20T00:00:00Z",
+    "description": "Policy governing all production security changes: approval workflow, rollback procedures, emergency change process, and audit requirements."
+  },
+  {
+    "type": "trusted_networks",
+    "title": "Trusted Networks and Monitoring IPs",
+    "source": "security-knowledge-base",
+    "lastUpdated": "2026-06-14T00:00:00Z",
+    "description": "Whitelist of corporate VPN ranges, CI/CD runner IPs, and Security Operations monitoring IPs. Used to filter false positives from attacker lists."
+  },
+  {
+    "type": "asset_inventory",
+    "title": "Asset Inventory — Production Topology",
+    "source": "security-knowledge-base",
+    "lastUpdated": "2026-06-14T00:00:00Z",
+    "description": "Topology map of production assets: web tier (2 ECS, ALB), database tier (1 ECS, primary), monitoring (1 ECS), and dev tier (1 ECS). Includes SOC 2 scope boundaries."
+  }
+]

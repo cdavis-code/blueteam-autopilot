@@ -1,0 +1,62 @@
+[
+  {
+    "ruleId": "waf-rule-scanner-001",
+    "ruleName": "Directory Scanner Detection",
+    "hitCount": 342,
+    "attackType": "scanner_behavior"
+  },
+  {
+    "ruleId": "waf-rule-sqli-042",
+    "ruleName": "SQL Injection — UNION SELECT Pattern",
+    "hitCount": 215,
+    "attackType": "sqli"
+  },
+  {
+    "ruleId": "waf-rule-xss-018",
+    "ruleName": "Cross-Site Scripting — Script Tag Injection",
+    "hitCount": 87,
+    "attackType": "xss"
+  },
+  {
+    "ruleId": "waf-rule-lfi-005",
+    "ruleName": "Local File Inclusion — Path Traversal",
+    "hitCount": 64,
+    "attackType": "lfi"
+  },
+  {
+    "ruleId": "waf-rule-sqli-007",
+    "ruleName": "SQL Injection — Boolean-Based Blind",
+    "hitCount": 53,
+    "attackType": "sqli"
+  },
+  {
+    "ruleId": "waf-rule-rfi-003",
+    "ruleName": "Remote File Inclusion — URL Injection",
+    "hitCount": 41,
+    "attackType": "rfi"
+  },
+  {
+    "ruleId": "waf-rule-cmd-012",
+    "ruleName": "Command Injection — OS Command Execution",
+    "hitCount": 28,
+    "attackType": "command_injection"
+  },
+  {
+    "ruleId": "waf-rule-xss-022",
+    "ruleName": "Cross-Site Scripting — Event Handler Injection",
+    "hitCount": 19,
+    "attackType": "xss"
+  },
+  {
+    "ruleId": "waf-rule-scanner-008",
+    "ruleName": "Vulnerability Scanner User-Agent Detection",
+    "hitCount": 15,
+    "attackType": "scanner_behavior"
+  },
+  {
+    "ruleId": "waf-rule-sqli-015",
+    "ruleName": "SQL Injection — Time-Based Blind",
+    "hitCount": 11,
+    "attackType": "sqli"
+  }
+]

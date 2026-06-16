@@ -1,0 +1,62 @@
+[
+  {
+    "sourceIp": "203.0.113.102",
+    "hitCount": 512,
+    "attackTypes": ["scanner_behavior", "sqli"],
+    "geoLocation": "Singapore, SG (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.100",
+    "hitCount": 187,
+    "attackTypes": ["sqli", "lfi", "xss"],
+    "geoLocation": "Jakarta, ID (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.105",
+    "hitCount": 143,
+    "attackTypes": ["scanner_behavior", "command_injection"],
+    "geoLocation": "Moscow, RU (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.101",
+    "hitCount": 98,
+    "attackTypes": ["xss"],
+    "geoLocation": "Hanoi, VN (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.110",
+    "hitCount": 76,
+    "attackTypes": ["sqli", "rfi"],
+    "geoLocation": "Amsterdam, NL (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.106",
+    "hitCount": 55,
+    "attackTypes": ["lfi"],
+    "geoLocation": "Beijing, CN (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.107",
+    "hitCount": 42,
+    "attackTypes": ["scanner_behavior"],
+    "geoLocation": "Lagos, NG (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.103",
+    "hitCount": 31,
+    "attackTypes": ["sqli"],
+    "geoLocation": "Bangkok, TH (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.108",
+    "hitCount": 24,
+    "attackTypes": ["xss", "command_injection"],
+    "geoLocation": "Sao Paulo, BR (EXAMPLE)"
+  },
+  {
+    "sourceIp": "203.0.113.109",
+    "hitCount": 18,
+    "attackTypes": ["rfi"],
+    "geoLocation": "Frankfurt, DE (EXAMPLE)"
+  }
+]

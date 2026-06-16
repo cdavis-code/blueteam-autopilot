@@ -1,0 +1,26 @@
+{
+  "eventId": "evt-demo-20260614-001",
+  "title": "SQL Injection Attack on Production WAF",
+  "severity": "HIGH",
+  "sourceProduct": "WAF",
+  "attackerIps": ["203.0.113.42", "203.0.113.43"],
+  "attackChain": [
+    {"stage": "Reconnaissance", "description": "Automated scanner (sqlmap) probed /search endpoint with fingerprinting payloads."},
+    {"stage": "Weaponization", "description": "Attacker crafted UNION-based SQL injection payload targeting MySQL backend."},
+    {"stage": "Delivery", "description": "Payload delivered via HTTP GET parameter: ?id=1' UNION SELECT NULL,user(),database()--"},
+    {"stage": "Exploitation", "description": "WAF detected and blocked the SQLi attempt. Rule: sqli-union-select triggered."},
+    {"stage": "Impact", "description": "All 47 malicious requests blocked by WAF. No data exfiltration occurred."}
+  ],
+  "affectedAssets": [
+    {"assetId": "i-prod-web-01", "name": "production-web-server-01", "role": "web-server"},
+    {"assetId": "i-prod-web-02", "name": "production-web-server-02", "role": "web-server"}
+  ],
+  "cves": ["CVE-2024-1234"],
+  "relatedAlerts": ["alert-demo-waf-sqli-001", "alert-demo-waf-sqli-002"],
+  "trustedNetworkMatch": false,
+  "geoLocation": {
+    "203.0.113.42": {"country": "RU", "city": "Moscow", "isp": "Example ISP Russia"},
+    "203.0.113.43": {"country": "CN", "city": "Shanghai", "isp": "Example ISP China"}
+  },
+  "note": "EXAMPLE — fixture data for demo mode."
+}

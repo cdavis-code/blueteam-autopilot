@@ -1,0 +1,57 @@
+[
+  {
+    "assetId": "i-prod-web-01",
+    "name": "production-web-server-01",
+    "ip": "10.0.1.10",
+    "publicIp": "203.0.113.10",
+    "region": "ap-southeast-1",
+    "type": "ECS",
+    "os": "Alibaba Cloud Linux 3",
+    "tags": ["SOC2-scope", "production", "web"],
+    "status": "online"
+  },
+  {
+    "assetId": "i-prod-web-02",
+    "name": "production-web-server-02",
+    "ip": "10.0.1.11",
+    "publicIp": "203.0.113.11",
+    "region": "ap-southeast-1",
+    "type": "ECS",
+    "os": "Alibaba Cloud Linux 3",
+    "tags": ["SOC2-scope", "production", "web"],
+    "status": "online"
+  },
+  {
+    "assetId": "i-prod-db-01",
+    "name": "production-db-primary",
+    "ip": "10.0.2.10",
+    "publicIp": null,
+    "region": "ap-southeast-1",
+    "type": "ECS",
+    "os": "Alibaba Cloud Linux 3",
+    "tags": ["SOC2-scope", "production", "database", "sensitive"],
+    "status": "online"
+  },
+  {
+    "assetId": "i-dev-api-01",
+    "name": "dev-api-server",
+    "ip": "10.0.3.10",
+    "publicIp": "203.0.113.30",
+    "region": "ap-southeast-1",
+    "type": "ECS",
+    "os": "Ubuntu 22.04",
+    "tags": ["development", "api"],
+    "status": "online"
+  },
+  {
+    "assetId": "i-monitoring-01",
+    "name": "monitoring-server",
+    "ip": "10.0.99.10",
+    "publicIp": "203.0.113.99",
+    "region": "ap-southeast-1",
+    "type": "ECS",
+    "os": "Alibaba Cloud Linux 3",
+    "tags": ["monitoring", "management"],
+    "status": "online"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "eventId": "evt-demo-20260614-001",
+    "title": "SQL Injection Attack on Production WAF",
+    "severity": "HIGH",
+    "status": "open",
+    "affectedAssets": ["i-prod-web-01", "i-prod-web-02"],
+    "sourceProduct": "WAF",
+    "createdAt": "2026-06-14T08:23:15Z",
+    "summary": "Automated SQLi scanner detected targeting production web application search endpoint."
+  },
+  {
+    "eventId": "evt-demo-20260614-002",
+    "title": "Cross-Site Scripting (XSS) Attempt",
+    "severity": "MEDIUM",
+    "status": "open",
+    "affectedAssets": ["i-prod-web-01"],
+    "sourceProduct": "WAF",
+    "createdAt": "2026-06-14T08:45:02Z",
+    "summary": "Reflected XSS payload detected in query parameter targeting login page."
+  },
+  {
+    "eventId": "evt-demo-20260614-003",
+    "title": "Critical RCE Vulnerability — OpenSSL CVE-2024-5678",
+    "severity": "CRITICAL",
+    "status": "open",
+    "affectedAssets": ["i-prod-db-01"],
+    "sourceProduct": "CWPP",
+    "createdAt": "2026-06-14T07:10:33Z",
+    "summary": "OpenSSL buffer overflow vulnerability (CVSS 9.8) detected on primary database server."
+  },
+  {
+    "eventId": "evt-demo-20260614-004",
+    "title": "LFI Path Traversal Attack",
+    "severity": "HIGH",
+    "status": "open",
+    "affectedAssets": ["i-prod-web-02"],
+    "sourceProduct": "WAF",
+    "createdAt": "2026-06-14T09:12:44Z",
+    "summary": "Local File Inclusion attempt via directory traversal in file upload endpoint."
+  },
+  {
+    "eventId": "evt-demo-20260614-005",
+    "title": "Brute Force SSH Login Attempt",
+    "severity": "MEDIUM",
+    "status": "in_progress",
+    "affectedAssets": ["i-dev-api-01"],
+    "sourceProduct": "CloudFirewall",
+    "createdAt": "2026-06-14T06:30:00Z",
+    "summary": "Distributed SSH brute force from 15 source IPs against dev API server."
+  },
+  {
+    "eventId": "evt-demo-20260614-006",
+    "title": "Suspicious Outbound Data Transfer",
+    "severity": "LOW",
+    "status": "open",
+    "affectedAssets": ["i-prod-web-01"],
+    "sourceProduct": "CWPP",
+    "createdAt": "2026-06-14T10:05:22Z",
+    "summary": "Unusual outbound traffic pattern detected from production web server (potential data exfiltration)."
+  }
+]

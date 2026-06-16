@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActionProposal",
+  "description": "Structured action proposal for human approval",
+  "type": "object",
+  "required": ["reasoning", "recommendedPolicyId", "expectedEffects", "rollbackPlan", "riskLevel"],
+  "properties": {
+    "reasoning": {
+      "type": "string",
+      "description": "Why this action is needed"
+    },
+    "recommendedPolicyId": {
+      "type": "string",
+      "description": "Response policy ID to execute",
+      "examples": ["pol-xxx"]
+    },
+    "expectedEffects": {
+      "type": "string",
+      "description": "What will change after execution",
+      "examples": ["Block IP 1.2.3.4 for 24h"]
+    },
+    "rollbackPlan": {
+      "type": "string",
+      "description": "How to undo if issues arise"
+    },
+    "riskLevel": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH"],
+      "description": "Risk level of the action"
+    },
+    "eventId": {
+      "type": "string",
+      "description": "Associated security event ID (optional)"
+    },
+    "trustedNetworkMatch": {
+      "type": "boolean",
+      "description": "Whether source IP matched trusted network",
+      "default": false
+    },
+    "complianceControls": {
+      "type": "array",
+      "description": "Applicable compliance controls",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}
