@@ -1,3 +1,11 @@
+---
+document_id: asset-inventory
+version: "2026.1"
+source: dynamic
+discovery_tool: list_assets
+last_updated: "2026-06-14"
+---
+
 # Asset Inventory
 
 Asset topology reference for BlueTeam Autopilot investigations.

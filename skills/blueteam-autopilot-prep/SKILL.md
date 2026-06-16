@@ -748,6 +748,51 @@ aliyun ecs DescribeInstances --region "$ALIBABA_REGION" --output json > /tmp/ecs
 
 **Note:** Asset inventory is typically discovered dynamically via `list_assets` MCP tool at runtime. Pre-generating the document is optional and for reference purposes only.
 
+#### 7.4 Configure GRC Policy Sources (Recommended)
+
+**Action:** Run the GRC policy configuration wizard to set up compliance framework sync from your GRC tool (CISO Assistant Community or compatible).
+
+```bash
+# Run GRC policy configuration wizard
+./scripts/configure-policies.sh
+```
+
+**What this does:**
+- Reads current `policies.json` and displays policy source status for all entries
+- Prompts for GRC provider connection details (CISO Assistant URL, credentials)
+- Tests GRC provider connectivity via authentication endpoint
+- Discovers available compliance frameworks from the GRC instance
+- Auto-maps local policies to GRC frameworks by name matching
+- Option to enable/disable individual policies
+- Writes updated `policies.json` with provider config and sync settings
+
+**If wizard fails:**
+
+| Error | Cause | Remedy |
+|-------|-------|--------|
+| `policies.json not found` | GRC integration files not installed | Verify `../blueteam-autopilot-knowledge/policies.json` exists |
+| `python3 not found` | Missing Python dependency | Install Python 3.8+: `brew install python3` |
+| `GRC connection failed` | Network/auth issue | Verify CISO Assistant URL and credentials; try `GRC_MODE=demo` for offline testing |
+| `No frameworks discovered` | GRC instance empty or API mismatch | Check CISO Assistant has libraries loaded; verify API version |
+
+**Post-wizard action:**
+- If GRC policies were configured for sync, run initial sync:
+  ```bash
+  cd ../blueteam-autopilot-knowledge/scripts
+  ./grc-sync.sh
+  ```
+- If using demo mode for testing, set `GRC_MODE=demo` before running `configure-policies.sh`
+- For CISO Assistant Community, ensure the instance is running and accessible at the configured URL
+
+**GRC Provider Architecture:**
+
+The GRC integration uses a provider plugin pattern. See `../blueteam-autopilot-knowledge/grc-providers/_template.sh` for the provider contract. The CISO Assistant Community provider (`ciso-assistant.sh`) implements:
+- `grc_connect()` — Authenticates via `POST /api/iam/login/`
+- `grc_list_frameworks()` — Lists stored libraries via `GET /api/stored-libraries/`
+- `grc_get_framework(id)` — Exports controls via `GET /api/requirement-nodes/`
+
+> **Demo Mode:** Set `GRC_MODE=demo` to test GRC integration without a live CISO Assistant instance. Demo mode provides fixture data for NIST CSF v2.0 and SOC2 frameworks.
+
 ---
 
 ### Stage 8: Environment Readiness Summary
@@ -786,7 +831,9 @@ After completing all validation and generation stages, produce a comprehensive r
   │ 6. End-to-end test       │ ✅/❌   │ Logs flowing  │
   │ 7a. Generate configs     │ ✅/❌   │ Auto-generated│
   │ 7b. Validate configs     │ ✅/❌   │ All checks ✔  │
+  │ 7c. GRC policy config    │ ✅/❌   │ Wizard done   │
   │ 8. Readiness summary     │ ✅/❌   │ Complete      │
+  │ 9. GRC compliance sync   │ ✅/❌   │ Policies: N    │
   └──────────────────────────────────────────────────┘
 
   RESULT: <READY / NEEDS ATTENTION>
@@ -808,7 +855,119 @@ After completing all validation and generation stages, produce a comprehensive r
 - **If READY:** Environment is fully configured. Proceed to use BlueTeam Autopilot skills for incident response.
 - **If NEEDS ATTENTION:** Address listed issues, then re-run this skill to validate.
 
+---
 
+### Stage 9: GRC Compliance Sync
+
+> **OPTIONAL:** This stage configures automated compliance framework sync from GRC tools.
+> Skip if you do not use a GRC platform or prefer manual compliance document management.
+
+After environment validation is complete, configure the GRC (Governance, Risk, and Compliance) integration to keep compliance framework documents synchronized with your GRC tool of record.
+
+#### 9.1 GRC Provider Architecture
+
+The GRC integration uses a provider plugin pattern under `blueteam-autopilot-knowledge/`:
+
+```
+blueteam-autopilot-knowledge/
+├── policies.json              # Policy manifest — single source of truth
+├── grc-providers/
+│   ├── _template.sh            # Provider contract (3 functions)
+│   └── ciso-assistant.sh       # CISO Assistant Community provider
+├── scripts/
+│   ├── grc-sync.sh             # Sync orchestration (supports --list, --dry-run)
+│   ├── grc-webhook.sh          # Event-driven webhook receiver
+│   └── fetch-knowledge.sh      # Source-priority document resolution
+├── documents/
+│   ├── grc-synced/             # GRC-synced document cache
+│   └── archive/                # Pre-sync backups (ISO-timestamped)
+└── sync-log.jsonl              # Append-only JSONL sync audit log
+```
+
+Each GRC provider implements three contract functions defined in `_template.sh`:
+- `grc_connect()` — Authenticate and validate connectivity, returns 0/1
+- `grc_list_frameworks()` — List available compliance frameworks, outputs JSON array
+- `grc_get_framework(framework_id)` — Export a framework's controls as Markdown to stdout
+
+#### 9.2 Supported GRC Tools
+
+| Provider Script | GRC Tool | Framework Count | Status |
+|----------------|----------|-----------------|--------|
+| `ciso-assistant.sh` | [CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community) | 150+ built-in | ✅ Ready |
+
+**CISO Assistant Community API endpoints used:**
+- `POST /api/iam/login/` — Token-based authentication
+- `GET /api/stored-libraries/` — List built-in framework libraries
+- `GET /api/requirement-nodes/?library=<id>` — Export control/requirement nodes
+
+#### 9.3 Source-Priority Resolution
+
+When `fetch-knowledge.sh` is called for a document, the resolution chain is:
+
+1. **GRC-synced version** (`documents/grc-synced/<doc>.md`) — used if `source=grc` in `policies.json` and sync has been performed
+2. **Bundled default** (`documents/<doc>.md`) — fallback when GRC is enabled but document hasn't been synced yet
+3. **Warning** — logged to stderr if GRC is enabled but document hasn't been synced, with instructions to run `grc-sync.sh`
+
+#### 9.4 Sync Commands
+
+```bash
+# List all policies and their sync status
+cd ../blueteam-autopilot-knowledge/scripts
+./grc-sync.sh --list
+
+# Preview what would be synced (no writes to disk)
+./grc-sync.sh --dry-run
+
+# Sync all GRC-enabled policies
+./grc-sync.sh
+
+# Sync a specific policy only
+./grc-sync.sh nist-csf
+./grc-sync.sh soc2-cc6
+
+# Test with demo mode (no live GRC instance needed)
+GRC_MODE=demo ./grc-sync.sh --dry-run
+GRC_MODE=demo ./grc-sync.sh nist-csf
+```
+
+#### 9.5 Demo Mode
+
+For offline testing without a live GRC instance, set `GRC_MODE=demo`. Demo mode uses pre-canned fixture data embedded in the provider script for NIST CSF v2.0 and SOC2 frameworks. No network calls are made.
+
+```bash
+# Demo: List available frameworks (fixture data)
+GRC_MODE=demo ../grc-providers/ciso-assistant.sh grc_list_frameworks
+
+# Demo: Export NIST CSF controls
+GRC_MODE=demo ../grc-providers/ciso-assistant.sh grc_get_framework "nist-csf"
+```
+
+#### 9.6 Readiness Check for GRC
+
+After completing GRC configuration, verify with:
+
+```bash
+cd ../blueteam-autopilot-knowledge/scripts
+./grc-sync.sh --list
+```
+
+**Expected output:** Each GRC-enabled policy shows sync status, last sync timestamp, and document version.
+
+#### 9.7 GRC Readiness Report Entry
+
+Add the following row to the Stage 8 readiness report when GRC is configured:
+
+```
+│ 9. GRC compliance sync     │ ✅/❌   │ Policies: N    │
+```
+
+**Integration Points:**
+- `configure-policies.sh` (prep skill) — Interactive GRC setup wizard
+- `grc-sync.sh` (knowledge skill) — Sync orchestration
+- `grc-webhook.sh` (knowledge skill) — Event-driven sync trigger
+- `policies.json` (knowledge skill) — Policy manifest and provider config
+
+---
 
 ## Remediation Quick Reference
 

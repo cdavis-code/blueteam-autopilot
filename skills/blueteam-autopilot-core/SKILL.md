@@ -45,6 +45,9 @@ For each incident you:
 | `list_assets` | List cloud assets (ECS instances) registered in Security Center |
 | `list_knowledge_documents` | List all available knowledge documents (types, titles, source) |
 | `get_knowledge_document` | Fetch a specific knowledge document by type (compliance, runbooks, policies) |
+| `query_grc_framework` | Query live GRC framework requirements and control status (CISO Assistant MCP) |
+| `query_grc_compliance` | Check compliance audit progress and gap analysis (CISO Assistant MCP) |
+| `query_vanta_compliance` | Query live Vanta controls, tests, evidence, and vendor risk (Vanta MCP) |
 
 For detailed tool parameters and examples, see [references/mcp-tools.md](references/mcp-tools.md).
 
@@ -71,6 +74,16 @@ regardless of initial severity scoring.
 ### Compliance
 - **NIST CSF:** PR.PT-4 (Network Bounding), DE.AE-2 (Anomaly Detection), RS.RP-1 (Response Planning)
 - **SOC 2:** CC6.1 (Boundary Protection), CC6.8 (Unauthorized Activity Triage)
+
+> **GRC Sync:** Compliance controls above may be sourced from a GRC tool (e.g., CISO Assistant Community)
+> via the knowledge skill's `grc-sync.sh` mechanism. When GRC sync is enabled, the controls in
+> [blueteam-autopilot-knowledge](../blueteam-autopilot-knowledge/) are the authoritative source.
+> Run `./scripts/grc-sync.sh --list` from the knowledge skill to check sync status.
+
+> **GRC MCP Live Query:** When CISO Assistant or Vanta MCP servers are configured, the agent can
+> query live GRC data directly during incident response — checking control status, framework
+> requirements, and vendor risk posture in real time. Falls back to synced local documents when
+> MCP is unavailable. See [references/mcp-tools.md](references/mcp-tools.md) for configuration.
 
 ### Change Management
 Firewall/ACL changes require human authorization. Never execute state-changing

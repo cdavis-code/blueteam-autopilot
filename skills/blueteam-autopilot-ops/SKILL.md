@@ -43,7 +43,7 @@ Or export directly for temporary overrides:
 export SECURITY_CENTER_MODE=demo
 ```
 
-When `SECURITY_CENTER_MODE=demo`, all scripts read from `fixtures/*.json`
+When `SECURITY_CENTER_MODE=demo`, all scripts read from `../blueteam-autopilot-core/fixtures/*.json`
 instead of calling `aliyun` CLI. No Alibaba Cloud credentials required.
 
 ---
@@ -54,21 +54,21 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 | # | MCP Tool | CLI Script | Demo Fixture | Alibaba API | Category |
 |---|----------|------------|-------------|-------------|----------|
-| 1 | `ping` | `ping.sh` | `fixtures/ping.json` | `aliyun version` + credential check | Health |
-| 2 | `get_account_context` | `get-account-context.sh` | `fixtures/account_context.json` | `sas describe-version-config` | Context |
-| 3 | `list_security_events` | `list-events.sh` | `fixtures/events_recent.json` | `sas describe-susp-events` | Events |
-| 4 | `get_security_event_detail` | `get-event-detail.sh` | `fixtures/event_detail.json` | `sas describe-susp-event-detail` | Events |
-| 5 | `list_alerts_for_event` | `list-alerts.sh` | `fixtures/alerts.json` | `sas describe-susp-event-detail` (extract AlertList) | Events |
-| 6 | `list_vulnerabilities` | `list-vulnerabilities.sh` | `fixtures/vulnerabilities.json` | `sas describe-vul-list` | Vulnerabilities |
-| 7 | `get_vulnerability_detail` | `get-vulnerability-detail.sh` | `fixtures/vulnerability_detail.json` | `sas describe-vul-details` | Vulnerabilities |
-| 8 | `list_response_policies` | `list-response-policies.sh` | `fixtures/response_policies.json` | `siem-socket list-automate-response-configs` | Response |
-| 9 | `execute_response_policy` | `execute-response-policy.sh` | `fixtures/response_policies.json` (simulated) | `siem-socket execute-automate-response` | Response |
-| 10 | `get_waf_instance_info` | `get-waf-instance.sh` | `fixtures/waf_instance.json` | `waf-openapi describe-instance` | WAF |
-| 11 | `list_waf_security_events` | `list-waf-events.sh` | `fixtures/waf_events.json` | `sls GetLogs` (WAF logstore) | WAF |
-| 12 | `list_waf_top_rules` | `list-waf-top-rules.sh` | `fixtures/waf_top_rules.json` | `waf-openapi describe-rule-hits-top-rule-id` | WAF |
-| 13 | `list_waf_top_ips` | `list-waf-top-ips.sh` | `fixtures/waf_top_ips.json` | `waf-openapi describe-rule-hits-top-client-ip` | WAF |
-| 14 | `list_assets` | `list-assets.sh` | `fixtures/assets.json` | `sas describe-cloud-center-instances` | Assets |
-| 15 | `list_knowledge_documents` | `list-knowledge.sh` | `fixtures/knowledge_list.json` | Local file discovery (no API) | Knowledge |
+| 1 | `ping` | `ping.sh` | `../blueteam-autopilot-core/fixtures/ping.json` | `aliyun version` + credential check | Health |
+| 2 | `get_account_context` | `get-account-context.sh` | `../blueteam-autopilot-core/fixtures/account_context.json` | `sas describe-version-config` | Context |
+| 3 | `list_security_events` | `list-events.sh` | `../blueteam-autopilot-core/fixtures/events_recent.json` | `sas describe-susp-events` | Events |
+| 4 | `get_security_event_detail` | `get-event-detail.sh` | `../blueteam-autopilot-core/fixtures/event_detail.json` | `sas describe-susp-event-detail` | Events |
+| 5 | `list_alerts_for_event` | `list-alerts.sh` | `../blueteam-autopilot-core/fixtures/alerts.json` | `sas describe-susp-event-detail` (extract AlertList) | Events |
+| 6 | `list_vulnerabilities` | `list-vulnerabilities.sh` | `../blueteam-autopilot-core/fixtures/vulnerabilities.json` | `sas describe-vul-list` | Vulnerabilities |
+| 7 | `get_vulnerability_detail` | `get-vulnerability-detail.sh` | `../blueteam-autopilot-core/fixtures/vulnerability_detail.json` | `sas describe-vul-details` | Vulnerabilities |
+| 8 | `list_response_policies` | `list-response-policies.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` | `siem-socket list-automate-response-configs` | Response |
+| 9 | `execute_response_policy` | `execute-response-policy.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` (simulated) | `siem-socket execute-automate-response` | Response |
+| 10 | `get_waf_instance_info` | `get-waf-instance.sh` | `../blueteam-autopilot-core/fixtures/waf_instance.json` | `waf-openapi describe-instance` | WAF |
+| 11 | `list_waf_security_events` | `list-waf-events.sh` | `../blueteam-autopilot-core/fixtures/waf_events.json` | `sls GetLogs` (WAF logstore) | WAF |
+| 12 | `list_waf_top_rules` | `list-waf-top-rules.sh` | `../blueteam-autopilot-core/fixtures/waf_top_rules.json` | `waf-openapi describe-rule-hits-top-rule-id` | WAF |
+| 13 | `list_waf_top_ips` | `list-waf-top-ips.sh` | `../blueteam-autopilot-core/fixtures/waf_top_ips.json` | `waf-openapi describe-rule-hits-top-client-ip` | WAF |
+| 14 | `list_assets` | `list-assets.sh` | `../blueteam-autopilot-core/fixtures/assets.json` | `sas describe-cloud-center-instances` | Assets |
+| 15 | `list_knowledge_documents` | `list-knowledge.sh` | `../blueteam-autopilot-core/fixtures/knowledge_list.json` | Local file discovery (no API) | Knowledge |
 | 16 | `get_knowledge_document` | `get-knowledge.sh` | No fixture needed — reads local markdown files | Local file read (no API) | Knowledge |
 
 **Utility script** (not an MCP tool but used by behaviors):

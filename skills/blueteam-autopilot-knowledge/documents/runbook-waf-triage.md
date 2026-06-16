@@ -1,3 +1,10 @@
+---
+document_id: runbook-waf-triage
+version: "2026.1"
+source: manual
+last_updated: "2026-06-14"
+---
+
 # INTERNAL RUNBOOK: WAF PERIMETER THREAT TRIAGE AND RECOVERY
 **Document ID:** RUN-SEC-042  
 **Version:** 2026.1  

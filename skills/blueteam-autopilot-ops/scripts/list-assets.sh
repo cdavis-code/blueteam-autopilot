@@ -16,7 +16,7 @@ fi
 
 # ----- Demo mode: return fixture data -----
 if [ "${SECURITY_CENTER_MODE:-real}" = "demo" ]; then
-  FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../fixtures"
+  FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
   FIXTURE_FILE="$FIXTURE_DIR/assets.json"
   if [ -f "$FIXTURE_FILE" ]; then
     cat "$FIXTURE_FILE"

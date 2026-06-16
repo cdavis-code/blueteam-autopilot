@@ -1,3 +1,11 @@
+---
+document_id: trusted-networks
+version: "2026.1"
+source: auto-generated
+generator: skills/blueteam-autopilot-prep/scripts/generate-trusted-networks.sh
+last_updated: "2026-06-15"
+---
+
 # Trusted Networks
 
 > **CRITICAL:** This file is auto-generated. Do NOT edit manually.

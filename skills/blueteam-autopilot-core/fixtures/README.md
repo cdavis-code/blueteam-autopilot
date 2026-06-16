@@ -38,13 +38,13 @@ To capture fresh fixture data from a live Alibaba Cloud environment:
 
 ```bash
 # Capture security events (run from skills/ directory)
-aliyun sas describe-susp-events --region "$ALIBABA_REGION" > fixtures/events_recent.json
+aliyun sas describe-susp-events --region "$ALIBABA_REGION" > blueteam-autopilot-core/fixtures/events_recent.json
 
 # Capture vulnerabilities
-aliyun sas describe-vul-list --region "$ALIBABA_REGION" > fixtures/vulnerabilities.json
+aliyun sas describe-vul-list --region "$ALIBABA_REGION" > blueteam-autopilot-core/fixtures/vulnerabilities.json
 
 # Capture WAF events
-aliyun sls GetLogs --project "wafnew-project-..." --logstore "wafnew-logstore" ... > fixtures/waf_events.json
+aliyun sls GetLogs --project "wafnew-project-..." --logstore "wafnew-logstore" ... > blueteam-autopilot-core/fixtures/waf_events.json
 ```
 
 ### Sanitizing for Demo

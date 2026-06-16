@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "description": "Policy manifest for BlueTeam Autopilot. Declares which compliance frameworks, runbooks, and policies are active, their source (manual / grc / auto-generated), and sync configuration.",
+  "policies": [
+    {
+      "id": "nist-csf",
+      "title": "NIST Cybersecurity Framework",
+      "type": "compliance",
+      "source": "grc",
+      "grc": {
+        "provider": "ciso-assistant",
+        "library_name": "NIST Cyber Security Framework (CSF) v2.0",
+        "framework_id": null
+      },
+      "sync": {
+        "mode": "manual",
+        "last_sync": null,
+        "grc_version": null
+      },
+      "document": "documents/nist-csf.md",
+      "controls": ["PR.PT-4", "DE.AE-2", "RS.RP-1"]
+    },
+    {
+      "id": "soc2-cc6",
+      "title": "SOC 2 Type II CC6 Controls",
+      "type": "compliance",
+      "source": "grc",
+      "grc": {
+        "provider": "ciso-assistant",
+        "library_name": "SOC2",
+        "framework_id": null
+      },
+      "sync": {
+        "mode": "manual",
+        "last_sync": null,
+        "grc_version": null
+      },
+      "document": "documents/soc2-cc6.md",
+      "controls": ["CC6.1", "CC6.8"]
+    },
+    {
+      "id": "runbook-waf-triage",
+      "title": "WAF Perimeter Threat Triage",
+      "type": "runbook",
+      "source": "manual",
+      "document": "documents/runbook-waf-triage.md"
+    },
+    {
+      "id": "trusted-networks",
+      "title": "Trusted Networks",
+      "type": "policy",
+      "source": "auto-generated",
+      "generator": "skills/blueteam-autopilot-prep/scripts/generate-trusted-networks.sh",
+      "document": "documents/trusted-networks.md"
+    },
+    {
+      "id": "asset-inventory",
+      "title": "Asset Inventory",
+      "type": "infrastructure",
+      "source": "dynamic",
+      "discovery_tool": "list_assets",
+      "document": "documents/asset-inventory.md"
+    }
+  ],
+  "grc_providers": {
+    "ciso-assistant": {
+      "enabled": false,
+      "base_url": "https://localhost:8443",
+      "verify_ssl": false,
+      "auth": {
+        "email": "",
+        "api_token": ""
+      }
+    }
+  }
+}

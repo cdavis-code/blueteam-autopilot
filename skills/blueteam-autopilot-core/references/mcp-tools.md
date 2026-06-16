@@ -392,3 +392,149 @@ Available types:
 
 CLI Alternative: ../blueteam-autopilot-knowledge/scripts/fetch-knowledge.sh <type>
 ```
+
+---
+
+## GRC Tools
+
+GRC MCP servers provide live compliance data during incident response. The
+agent queries these tools for real-time framework requirements, control
+status, and evidence — falling back to synced local documents when MCP is
+unavailable or the query is for bulk document content.
+
+**Dual-mode pattern:**
+1. **MCP live query** — for specific control lookups, compliance gap checks,
+   vendor risk questions, and framework mapping during active incidents
+2. **Synced local document** — for full document text, offline access, or
+   when MCP connectivity is unavailable (via `get_knowledge_document`)
+
+### Decision Flow
+
+```
+Agent needs compliance data?
+├─ Specific control status or framework requirement?
+│  └─ Use GRC MCP tools (live, authoritative)
+├─ Full document text for reporting?
+│  └─ Use get_knowledge_document (synced local copy)
+├─ MCP unavailable?
+│  └─ Fallback: get_knowledge_document + grc-sync.sh --list
+└─ Bulk framework export needed?
+   └─ Run: grc-sync.sh <policy_id> (batch pipeline)
+```
+
+---
+
+### CISO Assistant MCP Server
+
+**Provider:** [Intuitem CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community)
+**Reference:** [feluda.ai/mcp-servers/ciso-assistant](https://feluda.ai/mcp-servers/ciso-assistant)
+
+A local stdio MCP server wrapping the CISO Assistant REST API. Provides
+structured access to risk management, compliance audits, asset management,
+and GRC workflows.
+
+**Transport:** stdio
+
+**Command:**
+```bash
+uv --directory /path/to/ciso-assistant-community/cli run ca_mcp.py
+```
+
+**Environment Variables:**
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TOKEN` | Yes | CISO Assistant Personal Access Token |
+| `API_URL` | Yes | CISO Assistant API endpoint (e.g., `https://ciso.example.com`) |
+| `VERIFY_CERTIFICATE` | No | Set to `false` for self-signed certs (default: `true`) |
+
+**Prerequisites:** Python 3.12+, `uv`, running CISO Assistant instance, valid PAT.
+
+**Available Tools:**
+| Tool | Purpose |
+|------|---------|
+| Risk assessments | List and review risk scenarios, applied controls |
+| Compliance audits | Audit progress, gap analysis, requirement coverage |
+| Frameworks | List imported frameworks and their control mappings |
+| Asset management | Explore assets in folders, review asset risk posture |
+| Third-party risk | Manage vendors and third-party risk assessments |
+| Evidence collection | Review controls not yet implemented, evidence status |
+
+**Integration with existing pipeline:**
+This MCP server wraps the same REST API used by `grc-providers/ciso-assistant.sh`.
+Use the MCP server for interactive queries during incident response; use
+`grc-sync.sh` for scheduled batch export of full framework documents.
+
+**Configuration in policies.json:**
+```json
+{
+  "grc_providers": {
+    "ciso-assistant": {
+      "enabled": false,
+      "mcp_server": "ciso-assistant-mcp",
+      "base_url": "https://localhost:8443",
+      "verify_ssl": false,
+      "auth": {
+        "email": "",
+        "api_token": ""
+      }
+    }
+  }
+}
+```
+
+---
+
+### Vanta MCP Server
+
+**Provider:** [Vanta](https://www.vanta.com)
+**Reference:** [developer.vanta.com/docs/vanta-mcp](https://developer.vanta.com/docs/vanta-mcp)
+
+A hosted remote MCP server providing live access to Vanta compliance data
+including frameworks, controls, tests, evidence, policies, and vendor risk.
+Currently in beta.
+
+**Transport:** Remote HTTP with OAuth authentication.
+
+**Regional URLs:**
+| Region | MCP URL |
+|--------|---------|
+| United States | `https://mcp.vanta.com/mcp` |
+| Europe | `https://mcp.eu.vanta.com/mcp` |
+| Australia | `https://mcp.aus.vanta.com/mcp` |
+
+**Prerequisites:** Vanta Admin role.
+
+**Authentication:** OAuth 2.0. A browser window opens for authorization on
+first connection. Subsequent connections reuse the authorized session.
+
+**Available Tools:**
+| Tool | Purpose |
+|------|---------|
+| Frameworks | List and compare compliance frameworks (SOC 2, ISO 27001, etc.) |
+| Controls | Browse controls, framework mappings, linked evidence |
+| Tests | List failing compliance tests, inspect out-of-scope entities |
+| Evidence | Access linked evidence documents and control attestations |
+| Policies | List, download, and upload policy documents |
+| Vendors | Review vendors, run security assessments, track risk attributes |
+| Vulnerabilities | Surface vulnerable assets, monitor remediation progress |
+| Gap analysis | Enumerate framework requirements, identify coverage gaps |
+
+**Usage:**
+```
+During incident response:
+- Query live control status for affected frameworks
+- Check if failing tests relate to the incident's attack vector
+- Review vendor risk posture if incident involves a third party
+- Verify policy compliance before proposing state-changing actions
+
+Offline fallback:
+- Use get_knowledge_document(type="compliance_soc2") for synced local copy
+- Run grc-sync.sh --list to check last sync timestamp
+```
+
+**Claude Code plugin (optional):**
+Vanta provides a Claude Code plugin with remediation skills and slash commands:
+- `/vanta:fix-test` — generate IaC fixes for failing compliance tests
+- `/vanta:list-tests` — show prioritized failing tests
+
+Install via: `/plugin install vanta-mcp-plugin@claude-plugins-official`

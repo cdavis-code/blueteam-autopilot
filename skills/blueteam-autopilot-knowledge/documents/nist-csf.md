@@ -1,3 +1,12 @@
+---
+document_id: nist-csf
+version: "2026.1"
+source: bundled
+grc_provider: ciso-assistant
+framework: NIST CSF v2.0
+last_updated: "2026-06-14"
+---
+
 # ENTERPRISE COMPLIANCE FRAMEWORK: NIST CSF EXCERPT
 ## Functional Category: Detect (DE) & Respond (RS)
 

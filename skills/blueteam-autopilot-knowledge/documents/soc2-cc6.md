@@ -1,3 +1,12 @@
+---
+document_id: soc2-cc6
+version: "2026.1"
+source: bundled
+grc_provider: ciso-assistant
+framework: SOC2
+last_updated: "2026-06-14"
+---
+
 # EXECUTIVE SECURITY POLICY: SOC 2 TYPE II COMPLIANCE EXCERPT
 ## Section: Trust Services Criteria - CC6.0 (Logical Access Controls)
 
