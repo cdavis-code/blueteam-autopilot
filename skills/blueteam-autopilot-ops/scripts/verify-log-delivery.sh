@@ -17,8 +17,20 @@ if [ -z "${ALIBABA_REGION:-}" ]; then
   exit 1
 fi
 
+# Auto-discover account ID via STS if not already set
+if [ -z "${ACCOUNT_ID:-}" ]; then
+  ACCOUNT_ID=$(aliyun sts GetCallerIdentity 2>/dev/null \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('AccountId',''))" 2>/dev/null || echo "")
+  if [ -z "$ACCOUNT_ID" ]; then
+    echo "Error: Could not discover ACCOUNT_ID via 'aliyun sts GetCallerIdentity'."
+    echo "       Export it manually: export ACCOUNT_ID=<your-account-id>"
+    exit 1
+  fi
+fi
+
 echo "Verifying WAF log delivery to SLS..."
 echo "Region: $ALIBABA_REGION"
+echo "Account ID: $ACCOUNT_ID"
 echo "---"
 
 # Calculate timestamps (last 30 minutes)
@@ -26,7 +38,7 @@ TO_TS=$(date -u +%s)
 FROM_TS=$(date -u -v-30M +%s 2>/dev/null || date -u -d '30 minutes ago' +%s)
 
 # SLS project and logstore
-SLS_PROJECT="${WAF_SLS_PROJECT:-wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION}"
+SLS_PROJECT="${WAF_SLS_PROJECT:-wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION}"
 SLS_LOGSTORE="${WAF_SLS_LOGSTORE:-wafnew-logstore}"
 
 echo "Step 1: Checking SLS project..."

@@ -62,10 +62,11 @@ EOF
 # Initialize counters BEFORE discovery
 VPC_COUNT=0
 VPN_COUNT=0
+DOMAIN_COUNT=0
 
 # Discover VPCs - avoid subshell variable loss by using heredoc
 echo "Discovering VPCs in ${ALIBABA_REGION}..."
-VPCS_OUTPUT=$(aliyun vpc DescribeVpcs --region "$ALIBABA_REGION" --output json 2>&1) || {
+VPCS_OUTPUT=$(aliyun vpc DescribeVpcs --region "$ALIBABA_REGION" 2>&1) || {
   echo -e "${RED}Failed to query VPCs${NC}"
   echo "Error: ${VPCS_OUTPUT}"
   exit 1
@@ -83,7 +84,7 @@ if [ "$VPC_COUNT" -gt 0 ]; then
   # Process each VPC ID using here-string (avoids subshell)
   while IFS= read -r VPC_ID; do
     if [ -n "$VPC_ID" ]; then
-      VPC_ATTR=$(aliyun vpc DescribeVpcAttribute --region "$ALIBABA_REGION" --VpcId "$VPC_ID" --output json 2>&1) || {
+      VPC_ATTR=$(aliyun vpc DescribeVpcAttribute --region "$ALIBABA_REGION" --VpcId "$VPC_ID" 2>&1) || {
         echo -e "${YELLOW}  Warning: Failed to get attributes for ${VPC_ID}${NC}"
         continue
       }
@@ -118,14 +119,18 @@ EOF
 
 # Discover VPN Gateways - avoid subshell variable loss
 echo "Discovering VPN Gateways..."
-VPNS_OUTPUT=$(aliyun vpc DescribeVpnGateways --region "$ALIBABA_REGION" --output json 2>&1) || {
-  echo -e "${RED}Failed to query VPN Gateways${NC}"
-  echo "Error: ${VPNS_OUTPUT}"
-  exit 1
+VPNS_OUTPUT=$(aliyun vpc DescribeVpnGateways --region "$ALIBABA_REGION" 2>&1) || {
+  echo -e "${YELLOW}Warning: VPN Gateway query failed (likely Forbidden.RAM — missing vpc:DescribeVpnGateways permission)${NC}"
+  echo "Skipping VPN discovery. Add VPN gateways manually to trusted-networks.md if needed."
+  VPN_PERMISSION_DENIED=true
 }
 
-# Count VPNs
-VPN_COUNT=$(echo "$VPNS_OUTPUT" | grep -c '"VpnGatewayId"' || echo "0")
+# Count VPNs (skip if permission denied)
+if [ "${VPN_PERMISSION_DENIED:-false}" = "true" ]; then
+  VPN_COUNT=0
+else
+  VPN_COUNT=$(echo "$VPNS_OUTPUT" | grep -c '"VpnGatewayId"' || echo "0")
+fi
 
 if [ "$VPN_COUNT" -gt 0 ]; then
   echo -e "${GREEN}Found ${VPN_COUNT} VPN Gateway(s)${NC}"
@@ -148,6 +153,74 @@ if [ "$VPN_COUNT" -eq 0 ]; then
 fi
 
 echo "" >> "${OUTPUT_FILE}"
+
+# --- WAF-Protected Domain Discovery ---
+echo "Discovering WAF-protected domains..."
+PRIMARY_DOMAIN=""
+WAF_INSTANCE=$(aliyun waf-openapi DescribeInstance --region "$ALIBABA_REGION" 2>&1) || true
+WAF_INSTANCE_ID=$(echo "$WAF_INSTANCE" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('InstanceId',''))" 2>/dev/null || echo "")
+
+if [ -n "$WAF_INSTANCE_ID" ]; then
+  DOMAINS_OUTPUT=$(aliyun waf-openapi DescribeDomains \
+    --region "$ALIBABA_REGION" \
+    --InstanceId "$WAF_INSTANCE_ID" 2>&1) || true
+  DOMAIN_COUNT=$(echo "$DOMAINS_OUTPUT" | grep -c '"Domain"' || echo "0")
+
+  cat >> "${OUTPUT_FILE}" << 'EOF'
+### WAF-Protected Domains
+
+| Domain | Access Mode | Purpose |
+|--------|-------------|---------|
+EOF
+
+  if [ "$DOMAIN_COUNT" -gt 0 ]; then
+    DOMAIN_NAMES=$(echo "$DOMAINS_OUTPUT" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+domains = data.get('Domains', data.get('DomainList', []))
+for d in domains:
+    name = d.get('Domain', d.get('DomainName', ''))
+    mode = d.get('AccessMode', d.get('AccessType', 'CNAME'))
+    if name:
+        print(f'{name}|{mode}')
+" 2>/dev/null || echo "")
+
+    if [ -n "$DOMAIN_NAMES" ]; then
+      while IFS='|' read -r DNAME DMODE; do
+        if [ -n "$DNAME" ]; then
+          echo "| ${DNAME} | ${DMODE} | WAF-protected test domain |" >> "${OUTPUT_FILE}"
+        fi
+      done <<< "$DOMAIN_NAMES"
+
+      # Store first domain as primary test domain
+      PRIMARY_DOMAIN=$(echo "$DOMAIN_NAMES" | head -1 | cut -d'|' -f1)
+    fi
+  fi
+
+  if [ "$DOMAIN_COUNT" -eq 0 ] || [ -z "$PRIMARY_DOMAIN" ]; then
+    echo "| No WAF domains found | - | Add domain in WAF Console |" >> "${OUTPUT_FILE}"
+  fi
+
+  echo "" >> "${OUTPUT_FILE}"
+  if [ -n "$PRIMARY_DOMAIN" ]; then
+    echo "**Primary Test Domain:** ${PRIMARY_DOMAIN}" >> "${OUTPUT_FILE}"
+    echo "" >> "${OUTPUT_FILE}"
+  fi
+else
+  cat >> "${OUTPUT_FILE}" << 'EOF'
+### WAF-Protected Domains
+
+| Domain | Access Mode | Purpose |
+|--------|-------------|---------|
+| No WAF instance found | - | Activate WAF 3.0 first |
+
+EOF
+fi
+
+echo -e "${GREEN}Found ${DOMAIN_COUNT} WAF-protected domain(s)${NC}"
+if [ -n "$PRIMARY_DOMAIN" ]; then
+  echo -e "  Primary test domain: ${GREEN}${PRIMARY_DOMAIN}${NC}"
+fi
 
 # Add static sections
 cat >> "${OUTPUT_FILE}" << 'EOF'
@@ -200,11 +273,108 @@ cat >> "${OUTPUT_FILE}" << EOF
 **Region:** ${ALIBABA_REGION}
 **VPCs Discovered:** ${VPC_COUNT}
 **VPN Gateways:** ${VPN_COUNT}
+**WAF Domains:** ${DOMAIN_COUNT}
 EOF
+
+# --- Generate sample-attack-traffic.sh ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+ATTACK_SCRIPT="${SCRIPT_DIR}/sample-attack-traffic.sh"
+
+if [ -n "$PRIMARY_DOMAIN" ]; then
+  cat > "${ATTACK_SCRIPT}" << SCRIPTEOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =============================================================================
+# sample-attack-traffic.sh
+#
+# Auto-generated by generate-trusted-networks.sh — do not edit manually.
+# Regenerate: skills/blueteam-autopilot-prep/scripts/generate-trusted-networks.sh
+#
+# Sends sample WAF attack traffic to: ${PRIMARY_DOMAIN}
+# Region: ${ALIBABA_REGION}
+# Generated: ${TIMESTAMP}
+#
+# Prerequisites:
+#   - aliyun CLI installed and configured (credentials in .env or shell)
+#   - WAF protection mode set to Block (not Observe)
+# =============================================================================
+
+TEST_DOMAIN="${PRIMARY_DOMAIN}"
+ALIBABA_REGION="${ALIBABA_REGION}"
+# Auto-discover account ID via STS if not already set
+if [ -z "\${ACCOUNT_ID:-}" ] || [ "\${ACCOUNT_ID}" = "YOUR_ACCOUNT_ID" ]; then
+  ACCOUNT_ID=\$(aliyun sts GetCallerIdentity 2>/dev/null \\
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('AccountId',''))" 2>/dev/null || echo "")
+  if [ -z "\$ACCOUNT_ID" ]; then
+    echo "Error: Could not discover ACCOUNT_ID via 'aliyun sts GetCallerIdentity'."
+    echo "       Export it manually: export ACCOUNT_ID=<your-account-id>"
+    exit 1
+  fi
+fi
+
+echo "=== BlueTeam Autopilot: Sample Attack Traffic ==="
+echo ""
+echo "Target domain: \${TEST_DOMAIN}"
+echo "Region: \${ALIBABA_REGION}"
+echo ""
+
+echo "--- SQL Injection Probe ---"
+HTTP_CODE=\$(curl -s -o /dev/null -w "%{http_code}" -g \
+  "http://\${TEST_DOMAIN}/?id=1%27%20OR%20%271%27%3D%271")
+echo "HTTP \${HTTP_CODE} (expected: 405 — blocked by WAF)"
+echo ""
+
+echo "--- XSS Probe ---"
+HTTP_CODE=\$(curl -s -o /dev/null -w "%{http_code}" -g \
+  "http://\${TEST_DOMAIN}/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E")
+echo "HTTP \${HTTP_CODE} (expected: 405 — blocked by WAF)"
+echo ""
+
+echo "--- Path Traversal Probe ---"
+HTTP_CODE=\$(curl -s -o /dev/null -w "%{http_code}" -g \
+  "http://\${TEST_DOMAIN}/download?file=..%2F..%2Fetc%2Fpasswd")
+echo "HTTP \${HTTP_CODE} (expected: 405 — blocked by WAF)"
+echo ""
+
+echo "--- Normal Traffic (should pass) ---"
+HTTP_CODE=\$(curl -s -o /dev/null -w "%{http_code}" -g \
+  "http://\${TEST_DOMAIN}/")
+echo "HTTP \${HTTP_CODE} (expected: 200 — normal page served)"
+echo ""
+
+echo "=== Traffic sent. Waiting 30s for log propagation... ==="
+sleep 30
+
+echo ""
+echo "=== Verify logs in SLS ==="
+FROM_TS=\$(date -u -v-10M +%s 2>/dev/null || date -u -d '10 minutes ago' +%s)
+TO_TS=\$(date -u +%s)
+aliyun sls GetLogs \\
+  --project "wafnew-project-\${ACCOUNT_ID}-\${ALIBABA_REGION}" \\
+  --logstore "wafnew-logstore" \\
+  --from "\${FROM_TS}" \\
+  --to "\${TO_TS}" \\
+  --query "matched_host: \${TEST_DOMAIN}-waf | SELECT final_action, final_plugin, final_rule_type LIMIT 5" \\
+  --region "\${ALIBABA_REGION}" 2>&1 | head -40
+echo ""
+echo "Expected: Log entries with final_action: block"
+SCRIPTEOF
+
+  chmod +x "${ATTACK_SCRIPT}"
+  echo ""
+  echo -e "${GREEN}✓ Generated ${ATTACK_SCRIPT}${NC}"
+  echo "  Run: ./sample-attack-traffic.sh"
+  echo "  No \$TEST_DOMAIN env var needed — domain is hardcoded in the script."
+else
+  echo ""
+  echo -e "${YELLOW}Skipping sample-attack-traffic.sh (no WAF domains discovered)${NC}"
+fi
 
 echo ""
 echo -e "${GREEN}✓ Generated ${OUTPUT_FILE}${NC}"
 echo "  - VPCs discovered: ${VPC_COUNT}"
 echo "  - VPN gateways: ${VPN_COUNT}"
+echo "  - WAF domains: ${DOMAIN_COUNT}"
 echo ""
 echo "Review the generated file and add any monitoring service IPs manually."

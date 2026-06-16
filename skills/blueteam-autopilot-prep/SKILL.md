@@ -150,21 +150,22 @@ fi
 
 ### Stage 3: RAM Permission Validation
 
-**Check:** Verify the RAM user has the required policies attached for all BlueTeam Autopilot services.
+**Check:** Verify the RAM user has the required policies attached **before** testing service access. This avoids confusing `Forbidden.RAM` errors later.
 
 #### Required Policies
 
-| Policy | Service | Purpose |
-|--------|---------|---------|
-| `AliyunYundunSASReadOnlyAccess` | Security Center | Read alerts, events, vulnerabilities |
-| `AliyunYundunWAFFullAccess` | WAF 3.0 | Manage WAF domains, log status, response policies |
-| `AliyunLogFullAccess` | Simple Log Service (SLS) | Read WAF logs, manage logstores |
-| `AliyunYundunSASFullAccess` | Security Center (full) | Execute response policies (optional, for real mode) |
-| `AliyunRAMReadOnlyAccess` | RAM | Verify own permissions (optional but helpful) |
+| Policy | Service | Required | Purpose |
+|--------|---------|----------|---------|
+| `AliyunYundunSASReadOnlyAccess` | Security Center | **Yes** | Read alerts, events, vulnerabilities |
+| `AliyunYundunWAFv3FullAccess` | WAF 3.0 | **Yes** | Manage WAF domains, log status, response policies |
+| `AliyunLogFullAccess` | Simple Log Service (SLS) | **Yes** | Read WAF logs, manage logstores |
+| `AliyunVPCReadOnlyAccess` | VPC | **Yes** | Discover VPCs and VPN gateways for trusted network generation (Stage 7) |
+| `AliyunYundunSASFullAccess` | Security Center (full) | No | Execute response policies (optional, for real mode) |
+| `AliyunRAMReadOnlyAccess` | RAM | No | Verify own permissions (optional but helpful) |
 
-> **Self-Verification Tip:** Attaching `AliyunRAMReadOnlyAccess` lets the RAM user run `aliyun ram ListPoliciesForUser --UserName "$RAM_USERNAME"` to audit their own permissions without console access.
+#### Step 3a — Audit Current Policies
 
-**Validation commands:**
+First, check which required policies are already attached to the RAM user.
 
 ```bash
 # Load environment variables if not already set
@@ -178,6 +179,50 @@ if [ -z "$ALIBABA_ACCESS_KEY_ID" ]; then
   fi
 fi
 
+# Attempt to list policies attached to the RAM user
+# Uses $RAM_USERNAME derived from Stage 2 GetCallerIdentity Arn
+CURRENT_POLICIES=$(aliyun ram ListPoliciesForUser --UserName "$RAM_USERNAME" 2>&1)
+echo "$CURRENT_POLICIES"
+
+# Check each required policy
+REQUIRED_POLICIES=(
+  "AliyunYundunSASReadOnlyAccess"
+  "AliyunYundunWAFv3FullAccess"
+  "AliyunLogFullAccess"
+  "AliyunVPCReadOnlyAccess"
+)
+
+MISSING_POLICIES=()
+for POLICY in "${REQUIRED_POLICIES[@]}"; do
+  if echo "$CURRENT_POLICIES" | grep -q "\"PolicyName\":\"${POLICY}\""; then
+    echo "✓ $POLICY — attached"
+  else
+    echo "✗ $POLICY — MISSING"
+    MISSING_POLICIES+=("$POLICY")
+  fi
+done
+
+if [ ${#MISSING_POLICIES[@]} -eq 0 ]; then
+  echo "✓ All required policies are attached. Proceeding to service validation."
+else
+  echo ""
+  echo "⚠️  ${#MISSING_POLICIES[@]} required policy(ies) missing:"
+  for P in "${MISSING_POLICIES[@]}"; do echo "   - $P"; done
+  echo ""
+  echo "The following service validation commands will fail with Forbidden.RAM errors"
+  echo "until these policies are attached."
+fi
+```
+
+**If `ListPoliciesForUser` itself fails** (the RAM user lacks `AliyunRAMReadOnlyAccess`):
+- This is not a blocker — it only means we cannot self-audit.
+- Proceed to Step 3b to test service access directly. If those calls succeed, permissions are already in place.
+
+#### Step 3b — Validate Service Access
+
+After confirming policies are attached (or if self-audit was unavailable), test each service:
+
+```bash
 # Test Security Center access (uses 'sas' product code, not 'tds')
 aliyun sas DescribeVersionConfig --region "$ALIBABA_REGION" 2>&1 | head -5
 
@@ -187,32 +232,47 @@ aliyun waf-openapi DescribeInstance --region "$ALIBABA_REGION" 2>&1 | head -10
 # Test SLS access
 aliyun sls ListProject --region "$ALIBABA_REGION" 2>&1 | head -5
 
-# Self-verification (optional, requires AliyunRAMReadOnlyAccess)
-# Uses $RAM_USERNAME derived from Stage 2 GetCallerIdentity Arn
-aliyun ram ListPoliciesForUser --UserName "$RAM_USERNAME" 2>&1 | grep -o '"PolicyName":"[^"]*"'
+# Test VPC access (required for Stage 7 trusted network generation)
+aliyun vpc DescribeVpcs --region "$ALIBABA_REGION" 2>&1 | head -5
 ```
 
-**If FAIL — `Forbidden.RAM` or `Forbidden` errors:**
+**Expected:** Each command returns a successful JSON response (no `Forbidden` or `Forbidden.RAM` errors).
+
+#### Step 3c — Remediate Missing Policies (Manual — Recommended)
+
+**If any validation command returns `Forbidden.RAM` or `Forbidden`:**
+
+> **Security best practice:** Attaching RAM policies should be done by an administrator via the [RAM Console](https://ram.console.alibabacloud.com/users) rather than programmatically by the agent. This follows the principle of least privilege and ensures a human reviews the permission grant.
+
+**Primary method — RAM Console (recommended):**
+1. Open [RAM Console → Users → your user → Permissions → Add permissions](https://ram.console.alibabacloud.com/users)
+2. Search for and attach each missing policy:
+   - `AliyunYundunSASReadOnlyAccess`
+   - `AliyunYundunWAFv3FullAccess`
+   - `AliyunLogFullAccess`
+   - `AliyunVPCReadOnlyAccess`
+3. Wait 30-60 seconds for policy propagation
+4. Re-run the validation commands in Step 3b
+
+**Fallback method — CLI (requires a RAM admin account):**
+
+If you do not have console access but have credentials for a RAM admin user, you can attach policies via CLI:
 
 ```bash
-# Attach policies via CLI (requires RAM admin access)
-aliyun ram AttachPolicyToUser \
-  --PolicyType System \
-  --PolicyName AliyunYundunSASReadOnlyAccess \
-  --UserName "$RAM_USERNAME"
-
-aliyun ram AttachPolicyToUser \
-  --PolicyType System \
-  --PolicyName AliyunYundunWAFFullAccess \
-  --UserName "$RAM_USERNAME"
-
-aliyun ram AttachPolicyToUser \
-  --PolicyType System \
-  --PolicyName AliyunLogFullAccess \
-  --UserName "$RAM_USERNAME"
+# Run these commands using an admin account's credentials
+# Replace $RAM_USERNAME with the target user (from Stage 2)
+for POLICY in AliyunYundunSASReadOnlyAccess AliyunYundunWAFv3FullAccess AliyunLogFullAccess AliyunVPCReadOnlyAccess; do
+  aliyun ram AttachPolicyToUser \
+    --PolicyType System \
+    --PolicyName "$POLICY" \
+    --UserName "$RAM_USERNAME"
+  echo "Attached $POLICY to $RAM_USERNAME"
+done
 ```
 
-Or attach via [RAM Console → Users → your user → Permissions → Add permissions](https://ram.console.alibabacloud.com/users).
+> **Note:** The agent should **not** auto-run these `AttachPolicyToUser` commands. Instead, inform the user of the missing policies and recommend the console method. Only proceed with CLI attachment if the user explicitly requests it.
+
+After attaching policies, wait 30-60 seconds, then re-run Step 3b to confirm access.
 
 **Docs:** [RAM Policy Management](https://www.alibabacloud.com/help/en/ram/user-guide/grant-permissions-to-a-ram-user)
 
@@ -290,12 +350,14 @@ aliyun waf-openapi DescribeInstance --region "$ALIBABA_REGION" 2>&1
 After confirming WAF instance exists, verify your test domain is properly configured:
 
 ```bash
-# Replace with your actual test domain
+# Replace with your actual test domain (discovered from WAF DescribeDomains or provided by user)
 export TEST_DOMAIN="ecs.yourdomain.com"
 
 # Verify DNS points to WAF CNAME
 dig +short CNAME $TEST_DOMAIN
 ```
+
+> **Note:** Domain info is persisted in `trusted-networks.md` and `sample-attack-traffic.sh` by the generation script (Stage 7). No `.env` modification is needed — `.env` remains credentials-only.
 
 **Expected:** Should return a CNAME ending in `*.aliyunwaf*.com` (e.g., `ecs.yourdomain.com.waf.alikunlun.com`).
 
@@ -359,29 +421,48 @@ aliyun waf-openapi DescribeDomains \
 #### 5.2 WAF Log Delivery to SLS
 
 ```bash
-# Check instance-level log service status (requires explicit API version)
-# Note: Use lowercase API name format: describe-log-service-status
+# Check instance-level log service status
 aliyun waf-openapi describe-log-service-status \
   --region "$ALIBABA_REGION" \
   --instance-id "$INSTANCE_ID" \
-  --api-version 2019-09-10 2>&1
+  --api-version 2021-10-01 2>&1
 
 # Check domain-level log collection (replace DOMAIN with your domain-waf identifier)
 # Note: WAF resource identifiers use the format "domain.com-waf"
+# Note: Use --resource (singular) with API version 2021-10-01
 aliyun waf-openapi describe-resource-log-status \
   --region "$ALIBABA_REGION" \
   --instance-id "$INSTANCE_ID" \
-  --resources "your-domain.com-waf" \
-  --api-version 2019-09-10 2>&1
+  --resource "your-domain.com-waf" \
+  --api-version 2021-10-01 2>&1
 ```
 
-**Expected:** 
-- Instance level: `"Status":1` or `"LogServiceEnabled":true`
-- Domain level: `"LogEnabled":1` or similar active status
+**Expected:**
+- Instance level: `"Status": true`
+- Domain level: `"Status": true`
 
-**If check FAILS (API returns 403 — transient unavailability):**
+**To enable domain-level log collection via CLI:**
 
-**Immediate workaround — Verify via SLS directly:**
+```bash
+aliyun waf-openapi modify-resource-log-status \
+  --region "$ALIBABA_REGION" \
+  --instance-id "$INSTANCE_ID" \
+  --resource "your-domain.com-waf" \
+  --status 1 \
+  --api-version 2021-10-01 2>&1
+```
+
+**Expected:** `"Status": true`
+
+**If CLI enablement fails** (e.g., `Forbidden.RAM` or unexpected errors), use the WAF Console UI as a fallback:
+1. Go to [WAF Console → Detection and Response → Log Service](https://yundun.console.alibabacloud.com/?p=waf)
+2. Click **Authorize** if prompted (refreshes the SLS service-linked role)
+3. Toggle **Log Service** to ON (instance-level)
+4. In **Protected Domains**, find your domain (note: it may show as `domain.com-waf`) and toggle **Log Collection** to ON
+5. Wait 2-5 minutes for the configuration to propagate
+6. Generate test traffic and verify logs appear in SLS (see Stage 6)
+
+**If API check returns 403 — verify via SLS directly:**
 1. Skip the WAF API check and verify logs are actually flowing to SLS:
    ```bash
    FROM_TS=$(date -u -v-30M +%s 2>/dev/null || date -u -d '30 minutes ago' +%s)
@@ -396,25 +477,7 @@ aliyun waf-openapi describe-resource-log-status \
      --region "$ALIBABA_REGION" 2>&1 | head -50
    ```
 2. If you see WAF logs, **log delivery is working** — proceed to next stage
-3. If no logs, log delivery may not be configured — follow the console steps below
-
-**Console configuration (if logs are NOT flowing):**
-1. Go to [WAF Console → Detection and Response → Log Service](https://yundun.console.alibabacloud.com/?p=waf)
-2. Click **Authorize** if prompted (refreshes the SLS service-linked role)
-3. Toggle **Log Service** to ON (instance-level)
-4. In **Protected Domains**, find your domain (note: it may show as `domain.com-waf`) and toggle **Log Collection** to ON
-5. Wait 2-5 minutes for the configuration to propagate
-6. Generate test traffic and verify logs appear in SLS (see Stage 6)
-
-**If API check succeeds but shows log delivery is DISABLED:**
-1. Go to [WAF Console → Detection and Response → Log Service](https://yundun.console.alibabacloud.com/?p=waf)
-2. Click **Authorize** if prompted (refreshes the SLS service-linked role)
-3. Toggle **Log Service** to ON (instance-level)
-4. In **Protected Domains**, find your domain (note: it may show as `domain.com-waf`) and toggle **Log Collection** to ON
-5. Wait 2-5 minutes for the configuration to propagate
-6. Re-run the validation commands
-
-> **Known issue:** The API `modify-resource-log-status` may return `CreateEtlMetaFailed` when enabling domain-level log collection programmatically. Use the **WAF Console UI** as a workaround.
+3. If no logs, log delivery may not be configured — follow the console steps above
 
 **Docs:** [WAF Log Service Configuration](https://www.alibabacloud.com/help/en/waf/web-application-firewall-3-0/use-cases/best-practices-for-pushing-api-security-alerts)
 
@@ -867,11 +930,9 @@ aliyun sls GetLogs \
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | `Forbidden.RAM` on any API call | Missing RAM policy | Attach required policy (Stage 3) |
-| `InvalidApi` on WAF commands | Using wrong API version | Ensure `--api-version 2019-09-10` or use `waf-openapi` |
-| WAF API name not found (e.g., `DescribeLogServiceStatus`) | CLI expects lowercase API names | Use lowercase with hyphens: `describe-log-service-status` |
-| Parameter `--InstanceId` not found | Wrong API version or parameter case | Newer APIs (2021-10-01) use `--InstanceId`; older (2019-09-10) use `--instance-id` |
-| `Log.Control.UserLogOpenedError` | WAF SLS already enabled at instance level | Proceed to domain-level log config |
-| `Log.Control.CreateEtlMetaFailed` | WAF backend issue creating ETL metadata | Use WAF Console UI instead of CLI |
+| `InvalidApi` on WAF commands | Using wrong API version | Ensure `--api-version 2021-10-01` or use `waf-openapi` |
+| WAF API name not found | CLI expects lowercase API names | Use lowercase with hyphens: `describe-log-service-status` |
+| Parameter `--InstanceId` not found | Wrong API version or parameter case | Newer APIs (2021-10-01) use `--InstanceId`/`--instance-id`; `describe-resource-log-status` uses `--resource` (singular) |
 | `Log.Control.ModifyUserLogTooFrequent` | Rate limited on log toggle changes | Wait 2 minutes and retry |
 | Empty SLS logs after test traffic | Domain-level log collection not enabled | Enable per-domain in WAF Console (Stage 5.2) |
 | WAF domain identifier mismatch | Using `domain.com` instead of `domain.com-waf` | WAF resources use `-waf` suffix internally |

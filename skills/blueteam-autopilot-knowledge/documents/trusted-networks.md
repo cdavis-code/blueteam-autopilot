@@ -1,43 +1,64 @@
 # Trusted Networks
 
-> **⚠️ CUSTOMIZATION REQUIRED**
->
-> The IP ranges below are **EXAMPLES ONLY** using RFC 1918 private ranges and RFC 5737
-> documentation addresses. **You MUST replace these with your organization's actual trusted networks.**
->
-> **To generate trusted networks from your Alibaba Cloud environment,**
-> invoke the `blueteam-autopilot-prep` skill. The prep skill will
-> auto-generate this file from your VPC and VPN configuration.
->
-> The prep skill queries your VPC configuration, VPN gateways, and RAM policies to auto-generate
-> this file with your organization's actual trusted IP ranges.
+> **CRITICAL:** This file is auto-generated. Do NOT edit manually.
+> Run `skills/blueteam-autopilot-prep/scripts/generate-trusted-networks.sh` to regenerate.
 
-Corporate VPN and monitoring service IP ranges that must never be blindly blocked.
+## Purpose
 
----
+This file contains the authoritative list of trusted internal networks for
+BlueTeam Autopilot incident correlation and response.
 
-## Corporate VPN
+## Auto-Discovered Networks
 
-> **EXAMPLE VALUES - Replace with your organization's actual VPN ranges**
+The following networks were discovered from the Alibaba Cloud environment
+at generation time.
 
-| Network | CIDR | Purpose |
-|---------|------|---------|
-| Internal Network A | 10.0.0.0/8 | Corporate LAN |
-| Internal Network B | 172.16.0.0/12 | Corporate WLAN |
-| Office VPN | 192.168.1.0/24 | Remote office access |
+### VPCs
 
----
+| vpc-t4n2seg99q50x17e21x9u | 172.16.0.0/12 | VPC |
 
-## Monitoring Services
-
-> **EXAMPLE VALUES - Replace with your actual monitoring service IPs**
+### VPN Gateways
 
 | Network | CIDR | Purpose |
 |---------|------|---------|
-| Uptime Monitoring | 203.0.113.0/24 | External health checks |
-| Internal Monitoring | 198.51.100.0/24 | APM and log aggregation |
+| No VPN gateways found | - | - |
 
----
+### WAF-Protected Domains
+
+| Domain | Access Mode | Purpose |
+|--------|-------------|---------|
+| ecs.muayid.com | CNAME | WAF-protected test domain |
+
+**Primary Test Domain:** ecs.muayid.com
+
+## Manual Additions
+
+Add any monitoring service IPs, on-premise networks, or partner networks here:
+
+| Network | CIDR | Purpose |
+|---------|------|---------|
+| CloudMonitor | 100.100.0.0/16 | Alibaba Cloud monitoring |
+| Internal DNS | 100.64.0.0/16 | Alibaba Cloud internal DNS |
+
+## Security Policy
+
+All networks listed in this file are considered **trusted internal networks**
+for the purposes of BlueTeam Autopilot incident correlation.
+
+### Incident Correlation Rules
+
+When an attack is detected, BlueTeam Autopilot MUST check the source IP
+against this trusted network list:
+
+1. **External Source (not in this file):**
+   - Proceed with normal incident response
+   - Propose perimeter blocking if warranted
+
+2. **Internal Source (matches this file):**
+   - **STOP** — do NOT propose immediate blocking
+   - Flag as "Potentially Compromised Internal Asset"
+   - Escalate to security team for investigation
+   - Correlate with other internal security signals
 
 ## Rule
 
@@ -51,35 +72,8 @@ Corporate VPN and monitoring service IP ranges that must never be blindly blocke
 3. **Document** as potential insider threat or compromised asset
 4. **Correlate** with other internal security signals
 
-### Rationale
-
-Traffic from trusted networks indicates:
-- Compromised corporate device
-- Rogue insider activity
-- Misconfigured monitoring service
-- VPN tunnel abuse
-
-Blocking these IPs would:
-- Disrupt legitimate corporate operations
-- Mask the actual security incident
-- Prevent proper forensic investigation
-
----
-
-## Compliance Reference
-
-- **SOC 2 CC6.8:** Unauthorized activity triage must distinguish external vs. internal threats
-- **NIST CSF DE.AE-2:** Anomalous event analysis must consider source context
-
----
-
-## Update Procedure
-
-To add/remove trusted networks:
-
-1. Submit change request to security team
-2. Update this document
-3. Update WAF whitelist in console
-4. Notify BlueTeam Autopilot users
-
-**Last Updated:** 2026-06-14
+**Last Generated:** 2026-06-15T21:57:48Z
+**Region:** ap-southeast-1
+**VPCs Discovered:** 1
+**VPN Gateways:** 0
+**WAF Domains:** 1

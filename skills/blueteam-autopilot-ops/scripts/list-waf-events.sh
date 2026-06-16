@@ -19,6 +19,17 @@ if [ -z "${ALIBABA_REGION:-}" ]; then
   exit 1
 fi
 
+# Auto-discover account ID via STS if not already set
+if [ -z "${ACCOUNT_ID:-}" ]; then
+  ACCOUNT_ID=$(aliyun sts GetCallerIdentity 2>/dev/null \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('AccountId',''))" 2>/dev/null || echo "")
+  if [ -z "$ACCOUNT_ID" ]; then
+    echo "Error: Could not discover ACCOUNT_ID via 'aliyun sts GetCallerIdentity'."
+    echo "       Export it manually: export ACCOUNT_ID=<your-account-id>"
+    exit 1
+  fi
+fi
+
 TIME_RANGE="${1:-lastHour}"
 ATTACK_TYPE="${2:-}"
 
@@ -56,8 +67,8 @@ if [ -n "$ATTACK_TYPE" ]; then
 fi
 
 # Query SLS (project name format: wafnew-project-ACCOUNT_ID-REGION)
-# Note: Replace YOUR_ACCOUNT_ID with actual account ID or use variable
-SLS_PROJECT="${WAF_SLS_PROJECT:-wafnew-project-YOUR_ACCOUNT_ID-$ALIBABA_REGION}"
+# ACCOUNT_ID is auto-discovered via STS above; override with WAF_SLS_PROJECT env var
+SLS_PROJECT="${WAF_SLS_PROJECT:-wafnew-project-${ACCOUNT_ID}-$ALIBABA_REGION}"
 SLS_LOGSTORE="${WAF_SLS_LOGSTORE:-wafnew-logstore}"
 
 echo "SLS Project: $SLS_PROJECT"
