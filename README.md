@@ -41,6 +41,7 @@ Security teams using Alibaba Cloud face a constant flood of Security Center aler
 3. **Recommends** the least-disruptive effective response (IP block, host isolation, vuln patch)
 4. **Proposes** structured action plans for human approval
 5. **Reports** with NIST CSF and SOC 2 compliance mapping
+6. **Queries** live GRC data (CISO Assistant, Vanta) for compliance context during incident response
 
 All state-changing actions require **explicit human approval** — SOC 2 CC6.8.3 compliant by design.
 
@@ -85,7 +86,7 @@ echo 'SECURITY_CENTER_MODE=demo' > .env
 # The agent will use bundled fixture data — no API calls, no credentials.
 ```
 
-**What happens under the hood:** The skills detect `SECURITY_CENTER_MODE=demo` and read from bundled `skills/fixtures/*.json` files instead of calling Alibaba Cloud APIs. You get realistic responses with:
+**What happens under the hood:** The skills detect `SECURITY_CENTER_MODE=demo` and read from bundled `skills/blueteam-autopilot-core/fixtures/*.json` files instead of calling Alibaba Cloud APIs. You get realistic responses with:
 - 6 security events across all severity levels (CRITICAL → LOW)
 - Full attack chains with CVEs (e.g., CVE-2026-1234 for RCE)
 - 5 Agentic SOC response policies (IP block, host isolation, vuln patch)
@@ -160,27 +161,27 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
     ├── AUTONOMOUS_SETUP.md            # Self-deployment guide
     ├── ENVIRONMENT_INDEPENDENCE.md     # Region-agnostic design
     │
-    ├── fixtures/                      # Demo data (14 JSON files — bundled with install)
-    │   ├── README.md                  # Fixture map and capture instructions
-    │   ├── ping.json
-    │   ├── account_context.json
-    │   ├── events_recent.json         # 6 security events
-    │   ├── event_detail.json          # Full attack chain
-    │   ├── alerts.json
-    │   ├── vulnerabilities.json       # 5 CVEs
-    │   ├── vulnerability_detail.json
-    │   ├── response_policies.json     # 5 response policies
-    │   ├── assets.json                # 5 ECS instances
-    │   ├── waf_instance.json
-    │   ├── waf_events.json            # WAF attack logs
-    │   ├── waf_top_rules.json         # Top 10 WAF rules
-    │   ├── waf_top_ips.json           # Top 10 attacker IPs
-    │   └── knowledge_list.json
-    │
     ├── blueteam-autopilot-core/       # Core agent: 5-behavior triage cycle
     │   ├── SKILL.md                   # Main prompt — role, tools, guardrails
     │   ├── BEHAVIORS.md               # Detailed workflow for each behavior
-    │   └── references/                # MCP tools, compliance, runbooks
+    │   ├── references/                # MCP tools, compliance, runbooks
+    │   │
+    │   └── fixtures/                  # Demo data (14 JSON files — bundled with install)
+    │       ├── README.md              # Fixture map and capture instructions
+    │       ├── ping.json
+    │       ├── account_context.json
+    │       ├── events_recent.json     # 6 security events
+    │       ├── event_detail.json      # Full attack chain
+    │       ├── alerts.json
+    │       ├── vulnerabilities.json   # 5 CVEs
+    │       ├── vulnerability_detail.json
+    │       ├── response_policies.json # 5 response policies
+    │       ├── assets.json            # 5 ECS instances
+    │       ├── waf_instance.json
+    │       ├── waf_events.json        # WAF attack logs
+    │       ├── waf_top_rules.json     # Top 10 WAF rules
+    │       ├── waf_top_ips.json       # Top 10 attacker IPs
+    │       └── knowledge_list.json
     │
     ├── blueteam-autopilot-ops/        # CLI operations: 17 Bash scripts
     │   ├── SKILL.md                   # Script catalog + CLI↔MCP matrix
@@ -206,7 +207,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 | Skill | Purpose |
 |-------|---------|
-| `blueteam-autopilot-core` | AI agent workflow — 5-behavior triage cycle with guardrails |
+| `blueteam-autopilot-core` | AI agent workflow — 5-behavior triage cycle with guardrails; GRC MCP live query (CISO Assistant, Vanta) |
 | `blueteam-autopilot-ops` | 17 CLI scripts wrapping `aliyun` commands (with demo dispatch) |
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real-mode only) |
 | `blueteam-autopilot-knowledge` | Compliance controls, runbooks, trusted networks |
@@ -234,8 +235,11 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
        ├─── real mode ────▶ aliyun CLI ────▶ Alibaba Cloud APIs
        │                                      (SAS, WAF, SLS)
        │
-       └─── demo mode ───▶ skills/fixtures/*.json
+       ├─── demo mode ───▶ skills/blueteam-autopilot-core/fixtures/*.json
                              (zero network, bundled with install)
+       │
+       └─── GRC MCP ────▶ CISO Assistant / Vanta MCP servers
+                             (live compliance data, fallback to synced docs)
 ```
 
 ---
@@ -279,7 +283,7 @@ Yes! All region values are dynamically discovered via `get_account_context` / `g
 
 ### How do I contribute or report issues?
 
-Open an issue or PR on the repository. Fixture capture instructions are in the bundled [skills/fixtures/README.md](skills/fixtures/README.md).
+Open an issue or PR on the repository. Fixture capture instructions are in the bundled [skills/blueteam-autopilot-core/fixtures/README.md](skills/blueteam-autopilot-core/fixtures/README.md).
 
 ### What's the minimum Security Center edition needed?
 
