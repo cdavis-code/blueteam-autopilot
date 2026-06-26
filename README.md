@@ -215,6 +215,11 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 ## Architecture
 
+![Architecture Diagram](assets/architecture-diagram.svg)
+
+<details>
+<summary>Text-based architecture (fallback)</summary>
+
 ```
 ┌──────────────┐
 │   User / AI   │  "Show me recent security events"
@@ -233,11 +238,15 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
        │                                      (SAS, WAF, SLS)
        │
        ├─── demo mode ───▶ skills/blueteam-autopilot-core/fixtures/*.json
-                             (zero network, bundled with install)
+       │                     (zero network, bundled with install)
        │
-       └─── GRC MCP ────▶ CISO Assistant / Vanta MCP servers
-                             (live compliance data, fallback to synced docs)
+       ├─── GRC MCP ────▶ CISO Assistant / Vanta MCP servers
+       │                     (live compliance data, fallback to synced docs)
+       │
+       └─── Qwen Cloud ──▶ Qwen LLM (agent reasoning)
 ```
+
+</details>
 
 ---
 
@@ -253,10 +262,10 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 | Criteria | How We Address It |
 |----------|-------------------|
-| **Technical Depth** | 17 CLI scripts wrapping real Alibaba Cloud APIs; 6 skills with deep security domain knowledge |
-| **Practical Value** | Production-ready incident response with SOC 2 CC6.8.3 guardrails |
-| **Innovation** | Dual-mode architecture (real/demo) for offline demos and online production |
-| **Demo Quality** | 14 fixture files with realistic attack chains; 5-minute offline demo with zero setup |
+| **Innovation & AI Creativity (30%)** | 20+ MCP tools across 4 categories; 2 GRC MCP servers (CISO Assistant, Vanta); dual-mode architecture |
+| **Technical Depth & Engineering (30%)** | 17 CLI scripts wrapping 5 Alibaba Cloud APIs; 6 modular skills; GRC sync pipeline; 46-check integration test suite |
+| **Problem Value & Impact (25%)** | Production-ready SOC triage automation; zero-setup demo mode; open-source `npx skills add` install |
+| **Presentation & Documentation (15%)** | Architecture diagram; two-audience docs; 5-min getting started; comprehensive SKILL.md per module |
 
 ---
 
@@ -292,4 +301,4 @@ Open an issue or PR on the repository. Fixture capture instructions are in the b
 
 ## License
 
-See repository license file.
+[MIT License](LICENSE) — Copyright (c) 2026 Chris Davis
