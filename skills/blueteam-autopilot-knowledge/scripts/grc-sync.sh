@@ -149,8 +149,9 @@ if missing:
 # =============================================================================
 if [ "${1:-}" = "--list" ]; then
   echo ""
-  echo -e "${BOLD}Policy Sync Status${NC}"
-  echo "===================="
+  echo -e "${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
+  echo -e "${BOLD}║${NC}  ${BOLD}Policy Sync Status${NC}                                       ${BOLD}║${NC}"
+  echo -e "${BOLD}╚══════════════════════════════════════════════════════════╝${NC}"
   echo ""
 
   python3 -c "
@@ -158,40 +159,56 @@ import json
 with open('$POLICIES_FILE') as f:
   data = json.load(f)
 
+# Print table header
+print(f\"{'Policy ID':<24} {'Source':<14} {'Document':<35} {'Status'}\")
+print('-' * 80)
+
+grc_count = 0
+synced_count = 0
+
 for p in data['policies']:
   pid = p['id']
   ptype = p.get('type','')
   source = p.get('source','')
   doc = p.get('document','')
 
-  sync_mode = 'N/A'
-  last_sync = 'never'
-  status_icon = '  '
-
   if source == 'grc':
+    grc_count += 1
     sync = p.get('sync',{})
     sync_mode = sync.get('mode','manual')
     last = sync.get('last_sync','')
+    
     if last:
-      last_sync = last
-      status_icon = '\u2714'
+      synced_count += 1
+      status = f\"\\033[0;32m✔ synced\\033[0m\"
+      last_sync_display = last
     else:
-      status_icon = '\u2716'
-      last_sync = 'not synced'
+      status = f\"\\033[0;31m✖ not synced\\033[0m\"
+      last_sync_display = 'never'
+    
+    doc_display = doc[:33] + '..' if len(doc) > 35 else doc
+    print(f\"  {pid:<22} {source:<14} {doc_display:<35} {status}\")
+    print(f\"  {'':22} provider={p['grc']['provider']:<16} framework={p['grc']['library_name']}\")
+    print(f\"  {'':22} sync_mode={sync_mode:<13} last_sync={last_sync_display}\")
+    print()
+  else:
+    doc_display = doc[:33] + '..' if len(doc) > 35 else doc
+    print(f\"  {pid:<22} {source:<14} {doc_display:<35} {'-'}\")
 
-  print(f\"{status_icon} {pid:<22} source={source:<14} doc={doc}\")
-  if source == 'grc':
-    print(f'     provider={p[\"grc\"][\"provider\"]:<20} framework={p[\"grc\"][\"library_name\"]}')
-    print(f'     sync={sync_mode:<12} last={last_sync}')
-
+print('-' * 80)
 print()
+print(f\"Summary: {grc_count} GRC policies, {synced_count} synced, {grc_count - synced_count} pending\")
+print()
+
+# GRC Provider configuration
 provider = data.get('grc_providers',{}).get('ciso-assistant',{})
 enabled = provider.get('enabled',False)
 url = provider.get('base_url','not configured')
-print(f'GRC Provider: ciso-assistant')
-print(f'  Enabled: {enabled}')
-print(f'  URL: {url}')
-print()
+
+print(f\"\\033[1mGRC Provider Configuration:\\033[0m\")
+print(f\"  Provider:    ciso-assistant\")
+print(f\"  Status:      {'\\033[0;32mEnabled\\033[0m' if enabled else '\\033[0;31mDisabled\\033[0m'}\")
+print(f\"  URL:         {url}\")
 "
   exit 0
 fi
