@@ -29,63 +29,55 @@ SECURITY_CENTER_MODE=real
 
 The project includes an 8-stage environment validator that discovers and verifies all Alibaba Cloud resources. Running this skill against a live environment produces:
 
-   BlueTeam Autopilot - Environment Readiness Report
-   ┌────────────┬──────────────────────┐
-   │ Item       │ Value                │
-   ├────────────┼──────────────────────┤
-   │ Region     │ ap-southeast-1       │
-   │ Account ID │ 572257••••••••••     │
-   │ RAM User   │ alibaba-security-mcp │
-   │ Checked    │ 2026-06-28           │
-   └────────────┴──────────────────────┘
+**BlueTeam Autopilot - Environment Readiness Report**
 
-   Validation Results:
-   ┌───────┬───────────────────┬────────┬─────────────────────────────────────────────────────────────────────────┐
-   │ Stage │ Check             │ Status │ Notes                                                                   │
-   ├───────┼───────────────────┼────────┼─────────────────────────────────────────────────────────────────────────┤
-   │ 1     │ aliyun CLI        │ PASS   │ v3.4.2                                                                  │
-   │ 2     │ Credentials       │ PASS   │ RAMUser authenticated                                                   │
-   │ 3     │ RAM Permissions   │ PASS   │ All 4 required policies attached (+ AliyunRAMReadOnlyAccess,            │
-   │       │                   │        │ AliyunYundunWAFFullAccess bonus)                                        │
-   │ 4a    │ Security Center   │ PASS   │ Active (postpay), Version 1 (Basic)                                     │
-   │ 4b    │ Agentic SOC       │ WARN   │ Edition 1 = Basic. Agentic SOC requires Enterprise (4+) or Ultimate (5) │
-   │ 4c    │ WAF 3.0           │ PASS   │ Instance waf_v2intl_public_intl-sg-2ci4toerd01, POSTPAY                 │
-   │ 4d    │ WAF CNAME (DNS)   │ PASS   │ ecs.muayid.com -> *.aliyunwaf5.com                                      │
-   │ 4e    │ SLS               │ PASS   │ 2 projects, WAF project present                                         │
-   │ 5a    │ WAF Domains       │ PASS   │ 1 domain: ecs.muayid.com (Status: Active)                               │
-   │ 5b    │ WAF Log Delivery  │ PASS   │ Logs flowing to SLS (API transient 403, verified via SLS directly)      │
-   │ 5c    │ SLS               │ PASS   │ wafnew-logstore with v2 index                                           │
-   │       │ Project/Logstore  │        │                                                                         │
-   │ 5d    │ Domain-level Logs │ PASS   │ Confirmed logs arriving from ecs.muayid.com                             │
-   │ 5e    │ SOC Detection     │ N/A    │ Requires Enterprise edition - cannot verify                             │
-   │       │ Rules             │        │                                                                         │
-   │ 6     │ End-to-End Test   │ PASS   │ SQLi attack blocked (405), log confirmed in SLS                         │
-   │ 7a    │ Generate Configs  │ PASS   │ trusted-networks.md auto-generated (1 VPC, 0 VPN)                       │
-   │ 7b    │ Validate Config   │ PASS   │ No hardcoded values detected                                            │
-   │ 7c    │ GRC Policy Config │ SKIP   │ Optional - not configured                                               │
-   └───────┴───────────────────┴────────┴─────────────────────────────────────────────────────────────────────────┘   
+| Item | Value |
+|------|-------|
+| Region | ap-southeast-1 |
+| Account ID | 572257•••••••••• |
+| RAM User | alibaba-security-mcp |
+| Checked | 2026-06-28 |
 
-   RESULT: NEEDS ATTENTION
+**Validation Results:**
 
-   Issues requiring attention:
+| Stage | Check | Status | Notes |
+|-------|-------|--------|-------|
+| 1 | aliyun CLI | PASS | v3.4.2 |
+| 2 | Credentials | PASS | RAMUser authenticated |
+| 3 | RAM Permissions | PASS | All 4 required policies attached (+ AliyunRAMReadOnlyAccess, AliyunYundunWAFFullAccess bonus) |
+| 4a | Security Center | PASS | Active (postpay), Version 1 (Basic) |
+| 4b | Agentic SOC | WARN | Edition 1 = Basic. Agentic SOC requires Enterprise (4+) or Ultimate (5) |
+| 4c | WAF 3.0 | PASS | Instance waf_v2intl_public_intl-sg-2ci4toerd01, POSTPAY |
+| 4d | WAF CNAME (DNS) | PASS | ecs.muayid.com -> *.aliyunwaf5.com |
+| 4e | SLS | PASS | 2 projects, WAF project present |
+| 5a | WAF Domains | PASS | 1 domain: ecs.muayid.com (Status: Active) |
+| 5b | WAF Log Delivery | PASS | Logs flowing to SLS (API transient 403, verified via SLS directly) |
+| 5c | SLS Project/Logstore | PASS | wafnew-logstore with v2 index |
+| 5d | Domain-level Logs | PASS | Confirmed logs arriving from ecs.muayid.com |
+| 5e | SOC Detection Rules | N/A | Requires Enterprise edition - cannot verify |
+| 6 | End-to-End Test | PASS | SQLi attack blocked (405), log confirmed in SLS |
+| 7a | Generate Configs | PASS | trusted-networks.md auto-generated (1 VPC, 0 VPN) |
+| 7b | Validate Config | PASS | No hardcoded values detected |
+| 7c | GRC Policy Config | SKIP | Optional - not configured |
 
-   Security Center Edition too low for Agentic SOC - Currently on Basic (Version 1). Agentic SOC detection rules, AI-driven
-   analysis, and automated response require Enterprise or Ultimate edition. Upgrade at Security Center Purchase Page
-   (https://common-buy-intl.alibabacloud.com/?commodityCode=swas_intl).
-   Manual step - Add monitoring service IPs to the "Monitoring Services" section in trusted-networks.md (Datadog, New Relic,
-   etc.).
-   WAF Log Service API - describe-log-service-status returns transient 403. Not a blocker since SLS logs confirmed flowing. May resolve on retry.
+**RESULT: NEEDS ATTENTION**
 
-   What works right now:
-   - Security Center basic features (vulnerability scanning, baseline checks)
-   - WAF 3.0 protection with CNAME mode
-   - WAF -> SLS log delivery pipeline
-   - VPC discovery for trusted networks
+**Issues requiring attention:**
 
-   What won't work until upgraded:
-   - Agentic SOC detection rules and AI-powered event correlation
-   - Automated incident response workflows
-   - Advanced Security Center features (RASP, container security, threat intelligence)
+- **Security Center Edition too low for Agentic SOC** - Currently on Basic (Version 1). Agentic SOC detection rules, AI-driven analysis, and automated response require Enterprise or Ultimate edition. [Upgrade at Security Center Purchase Page](https://common-buy-intl.alibabacloud.com/?commodityCode=swas_intl).
+- **Manual step** - Add monitoring service IPs to the "Monitoring Services" section in trusted-networks.md (Datadog, New Relic, etc.).
+- **WAF Log Service API** - describe-log-service-status returns transient 403. Not a blocker since SLS logs confirmed flowing. May resolve on retry.
+
+**What works right now:**
+- Security Center basic features (vulnerability scanning, baseline checks)
+- WAF 3.0 protection with CNAME mode
+- WAF -> SLS log delivery pipeline
+- VPC discovery for trusted networks
+
+**What won't work until upgraded:**
+- Agentic SOC detection rules and AI-powered event correlation
+- Automated incident response workflows
+- Advanced Security Center features (RASP, container security, threat intelligence)
 
 ### Security Center (SAS) — Event Query
 

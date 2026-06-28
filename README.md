@@ -10,7 +10,7 @@
 * Dual-mode: live production & offline demo
 * 17 CLI scripts · 6 agent skills · zero credentials for demo
 
-🎬 **[Watch Demo Video](assets/Alibaba%20Blueteam%20SecOps%20Presentation.mp4)**
+🎬 **[Watch Demo Video](https://www.youtube.com/watch?v=-eqQJuAFHhA)**
 
 [Getting Started ↓](#5-minute-getting-started-demo-mode) · [Real Mode Setup ↓](#real-mode-setup) · [Architecture ↓](#architecture)
 
@@ -159,6 +159,17 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ```
 .
 ├── README.md                          # This file
+├── LICENSE                            # MIT License
+├── CHANGELOG.md                       # Version history
+│
+├── assets/
+│   ├── banner.svg                     # Project banner
+│   ├── logo.png                       # Project logo
+│   ├── architecture-diagram.svg       # Architecture overview
+│   └── submission/                    # Hackathon submission materials
+│       ├── about.md                   # Devpost submission content
+│       └── proof-of-deployment.md     # Alibaba Cloud deployment evidence
+│
 └── skills/
     ├── blueteam-autopilot-core/       # Core agent: 5-behavior triage cycle
     │   ├── SKILL.md                   # Main prompt — role, tools, guardrails
@@ -190,12 +201,17 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
     │   ├── SKILL.md                   # 8-stage validation procedure
     │   └── scripts/                   # generate-trusted-networks.sh, etc.
     │
-    ├── blueteam-autopilot-knowledge/  # Compliance docs & runbooks
+    ├── blueteam-autopilot-knowledge/  # Compliance docs, runbooks & GRC sync
     │   ├── SKILL.md
-    │   └── documents/                 # NIST CSF, SOC 2, runbooks
+    │   ├── documents/                 # NIST CSF, SOC 2, runbooks, trusted networks
+    │   ├── grc-providers/             # GRC integration scripts (CISO Assistant)
+    │   ├── scripts/                   # fetch-knowledge.sh, grc-sync.sh, grc-webhook.sh
+    │   └── policies.json              # Compliance policy definitions
     │
     ├── blueteam-autopilot-reports/    # Report generation
     │   ├── SKILL.md
+    │   ├── templates/                 # Incident report, action proposal templates
+    │   ├── schemas/                   # JSON schemas for structured reports
     │   └── scripts/                   # render-report.py
     │
     └── alibaba-security-ops/          # Standalone CLI skill (legacy/evolution)
@@ -209,8 +225,8 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 | `blueteam-autopilot-core` | AI agent workflow — 5-behavior triage cycle with guardrails; GRC MCP live query (CISO Assistant, Vanta) |
 | `blueteam-autopilot-ops` | 17 CLI scripts wrapping `aliyun` commands (with demo dispatch) |
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real-mode only) |
-| `blueteam-autopilot-knowledge` | Compliance controls, runbooks, trusted networks |
-| `blueteam-autopilot-reports` | Markdown incident report generation |
+| `blueteam-autopilot-knowledge` | Compliance controls, runbooks, GRC sync pipeline, trusted networks |
+| `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas |
 | `alibaba-security-ops` | Standalone CLI skill — project evolution reference |
 
 ---
@@ -249,25 +265,6 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ```
 
 </details>
-
----
-
-## Hackathon Info
-
-**Event:** Qwen Cloud Hackathon — Track 4: Autopilot Agent  
-**Platform:** Alibaba Cloud Security Center + Agentic SOC  
-**Problem:** Security analysts spend 60%+ of time on triage. Agentic SOC surfaces events but lacks intelligent investigation and recommendation.
-
-**Our solution:** An AI copilot that automates the full triage cycle — from event discovery to action proposal — while keeping humans in the loop for all state changes. Works offline for demos, online for production.
-
-### Judging Criteria Alignment
-
-| Criteria | How We Address It |
-|----------|-------------------|
-| **Innovation & AI Creativity (30%)** | 20+ MCP tools across 4 categories; 2 GRC MCP servers (CISO Assistant, Vanta); dual-mode architecture |
-| **Technical Depth & Engineering (30%)** | 17 CLI scripts wrapping 5 Alibaba Cloud APIs; 6 modular skills; GRC sync pipeline; 46-check integration test suite |
-| **Problem Value & Impact (25%)** | Production-ready SOC triage automation; zero-setup demo mode; open-source `npx skills add` install |
-| **Presentation & Documentation (15%)** | Architecture diagram; two-audience docs; 5-min getting started; comprehensive SKILL.md per module |
 
 ---
 
