@@ -10,6 +10,8 @@
 * Dual-mode: live production & offline demo
 * 17 CLI scripts · 6 agent skills · zero credentials for demo
 
+🎬 **[Watch Demo Video](assets/Alibaba%20Blueteam%20SecOps%20Presentation.mp4)**
+
 [Getting Started ↓](#5-minute-getting-started-demo-mode) · [Real Mode Setup ↓](#real-mode-setup) · [Architecture ↓](#architecture)
 
 </div>
