@@ -20,10 +20,8 @@ Operational CLI workflows wrapping `aliyun` commands for Security Center, WAF, a
    ```bash
    ALIBABA_ACCESS_KEY_ID="your-access-key-id"
    ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
-   ALIBABA_REGION="<your-region>"  # e.g., ap-southeast-1, us-east-1
    ```
-   > **NOTE:** Replace `<your-region>` with your actual Alibaba Cloud region.
-   > All scripts use `$ALIBABA_REGION` dynamically—no hardcoded values.
+   > Region is auto-discovered from `aliyun configure`. Set `ALIBABA_REGION` in `.env` to override.
 3. **Security Center edition:** Agentic SOC features require Enterprise (4) or Ultimate (5)
    - Check edition: `aliyun sas describe-version-config --region "$ALIBABA_REGION"`
 
@@ -39,8 +37,8 @@ To switch to real mode with live Alibaba Cloud API calls, create a `.env` file:
 cat > .env << 'EOF'
 ALIBABA_ACCESS_KEY_ID="your-access-key-id"
 ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
-ALIBABA_REGION="ap-southeast-1"
 SECURITY_CENTER_MODE=real
+# ALIBABA_REGION="ap-southeast-1"  # Optional — auto-discovered from aliyun CLI config
 EOF
 ```
 
@@ -66,8 +64,8 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 | 5 | `list_alerts_for_event` | `list-alerts.sh` | `../blueteam-autopilot-core/fixtures/alerts.json` | `sas describe-susp-event-detail` (extract AlertList) | Events |
 | 6 | `list_vulnerabilities` | `list-vulnerabilities.sh` | `../blueteam-autopilot-core/fixtures/vulnerabilities.json` | `sas describe-vul-list` | Vulnerabilities |
 | 7 | `get_vulnerability_detail` | `get-vulnerability-detail.sh` | `../blueteam-autopilot-core/fixtures/vulnerability_detail.json` | `sas describe-vul-details` | Vulnerabilities |
-| 8 | `list_response_policies` | `list-response-policies.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` | `siem-socket list-automate-response-configs` | Response |
-| 9 | `execute_response_policy` | `execute-response-policy.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` (simulated) | `siem-socket execute-automate-response` | Response |
+| 8 | `list_response_policies` | `list-response-policies.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` | `cloud-siem ListAutomateResponseConfigs` | Response |
+| 9 | `execute_response_policy` | `execute-response-policy.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` (simulated) | `cloud-siem UpdateAutomateResponseConfigStatus` | Response |
 | 10 | `get_waf_instance_info` | `get-waf-instance.sh` | `../blueteam-autopilot-core/fixtures/waf_instance.json` | `waf-openapi describe-instance` | WAF |
 | 11 | `list_waf_security_events` | `list-waf-events.sh` | `../blueteam-autopilot-core/fixtures/waf_events.json` | `sls GetLogs` (WAF logstore) | WAF |
 | 12 | `list_waf_top_rules` | `list-waf-top-rules.sh` | `../blueteam-autopilot-core/fixtures/waf_top_rules.json` | `waf-openapi describe-rule-hits-top-rule-id` | WAF |
@@ -110,10 +108,12 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 ### Response Policies
 
+> **Note:** Response policy APIs use `cloud-siem` product (API version `2022-06-16`) and require **Security Center Enterprise edition or higher**. On Basic/Standard editions, these commands will return `InvalidAction.NotFound`.
+
 | Script | Purpose | Usage |
 |--------|---------|-------|
 | `list-response-policies.sh` | List Agentic SOC response policies | `./list-response-policies.sh [scope]` |
-| `execute-response-policy.sh` | Execute policy (dry-run by default) | `./execute-response-policy.sh <policy_id> [event_id] [--real]` |
+| `execute-response-policy.sh` | Enable policy (dry-run by default) | `./execute-response-policy.sh <policy_id> [event_id] [--real]` |
 
 ### WAF (Web Application Firewall)
 
@@ -209,6 +209,7 @@ See [references/edition-limits.md](references/edition-limits.md) for workarounds
 | `InvalidAccessKeyId.NotFound` | Wrong AccessKey ID | Check `.env` file, regenerate in RAM Console |
 | `SignatureDoesNotMatch` | Wrong AccessKey Secret | Copy secret again, no trailing whitespace |
 | `Forbidden.RAM` | Missing RAM policy | Attach `AliyunYundunSASReadOnlyAccess` policy |
+| `Could not determine region automatically` | No `aliyun configure` profile | Run `aliyun configure` or set `ALIBABA_REGION` in `.env` |
 | API timeout (10s) | Basic edition limitation | Use SLS direct queries or upgrade edition |
 | `describe-susp-events: command not found` | Wrong API name format | Use lowercase with hyphens, not PascalCase |
 | Document not found | Knowledge dir not configured | Set `KNOWLEDGE_DIR` or check directory paths |

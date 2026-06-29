@@ -61,16 +61,11 @@ else
   exit 1
 fi
 
-# Check 3: Region configured
+# Check 3: Region configured (auto-discover from CLI if not in env)
 echo ""
 echo "3. Region"
-if [ -n "${ALIBABA_REGION:-}" ]; then
-  echo "   ✓ ALIBABA_REGION = $ALIBABA_REGION"
-else
-  echo "   ✗ ALIBABA_REGION not set"
-  echo "   Set: export ALIBABA_REGION=\"ap-southeast-1\""
-  exit 1
-fi
+source "$SCRIPT_DIR/_discover-region.sh"
+echo "   ✓ ALIBABA_REGION = $ALIBABA_REGION"
 
 # Check 4: Execution mode
 echo ""

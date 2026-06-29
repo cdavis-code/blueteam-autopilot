@@ -178,9 +178,9 @@ To switch to real mode with live Alibaba Cloud APIs:
 cat > .env << 'EOF'
 ALIBABA_ACCESS_KEY_ID="LTAI5t..."
 ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
-ALIBABA_REGION="ap-southeast-1"
 SECURITY_CENTER_MODE=real
 EOF
+# ALIBABA_REGION is auto-discovered from aliyun CLI config (set ALIBABA_REGION in .env to override)
 ```
 
 ---

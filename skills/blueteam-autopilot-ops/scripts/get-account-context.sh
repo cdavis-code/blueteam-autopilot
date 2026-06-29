@@ -27,11 +27,7 @@ if [ "$MODE" = "demo" ]; then
 fi
 # ----- End demo mode -----
 
-if [ -z "${ALIBABA_REGION:-}" ]; then
-  echo "Error: ALIBABA_REGION not set"
-  echo "Create a .env file or export ALIBABA_REGION=ap-southeast-1"
-  exit 1
-fi
+source "$SCRIPT_DIR/_discover-region.sh"
 
 echo "Fetching account context..."
 echo "Region: $ALIBABA_REGION"

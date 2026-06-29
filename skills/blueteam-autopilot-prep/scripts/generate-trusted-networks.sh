@@ -27,7 +27,25 @@ if ! command -v aliyun &>/dev/null; then
   exit 1
 fi
 
-# Use region from environment or default
+# Region discovery: env var → aliyun CLI config → config.json → default
+if [ -z "${ALIBABA_REGION:-}" ]; then
+  ALIBABA_REGION=$(aliyun configure get 2>/dev/null \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('region_id',''))" 2>/dev/null || true)
+fi
+if [ -z "${ALIBABA_REGION:-}" ] && [ -f "$HOME/.aliyun/config.json" ]; then
+  ALIBABA_REGION=$(python3 -c "
+import json
+try:
+    cfg = json.load(open('$HOME/.aliyun/config.json'))
+    current = cfg.get('current', 'default')
+    for p in cfg.get('profiles', []):
+        if p.get('name') == current:
+            print(p.get('region_id', ''))
+            break
+except:
+    pass
+" 2>/dev/null || true)
+fi
 ALIBABA_REGION="${ALIBABA_REGION:-ap-southeast-1}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 

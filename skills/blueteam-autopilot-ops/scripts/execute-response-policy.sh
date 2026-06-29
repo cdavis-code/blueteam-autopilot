@@ -33,11 +33,7 @@ if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
 fi
 # ----- End demo mode -----
 
-if [ -z "${ALIBABA_REGION:-}" ]; then
-  echo "Error: ALIBABA_REGION not set"
-  echo "Create a .env file or export ALIBABA_REGION=ap-southeast-1"
-  exit 1
-fi
+source "$SCRIPT_DIR/_discover-region.sh"
 
 POLICY_ID="${1:-}"
 EVENT_ID="${2:-}"
@@ -78,34 +74,39 @@ if [ "$MODE" = "dry-run" ]; then
 fi
 
 # Real execution — requires explicit approval
+# NOTE: cloud-siem API requires Security Center Enterprise edition or higher
+# NOTE: There is no direct "execute" API. Response configs are automated rules
+#       that trigger based on conditions. The closest action is enabling the rule
+#       via UpdateAutomateResponseConfigStatus (status=100 means enabled).
 echo ""
 echo "⚠️  EXECUTING IN REAL MODE"
-echo "   This will make state-changing API calls."
+echo "   This will ENABLE the response policy (status=100)."
+echo "   The policy will then trigger automatically based on its conditions."
 echo ""
 
-# Build command
-if [ -n "$EVENT_ID" ]; then
-  aliyun siem-socket execute-automate-response \
-    --region "$ALIBABA_REGION" \
-    --config-id "$POLICY_ID" \
-    --event-id "$EVENT_ID" \
-    2>&1 | python3 -m json.tool
-else
-  aliyun siem-socket execute-automate-response \
-    --region "$ALIBABA_REGION" \
-    --config-id "$POLICY_ID" \
-    2>&1 | python3 -m json.tool
-fi
+# Build command — enable the response config
+aliyun cloud-siem UpdateAutomateResponseConfigStatus \
+  --Version 2022-06-16 \
+  --region "$ALIBABA_REGION" \
+  --Id "$POLICY_ID" \
+  --Status 100 \
+  2>&1 | python3 -m json.tool
 
 EXIT_CODE=${PIPESTATUS[0]}
 
 if [ $EXIT_CODE -ne 0 ]; then
   echo ""
-  echo "Error: Failed to execute response policy (exit code: $EXIT_CODE)"
+  echo "Error: Failed to enable response policy (exit code: $EXIT_CODE)"
   echo ""
   echo "Possible causes:"
   echo "1. Policy ID does not exist"
-  echo "2. Missing RAM permissions for Agentic SOC"
-  echo "3. Policy execution not allowed in current mode"
+  echo "2. Missing RAM permissions for cloud-siem"
+  echo "3. Security Center Enterprise edition not enabled"
+  echo "4. Policy already enabled or in invalid state"
   exit $EXIT_CODE
 fi
+
+echo ""
+echo "Response policy \"$POLICY_ID\" has been ENABLED."
+echo "It will now trigger automatically based on its configured conditions."
+[ -n "$EVENT_ID" ] && echo "Note: Event ID \"$EVENT_ID\" was logged for audit purposes."

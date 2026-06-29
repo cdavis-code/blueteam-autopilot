@@ -24,15 +24,15 @@ Invoke this skill when:
 
 ## Configuration
 
-This skill requires three environment variables:
+This skill requires environment variables:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `LTAI5t...` |
 | `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `HkfZ...` |
-| `ALIBABA_REGION` | Target Alibaba Cloud region | `ap-southeast-1` |
+| `ALIBABA_REGION` | Target region (optional — auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 
-> **Important:** `ALIBABA_REGION` must be a valid region ID (e.g., `ap-southeast-1`), not a display name like "Singapore".
+> **Note:** `ALIBABA_REGION` is auto-discovered from `aliyun configure`. Set it in `.env` only to override. If specified, it must be a valid region ID (e.g., `ap-southeast-1`), not a display name like "Singapore".
 
 ### Additional Local Tooling
 
@@ -179,7 +179,7 @@ if [ -z "$ALIBABA_ACCESS_KEY_ID" ]; then
     echo "✓ Loaded environment variables from .env"
   else
     echo "⚠️  Environment variables not set. Please create a .env file or export them manually."
-    echo "   Required: ALIBABA_ACCESS_KEY_ID, ALIBABA_ACCESS_KEY_SECRET, ALIBABA_REGION"
+    echo "   Required: ALIBABA_ACCESS_KEY_ID, ALIBABA_ACCESS_KEY_SECRET (ALIBABA_REGION auto-discovered if not set)"
   fi
 fi
 
@@ -663,9 +663,9 @@ Review the generated file and add any monitoring service IPs manually.
 | Error | Cause | Remedy |
 |-------|-------|--------|
 | `aliyun CLI not found` | Stage 1 not completed | Complete Stage 1 first |
-| `ALIBABA_REGION not set` | Missing environment variable | Set `ALIBABA_REGION` in `.env` file |
+| `Could not determine region automatically` | `aliyun configure` not set | Run `aliyun configure` or set `ALIBABA_REGION` in `.env` |
 | `Forbidden.RAM` | Missing VPC/VPN permissions | Attach `AliyunVPCReadOnlyAccess` policy |
-| No VPCs discovered | Wrong region or no VPCs | Verify `ALIBABA_REGION` matches your VPC location |
+| No VPCs discovered | Wrong region or no VPCs | Verify region matches your VPC location (`aliyun configure` or `.env`) |
 
 **Post-generation action:**
 - The script auto-generates VPC/VPN trusted networks

@@ -21,17 +21,13 @@ if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
     cat "$FIXTURE_FILE"
     exit 0
   else
-    echo "{\"error\": \"Fixture not found: $FIXTURE_FILE. Run 'aliyun siem-socket list-automate-response-configs > $FIXTURE_FILE' to capture.\"}"
+    echo "{\"error\": \"Fixture not found: $FIXTURE_FILE. Run 'aliyun cloud-siem ListAutomateResponseConfigs --Version 2022-06-16 --CurrentPage 1 --PageSize 50 > $FIXTURE_FILE' to capture.\"}"
     exit 1
   fi
 fi
 # ----- End demo mode -----
 
-if [ -z "${ALIBABA_REGION:-}" ]; then
-  echo "Error: ALIBABA_REGION not set"
-  echo "Create a .env file or export ALIBABA_REGION=ap-southeast-1"
-  exit 1
-fi
+source "$SCRIPT_DIR/_discover-region.sh"
 
 SCOPE="${1:-ALL}"
 
@@ -42,18 +38,21 @@ echo "---"
 
 
 # Build command
+# NOTE: cloud-siem API requires Security Center Enterprise edition or higher
 if [ "$SCOPE" = "WAF" ]; then
-  aliyun siem-socket list-automate-response-configs \
+  aliyun cloud-siem ListAutomateResponseConfigs \
+    --Version 2022-06-16 \
     --region "$ALIBABA_REGION" \
-    --page-size 50 \
-    --page-number 1 \
-    --product-code waf \
+    --PageSize 50 \
+    --CurrentPage 1 \
+    --ActionType doPlaybook \
     2>&1 | python3 -m json.tool
 else
-  aliyun siem-socket list-automate-response-configs \
+  aliyun cloud-siem ListAutomateResponseConfigs \
+    --Version 2022-06-16 \
     --region "$ALIBABA_REGION" \
-    --page-size 50 \
-    --page-number 1 \
+    --PageSize 50 \
+    --CurrentPage 1 \
     2>&1 | python3 -m json.tool
 fi
 

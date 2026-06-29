@@ -28,11 +28,7 @@ if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
 fi
 # ----- End demo mode -----
 
-if [ -z "${ALIBABA_REGION:-}" ]; then
-  echo "Error: ALIBABA_REGION not set"
-  echo "Create a .env file or export ALIBABA_REGION=ap-southeast-1"
-  exit 1
-fi
+source "$SCRIPT_DIR/_discover-region.sh"
 
 TIME_RANGE="${1:-lastHour}"
 SEVERITY="${2:-}"

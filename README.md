@@ -8,7 +8,7 @@
 
 * SOC 2 CC6.8 compliant by design
 * Dual-mode: live production & offline demo
-* 17 CLI scripts · 6 agent skills · zero credentials for demo
+* 17 CLI scripts · 7 agent skills · zero credentials for demo
 
 🎬 **[Watch Demo Video](https://www.youtube.com/watch?v=-eqQJuAFHhA)**
 
@@ -27,7 +27,7 @@ mkdir secops && cd secops
 npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
 ```
 
-This creates a new project directory and installs all 6 agent skills (with bundled demo fixtures). Demo mode is the default, so you can start immediately with zero configuration.
+This creates a new project directory and installs all 7 agent skills (with bundled demo fixtures). Demo mode is the default, so you can start immediately with zero configuration.
 
 ---
 
@@ -62,8 +62,8 @@ All state-changing actions require **explicit human approval** — SOC 2 CC6.8.3
 cat > .env << 'EOF'
 ALIBABA_ACCESS_KEY_ID="LTAI5t..."
 ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
-ALIBABA_REGION="ap-southeast-1"
 SECURITY_CENTER_MODE=real
+# ALIBABA_REGION="ap-southeast-1"  # Optional — auto-discovered from aliyun CLI config
 EOF
 ```
 
@@ -116,14 +116,14 @@ For production use with live Alibaba Cloud data:
 
 ### Quick Setup
 
-Your `.env` file must include three Alibaba Cloud credentials plus the mode switch:
+Your `.env` file must include Alibaba Cloud credentials plus the mode switch:
 
 | Variable | Purpose | Example |
 |----------|---------|--------|
 | `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `LTAI5t...` |
 | `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `HkfZ...` |
-| `ALIBABA_REGION` | Target Alibaba Cloud region | `ap-southeast-1` |
 | `SECURITY_CENTER_MODE` | Execution mode | `real` |
+| `ALIBABA_REGION` | Target region (optional — auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 
 ```bash
 # 1. Create project and install skills
@@ -134,7 +134,6 @@ npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
 cat > .env << 'EOF'
 ALIBABA_ACCESS_KEY_ID="LTAI5t..."
 ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
-ALIBABA_REGION="ap-southeast-1"
 SECURITY_CENTER_MODE=real
 EOF
 
@@ -199,6 +198,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
     ├── blueteam-autopilot-ops/        # CLI operations: 17 Bash scripts
     │   ├── SKILL.md                   # Script catalog + CLI↔MCP matrix
     │   └── scripts/                   # ping.sh, list-events.sh, etc.
+    │       └── _discover-region.sh    # Shared region auto-discovery helper
     │
     ├── blueteam-autopilot-prep/       # Environment validator (real mode only)
     │   ├── SKILL.md                   # 8-stage validation procedure
@@ -217,6 +217,11 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
     │   ├── schemas/                   # JSON schemas for structured reports
     │   └── scripts/                   # render-report.py
     │
+    ├── blueteam-autopilot-compat/     # CLI compatibility validation
+    │   ├── SKILL.md                   # Compatibility checker documentation
+    │   ├── references/                # CLI command baseline (cli-baseline.json)
+    │   └── scripts/                   # check-compat.sh (5-stage validator)
+    │
     └── alibaba-security-ops/          # Standalone CLI skill (legacy/evolution)
         └── SKILL.md
 ```
@@ -230,6 +235,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real-mode only) |
 | `blueteam-autopilot-knowledge` | Compliance controls, runbooks, GRC sync pipeline, trusted networks |
 | `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas |
+| `blueteam-autopilot-compat` | CLI compatibility validation — detects breaking changes in `aliyun` CLI commands, parameters, and response structures |
 | `alibaba-security-ops` | Standalone CLI skill — project evolution reference |
 
 ---
@@ -287,7 +293,7 @@ Only with **explicit human approval**. All state-changing actions require the `-
 
 ### Can I use this with my own Alibaba Cloud region?
 
-Yes! All region values are dynamically discovered via `get_account_context` / `get-account-context.sh`.
+Yes! Region is auto-discovered from your `aliyun` CLI configuration (`aliyun configure`). You can also set `ALIBABA_REGION` in `.env` to override it explicitly.
 
 ### How do I contribute or report issues?
 

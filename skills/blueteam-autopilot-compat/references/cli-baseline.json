@@ -1,0 +1,246 @@
+{
+  "meta": {
+    "description": "CLI command baseline for BlueTeam Autopilot compatibility validation",
+    "cli_version_tested": "3.4.2",
+    "last_validated": "2026-06-29",
+    "notes": "Commands are grouped by product namespace. Each entry records the script that invokes it, required parameters, and expected response fields. Update this file after verifying compatibility with a new CLI version."
+  },
+  "commands": [
+    {
+      "product": "sas",
+      "command": "describe-susp-events",
+      "script": "list-events.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--time-range", "--severity"],
+      "response_fields": ["SuspEvents", "TotalCount", "PageSize", "CurrentPage"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-susp-event-detail",
+      "script": "get-event-detail.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--suspicious-event-id"],
+      "response_fields": ["SuspEvents"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-susp-event-detail",
+      "script": "list-alerts.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--suspicious-event-id"],
+      "response_fields": ["SuspEvents"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-vul-list",
+      "script": "list-vulnerabilities.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--current-page", "--page-size", "--type", "--severity", "--asset-id"],
+      "response_fields": ["GroupedVulItems", "TotalCount", "PageSize", "CurrentPage"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-vul-details",
+      "script": "get-vulnerability-detail.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--vul-id"],
+      "response_fields": ["GroupedVulItems"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-cloud-center-instances",
+      "script": "list-assets.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--current-page", "--page-size", "--criteria"],
+      "response_fields": ["Instances", "TotalCount", "PageSize", "CurrentPage"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-version-config",
+      "script": "ping.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region"],
+      "response_fields": ["Version"],
+      "mode": "real"
+    },
+    {
+      "product": "sas",
+      "command": "describe-version-config",
+      "script": "get-account-context.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region"],
+      "response_fields": ["Version"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "describe-instance",
+      "script": "get-waf-instance.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region"],
+      "response_fields": ["InstanceId", "Status", "Edition"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "describe-instance",
+      "script": "list-waf-top-rules.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region"],
+      "response_fields": ["InstanceId"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "describe-instance",
+      "script": "list-waf-top-ips.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region"],
+      "response_fields": ["InstanceId"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "describe-rule-hits-top-rule-id",
+      "script": "list-waf-top-rules.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--InstanceId", "--StartTimestamp", "--EndTimestamp"],
+      "response_fields": ["Data"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "describe-rule-hits-top-client-ip",
+      "script": "list-waf-top-ips.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--region", "--InstanceId", "--StartTimestamp", "--EndTimestamp"],
+      "response_fields": ["Data"],
+      "mode": "real"
+    },
+    {
+      "product": "sls",
+      "command": "GetProject",
+      "script": "verify-log-delivery.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--project", "--region"],
+      "response_fields": ["projectName", "status"],
+      "mode": "real"
+    },
+    {
+      "product": "sls",
+      "command": "ListLogStores",
+      "script": "verify-log-delivery.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--project", "--region"],
+      "response_fields": ["logstores"],
+      "mode": "real"
+    },
+    {
+      "product": "sls",
+      "command": "GetLogs",
+      "script": "list-waf-events.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--project", "--logstore", "--from", "--to", "--query"],
+      "response_fields": [],
+      "mode": "real"
+    },
+    {
+      "product": "sls",
+      "command": "GetLogs",
+      "script": "verify-log-delivery.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--project", "--logstore", "--from", "--to", "--query"],
+      "response_fields": [],
+      "mode": "real"
+    },
+    {
+      "product": "cloud-siem",
+      "command": "ListAutomateResponseConfigs",
+      "script": "list-response-policies.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--Version", "--region", "--PageSize", "--CurrentPage"],
+      "response_fields": ["ResponseConfigs", "TotalCount"],
+      "mode": "real",
+      "notes": "Requires Security Center Enterprise edition"
+    },
+    {
+      "product": "cloud-siem",
+      "command": "UpdateAutomateResponseConfigStatus",
+      "script": "execute-response-policy.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": ["--Version", "--region", "--Id", "--Status"],
+      "response_fields": [],
+      "mode": "real",
+      "notes": "Requires Security Center Enterprise edition. Enables rule (Status=100)."
+    },
+    {
+      "product": "sts",
+      "command": "GetCallerIdentity",
+      "script": "list-waf-events.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": [],
+      "response_fields": ["AccountId"],
+      "mode": "real"
+    },
+    {
+      "product": "sts",
+      "command": "GetCallerIdentity",
+      "script": "verify-log-delivery.sh",
+      "skill": "blueteam-autopilot-ops",
+      "params": [],
+      "response_fields": ["AccountId"],
+      "mode": "real"
+    },
+    {
+      "product": "vpc",
+      "command": "DescribeVpcs",
+      "script": "generate-trusted-networks.sh",
+      "skill": "blueteam-autopilot-prep",
+      "params": ["--region"],
+      "response_fields": ["Vpcs"],
+      "mode": "real"
+    },
+    {
+      "product": "vpc",
+      "command": "DescribeVpcAttribute",
+      "script": "generate-trusted-networks.sh",
+      "skill": "blueteam-autopilot-prep",
+      "params": ["--region", "--VpcId"],
+      "response_fields": ["VpcId", "VpcName"],
+      "mode": "real"
+    },
+    {
+      "product": "vpc",
+      "command": "DescribeVpnGateways",
+      "script": "generate-trusted-networks.sh",
+      "skill": "blueteam-autopilot-prep",
+      "params": ["--region"],
+      "response_fields": ["VpnGateways"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "DescribeInstance",
+      "script": "generate-trusted-networks.sh",
+      "skill": "blueteam-autopilot-prep",
+      "params": ["--region"],
+      "response_fields": ["InstanceId"],
+      "mode": "real"
+    },
+    {
+      "product": "waf-openapi",
+      "command": "DescribeDomains",
+      "script": "generate-trusted-networks.sh",
+      "skill": "blueteam-autopilot-prep",
+      "params": ["--region", "--InstanceId"],
+      "response_fields": ["Domains"],
+      "mode": "real"
+    }
+  ]
+}
