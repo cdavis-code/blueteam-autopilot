@@ -157,6 +157,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ```
 .
 ├── README.md                          # This file
+├── BUGS.md                            # Known issues and security findings
 ├── LICENSE                            # MIT License
 ├── CHANGELOG.md                       # Version history
 │
@@ -166,7 +167,10 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 │   ├── architecture-diagram.svg       # Architecture overview
 │   └── submission/                    # Hackathon submission materials
 │       ├── about.md                   # Devpost submission content
-│       └── proof-of-deployment.md     # Alibaba Cloud deployment evidence
+│       ├── medium-article.md          # Medium article draft
+│       ├── proof-of-deployment.md     # Alibaba Cloud deployment evidence
+│       ├── console-*.png              # Alibaba Cloud console screenshots
+│       └── slides/                    # Demo video script + screenshots
 │
 └── skills/
     ├── blueteam-autopilot-core/       # Core agent: 5-behavior triage cycle
@@ -174,12 +178,13 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
     │   ├── BEHAVIORS.md               # Detailed workflow for each behavior
     │   ├── references/                # MCP tools, compliance, runbooks
     │   │
-    │   └── fixtures/                  # Demo data (14 JSON files — bundled with install)
+    │   └── fixtures/                  # Demo data (15 JSON files — bundled with install)
     │       ├── README.md              # Fixture map and capture instructions
     │       ├── ping.json
     │       ├── account_context.json
     │       ├── events_recent.json     # 6 security events
     │       ├── event_detail.json      # Full attack chain
+    │       ├── event_detail_evt-demo-20260614-003.json  # Prompt injection test fixture
     │       ├── alerts.json
     │       ├── vulnerabilities.json   # 5 CVEs
     │       ├── vulnerability_detail.json
@@ -201,7 +206,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
     │
     ├── blueteam-autopilot-knowledge/  # Compliance docs, runbooks & GRC sync
     │   ├── SKILL.md
-    │   ├── documents/                 # NIST CSF, SOC 2, runbooks, trusted networks
+    │   ├── documents/                 # NIST CSF, SOC 2, runbooks, trusted networks, change mgmt policy
     │   ├── grc-providers/             # GRC integration scripts (CISO Assistant)
     │   ├── scripts/                   # fetch-knowledge.sh, grc-sync.sh, grc-webhook.sh
     │   └── policies.json              # Compliance policy definitions

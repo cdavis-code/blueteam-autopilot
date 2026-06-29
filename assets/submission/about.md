@@ -21,7 +21,7 @@ Alibaba Blueteam is an AI copilot that automates the full triage cycle:
 
 All state-changing actions require explicit human approval. SOC 2 CC6.8.3 compliant by design.
 
-Works in two modes: `real` for production with live Alibaba Cloud APIs, and `demo` for offline use with zero setup and zero credentials. A security analyst can be triaging events in 5 minutes.
+Works in two modes: `demo` (default, offline, zero setup) and `real` (production with live Alibaba Cloud APIs). A security analyst can be triaging events in 5 minutes with no credentials.
 
 ## How we built it
 
@@ -55,7 +55,7 @@ The entire project installs via `npx skills add`. No repository clone, no build 
 
 ## Accomplishments that we're proud of
 
-**Zero-setup demo mode.** Bundling 14 JSON fixture files so the entire agent runs offline with no credentials and no cloud account was one of the best design decisions. Judges and users can `npx skills add`, set one environment variable, and start triaging in under 5 minutes. No repository clone, no build step.
+**Zero-setup demo mode.** Bundling 15 JSON fixture files so the entire agent runs offline with no credentials and no cloud account was one of the best design decisions. Judges and users can `npx skills add` and start triaging in under 5 minutes. Demo mode is the default, no configuration needed. No repository clone, no build step.
 
 **GRC integration that actually works.** Connecting two live GRC MCP servers (CISO Assistant and Vanta) into the incident response workflow means compliance mapping happens during investigation, not as an afterthought. The fallback chain (live MCP, then synced documents, then bundled knowledge) keeps the agent running even when external services are down.
 

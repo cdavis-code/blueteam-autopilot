@@ -166,7 +166,7 @@ fi
 # ... real mode: call aliyun CLI below
 ```
 
-The `${SECURITY_CENTER_MODE:-demo}` default means if no `.env` file exists, the script runs in demo mode. Fourteen JSON fixture files provide realistic data: 6 security events across all severity levels, full attack chains with CVEs, 5 response policies, WAF attack logs, and compliance mappings.
+The `${SECURITY_CENTER_MODE:-demo}` default means if no `.env` file exists, the script runs in demo mode. Fifteen JSON fixture files provide realistic data: 6 security events across all severity levels, full attack chains with CVEs, 5 response policies, WAF attack logs, and compliance mappings.
 
 > **Design principle:** Make the zero-configuration path the path of least resistance. If demo mode requires an environment variable to activate, most people will never see it. If real mode requires a `.env` file, the people who need it already know they need it.
 
