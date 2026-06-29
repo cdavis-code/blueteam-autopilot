@@ -13,16 +13,20 @@ elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
 fi
 
 # ----- Demo mode: return fixture data -----
-if [ "${SECURITY_CENTER_MODE:-real}" = "demo" ]; then
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
   FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
-  FIXTURE_FILE="$FIXTURE_DIR/event_detail.json"
-  if [ -f "$FIXTURE_FILE" ]; then
-    cat "$FIXTURE_FILE"
-    exit 0
+  EVENT_ID="${1:-}"
+  # Try per-event fixture first, then fall back to default
+  if [ -n "$EVENT_ID" ] && [ -f "$FIXTURE_DIR/event_detail_${EVENT_ID}.json" ]; then
+    FIXTURE_FILE="$FIXTURE_DIR/event_detail_${EVENT_ID}.json"
+  elif [ -f "$FIXTURE_DIR/event_detail.json" ]; then
+    FIXTURE_FILE="$FIXTURE_DIR/event_detail.json"
   else
-    echo "{\"error\": \"Fixture not found: $FIXTURE_FILE. Run 'aliyun sas describe-susp-event-detail > $FIXTURE_FILE' to capture.\"}"
+    echo "{\"error\": \"Fixture not found. Run 'aliyun sas describe-susp-event-detail > event_detail.json' to capture.\"}"
     exit 1
   fi
+  cat "$FIXTURE_FILE"
+  exit 0
 fi
 # ----- End demo mode -----
 

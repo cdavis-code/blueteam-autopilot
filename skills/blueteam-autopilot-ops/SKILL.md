@@ -31,20 +31,25 @@ Operational CLI workflows wrapping `aliyun` commands for Security Center, WAF, a
 
 ## Mode Selection
 
-All scripts `source .env` from your project root. Set the mode in `.env` before running any script:
+**Demo mode is the default.** All scripts read from `../blueteam-autopilot-core/fixtures/*.json` instead of calling `aliyun` CLI. No `.env` file or credentials required.
+
+To switch to real mode with live Alibaba Cloud API calls, create a `.env` file:
 
 ```bash
-echo 'SECURITY_CENTER_MODE=real' > .env   # Live Alibaba Cloud API calls
-echo 'SECURITY_CENTER_MODE=demo' > .env   # Local fixture files (no network)
+cat > .env << 'EOF'
+ALIBABA_ACCESS_KEY_ID="your-access-key-id"
+ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
+ALIBABA_REGION="ap-southeast-1"
+SECURITY_CENTER_MODE=real
+EOF
 ```
 
 Or export directly for temporary overrides:
 ```bash
-export SECURITY_CENTER_MODE=demo
+export SECURITY_CENTER_MODE=real
 ```
 
-When `SECURITY_CENTER_MODE=demo`, all scripts read from `../blueteam-autopilot-core/fixtures/*.json`
-instead of calling `aliyun` CLI. No Alibaba Cloud credentials required.
+When `.env` contains `SECURITY_CENTER_MODE=real`, all scripts call live `aliyun` CLI APIs instead of reading fixtures.
 
 ---
 

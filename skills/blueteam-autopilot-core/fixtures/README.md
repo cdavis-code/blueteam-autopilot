@@ -1,15 +1,12 @@
 # Demo Fixtures
 
-This directory contains realistic Alibaba Cloud Security Center fixture data for **demo mode** (`SECURITY_CENTER_MODE=demo`). Every JSON file mirrors the exact output shape of an MCP tool or CLI script — the agent cannot tell the difference between a fixture and a live API response.
+This directory contains realistic Alibaba Cloud Security Center fixture data for **demo mode** (the default). Every JSON file mirrors the exact output shape of an MCP tool or CLI script. The agent cannot tell the difference between a fixture and a live API response.
 
 ## Usage
 
-```bash
-# Set demo mode in your .env file (scripts source .env automatically)
-echo 'SECURITY_CENTER_MODE=demo' > .env
-```
+Demo mode is the default. No `.env` file needed. All scripts in `../blueteam-autopilot-ops/scripts/` will read from these files instead of calling the `aliyun` CLI. No network, no credentials, no Alibaba Cloud account required.
 
-All scripts in `../blueteam-autopilot-ops/scripts/` will read from these files instead of calling the `aliyun` CLI. No network, no credentials, no Alibaba Cloud account required.
+To switch to real mode with live APIs, create a `.env` file with `SECURITY_CENTER_MODE=real`.
 
 ## Fixture Map
 

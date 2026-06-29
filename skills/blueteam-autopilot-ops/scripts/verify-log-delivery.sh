@@ -13,7 +13,7 @@ elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
 fi
 
 # ----- Demo mode: always returns verified -----
-if [ "${SECURITY_CENTER_MODE:-real}" = "demo" ]; then
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
   echo "Verifying WAF log delivery to SLS..."
   echo "Region: ap-southeast-1 (demo)"
   echo "Mode: demo"

@@ -36,11 +36,11 @@ fi
 
 # Map document type to filename
 case "$DOC_TYPE" in
-  asset_inventory)    FILENAME="asset_inventory.md" ;;
-  trusted_networks)   FILENAME="trusted_networks.md" ;;
-  compliance_nist)    FILENAME="compliance_nist.md" ;;
-  compliance_soc2)    FILENAME="compliance_soc2.md" ;;
-  runbook_waf_triage) FILENAME="runbook_waf_triage.md" ;;
+  asset_inventory)    FILENAME="asset-inventory.md" ;;
+  trusted_networks)   FILENAME="trusted-networks.md" ;;
+  compliance_nist)    FILENAME="nist-csf.md" ;;
+  compliance_soc2)    FILENAME="soc2-cc6.md" ;;
+  runbook_waf_triage) FILENAME="runbook-waf-triage.md" ;;
   policy_change_mgmt) FILENAME="policy_change_mgmt.md" ;;
   *)
     echo "Error: Unknown document type '$DOC_TYPE'"
@@ -54,7 +54,7 @@ esac
 KNOWLEDGE_DIRS=(
   "${KNOWLEDGE_DIR:-}"
   "$(dirname "$SCRIPT_DIR")/../../../packages/alibaba_security_mcp/knowledge"
-  "$(dirname "$SCRIPT_DIR")/../../blueteam-autopilot-knowledge/documents"
+  "$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-knowledge/documents"
   "$(dirname "$SCRIPT_DIR")/../../../secops"
 )
 

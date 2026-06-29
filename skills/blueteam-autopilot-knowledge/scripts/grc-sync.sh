@@ -130,9 +130,10 @@ validate_controls() {
   local content="$1"
   local expected_controls="$2"
 
-  python3 -c "
+  # Pass untrusted content via stdin to avoid shell injection
+  printf '%s' "$content" | python3 -c "
 import sys, json
-content = '''${content}'''
+content = sys.stdin.read()
 controls = json.loads('''${expected_controls}''')
 missing = []
 for c in controls:
@@ -422,17 +423,37 @@ for line in sys.stdin:
   if [ "$DRY_RUN" = true ]; then
     echo -e "  ${YELLOW}[DRY RUN] Would write to: ${DOC_PATH}${NC}"
   else
-    # Archive current version if it exists
+    # Human review gate: show diff and require explicit approval before writing
     if [ -f "$DOC_PATH" ]; then
       CURRENT_VERSION=$(extract_yaml_version "$DOC_PATH")
       CURRENT_HASH=$(file_hash "$DOC_PATH")
+      echo -e "  ${BOLD}Proposed changes to ${DOC_PATH}:${NC}"
+      diff "$DOC_PATH" <(echo "$FRAMEWORK_CONTENT") 2>/dev/null || true
+      echo ""
+      read -rp "  Apply this update? [y/N] " confirm
+      if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "  Skipped."
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        continue
+      fi
+    else
+      CURRENT_VERSION="none"
+      CURRENT_HASH=""
+      echo -e "  ${YELLOW}New document will be created at: ${DOC_PATH}${NC}"
+      read -rp "  Create this document? [y/N] " confirm
+      if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "  Skipped."
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        continue
+      fi
+    fi
+
+    # Archive current version if it exists
+    if [ -f "$DOC_PATH" ]; then
       TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
       ARCHIVE_PATH="${ARCHIVE_DIR}/$(basename "$DOC_FILE" .md)-backup-${TIMESTAMP}.md"
       cp "$DOC_PATH" "$ARCHIVE_PATH"
       echo "  Archived previous version to: ${ARCHIVE_PATH}"
-    else
-      CURRENT_VERSION="none"
-      CURRENT_HASH=""
     fi
 
     # Write new content

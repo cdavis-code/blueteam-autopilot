@@ -1,0 +1,21 @@
+{
+  "eventId": "evt-demo-20260614-003",
+  "title": "Critical RCE Vulnerability — OpenSSL CVE-2024-5678",
+  "severity": "CRITICAL",
+  "sourceProduct": "CWPP",
+  "attackerIps": [],
+  "attackChain": [
+    {"stage": "Discovery", "description": "CWPP agent detected outdated OpenSSL 3.0.8 on primary database server during routine vulnerability scan."},
+    {"stage": "Assessment", "description": "CVE-2024-5678 (CVSS 9.8): Buffer overflow in OpenSSL allowing remote code execution via crafted TLS handshake."},
+    {"stage": "Risk", "description": "Database server handles TLS connections from application tier. Exploitation would grant RCE as the database service user."},
+    {"stage": "Mitigation", "description": "No active exploitation detected. Vulnerability is exploitable but requires network access to the database TLS port."}
+  ],
+  "affectedAssets": [
+    {"assetId": "i-prod-db-01", "name": "production-db-server-01", "role": "database-server"}
+  ],
+  "cves": ["CVE-2024-5678"],
+  "relatedAlerts": ["alert-demo-cwpp-vuln-003"],
+  "trustedNetworkMatch": false,
+  "geoLocation": {},
+  "note": "EXAMPLE — fixture data for demo mode."
+}

@@ -13,7 +13,7 @@ elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
 fi
 
 # ----- Demo mode: return fixture data -----
-if [ "${SECURITY_CENTER_MODE:-real}" = "demo" ]; then
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
   FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
   FIXTURE_FILE="$FIXTURE_DIR/ping.json"
   if [ -f "$FIXTURE_FILE" ]; then
@@ -75,7 +75,7 @@ fi
 # Check 4: Execution mode
 echo ""
 echo "4. Execution Mode"
-MODE="${SECURITY_CENTER_MODE:-real}"
+MODE="${SECURITY_CENTER_MODE:-demo}"
 echo "   SECURITY_CENTER_MODE = $MODE"
 if [ "$MODE" = "real" ]; then
   echo "   ⚠️  WARNING: Real mode — state-changing APIs are live"

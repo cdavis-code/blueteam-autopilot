@@ -16,7 +16,7 @@ elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
 fi
 
 # ----- Demo mode: return fixture data -----
-if [ "${SECURITY_CENTER_MODE:-real}" = "demo" ]; then
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
   FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
   FIXTURE_FILE="$FIXTURE_DIR/knowledge_list.json"
   if [ -f "$FIXTURE_FILE" ]; then

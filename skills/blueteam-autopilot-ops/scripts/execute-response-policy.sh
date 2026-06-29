@@ -16,7 +16,7 @@ elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
 fi
 
 # ----- Demo mode: simulated response -----
-if [ "${SECURITY_CENTER_MODE:-real}" = "demo" ]; then
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
   DEMO_POLICY_ID="${1:-unknown}"
   DEMO_EVENT_ID="${2:-}"
   echo "[DEMO] Simulating response policy execution..."

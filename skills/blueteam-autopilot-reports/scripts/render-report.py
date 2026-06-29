@@ -50,26 +50,27 @@ def substitute_template(template: str, data: dict) -> str:
         section = match.group(2)
         value = data.get(key, [])
         
-        if not isinstance(value, list):
-            return ''
-        
-        rendered_items = []
-        for item in value:
-            if isinstance(item, dict):
-                # Render section for each dict item
-                item_section = section
-                for k, v in item.items():
-                    item_section = item_section.replace(f'{{{{{k}}}}}', str(v))
-                rendered_items.append(item_section)
-            else:
-                # Simple value substitution
-                rendered_items.append(section.replace('{{.}}', str(item)))
-        
-        return ''.join(rendered_items)
+        if isinstance(value, list):
+            rendered_items = []
+            for item in value:
+                if isinstance(item, dict):
+                    # Render section for each dict item
+                    item_section = section
+                    for k, v in item.items():
+                        item_section = item_section.replace(f'{{{{{k}}}}}', str(v))
+                    rendered_items.append(item_section)
+                else:
+                    # Simple value substitution
+                    rendered_items.append(section.replace('{{.}}', str(item)))
+            return ''.join(rendered_items)
+        else:
+            # Fall back to conditional behavior for scalar values
+            return section if value else ''
     
     result = re.sub(array_pattern, render_array, result, flags=re.DOTALL)
     
     # Handle conditional sections ({{#key}}...{{/key}} for truthy)
+    # Note: only catches patterns not already consumed by array handler above
     def render_conditional(match):
         key = match.group(1)
         section = match.group(2)
@@ -85,7 +86,7 @@ def substitute_template(template: str, data: dict) -> str:
         value = data.get(key)
         return section if not value else ''
     
-    result = re.sub(r'\{\{\\^(\w+)\}\}(.*?)\{\{/\1\}\}', render_inverse, result, flags=re.DOTALL)
+    result = re.sub(r'\{\{\^(\w+)\}\}(.*?)\{\{/\1\}\}', render_inverse, result, flags=re.DOTALL)
     
     # Simple variable substitution
     for key, value in data.items():

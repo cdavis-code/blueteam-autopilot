@@ -25,10 +25,9 @@
 ```bash
 mkdir secops && cd secops
 npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
-echo 'SECURITY_CENTER_MODE=demo' > .env
 ```
 
-This creates a new project directory, installs all 6 agent skills (with bundled demo fixtures), and sets demo mode for immediate offline use.
+This creates a new project directory and installs all 6 agent skills (with bundled demo fixtures). Demo mode is the default, so you can start immediately with zero configuration.
 
 ---
 
@@ -53,17 +52,19 @@ All state-changing actions require **explicit human approval** — SOC 2 CC6.8.3
 
 | Mode | Network | Prerequisites | Speed | Use Case |
 |------|---------|--------------|-------|----------|
-| `real` | ✅ Live API | `aliyun` CLI + RAM credentials | ~1-3s per call | Production incidents |
-| `demo` | ❌ Offline | None | Instant | Demos, CI, development |
+| `demo` | ❌ Offline | None | Instant | Demos, CI, development (default) |
+| `real` | ✅ Live API | `aliyun` CLI + RAM credentials + `.env` | ~1-3s per call | Production incidents |
 
-Set via the `.env` file in your project root (all scripts `source .env` automatically):
+**Demo mode is the default.** No `.env` file needed. To switch to real mode with live Alibaba Cloud API calls, create a `.env` file with your credentials and `SECURITY_CENTER_MODE=real`:
 
 ```bash
-# Demo mode — offline, no credentials
-echo 'SECURITY_CENTER_MODE=demo' > .env
-
-# Real mode — live Alibaba Cloud API calls
-echo 'SECURITY_CENTER_MODE=real' > .env
+# Real mode - live Alibaba Cloud API calls
+cat > .env << 'EOF'
+ALIBABA_ACCESS_KEY_ID="LTAI5t..."
+ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
+ALIBABA_REGION="ap-southeast-1"
+SECURITY_CENTER_MODE=real
+EOF
 ```
 
 ---
@@ -77,10 +78,7 @@ No Alibaba Cloud account? No problem. Demo mode works with zero setup and zero n
 mkdir secops && cd secops
 npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
 
-# 2. Set demo mode
-echo 'SECURITY_CENTER_MODE=demo' > .env
-
-# 3. Start your agent harness and ask:
+# 2. Start your agent harness and ask:
 #    "Show me recent security events"
 #    "Investigate event evt-demo-20260614-001"
 #    "What response policies are available?"
@@ -88,7 +86,7 @@ echo 'SECURITY_CENTER_MODE=demo' > .env
 # The agent will use bundled fixture data — no API calls, no credentials.
 ```
 
-**What happens under the hood:** The skills detect `SECURITY_CENTER_MODE=demo` and read from bundled `skills/blueteam-autopilot-core/fixtures/*.json` files instead of calling Alibaba Cloud APIs. You get realistic responses with:
+**What happens under the hood:** Demo mode is the default. The skills read from bundled `skills/blueteam-autopilot-core/fixtures/*.json` files instead of calling Alibaba Cloud APIs. You get realistic responses with:
 - 6 security events across all severity levels (CRITICAL → LOW)
 - Full attack chains with CVEs (e.g., CVE-2026-1234 for RCE)
 - 5 Agentic SOC response policies (IP block, host isolation, vuln patch)
@@ -272,7 +270,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 ### Do I need an Alibaba Cloud account to try this?
 
-**No!** With Node.js 18+ installed, run `npx skills add`, create a `.env` with `SECURITY_CENTER_MODE=demo`, and everything runs offline using bundled fixture files. No credentials, no API calls, no cloud account. No repository clone required.
+**No!** With Node.js 18+ installed, run `npx skills add` and everything runs offline in demo mode using bundled fixture files. No credentials, no `.env` file, no API calls, no cloud account. No repository clone required.
 
 ### Is this production-ready?
 
