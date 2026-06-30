@@ -21,6 +21,8 @@ build/
 .env.*
 !.env.example
 
+.mcp.example.json
+
 # OS
 .DS_Store
 Thumbs.db

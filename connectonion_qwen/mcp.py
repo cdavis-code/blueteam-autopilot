@@ -16,6 +16,7 @@ import inspect
 import json
 import logging
 import os
+import re
 import sys
 import threading
 from pathlib import Path
@@ -80,11 +81,35 @@ class _AsyncBridge:
 
 
 # ---------------------------------------------------------------------------
+# Environment variable interpolation
+# ---------------------------------------------------------------------------
+
+_ENV_VAR_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def _resolve_env_vars(obj: Any) -> Any:
+    """Recursively resolve ``${VAR_NAME}`` references in string values.
+
+    Supports the standard ``${VAR}`` syntax used by Claude Desktop, Cursor,
+    and other MCP hosts.  Unresolved variables become empty strings.
+    """
+    if isinstance(obj, str):
+        def _replacer(m: re.Match) -> str:
+            return os.environ.get(m.group(1), "")
+        return _ENV_VAR_RE.sub(_replacer, obj)
+    if isinstance(obj, dict):
+        return {k: _resolve_env_vars(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_resolve_env_vars(item) for item in obj]
+    return obj
+
+
+# ---------------------------------------------------------------------------
 # MCP config loader
 # ---------------------------------------------------------------------------
 
 def _load_mcp_config() -> dict:
-    """Load and parse the MCP config file."""
+    """Load and parse the MCP config file, resolving ``${VAR}`` references."""
     config_path = Path(MCP_CONFIG_PATH)
     if not config_path.is_absolute():
         config_path = _PROJECT_ROOT / config_path
@@ -95,7 +120,7 @@ def _load_mcp_config() -> dict:
     with open(config_path) as f:
         data = json.load(f)
 
-    return data.get("mcpServers", {})
+    return _resolve_env_vars(data.get("mcpServers", {}))
 
 
 # ---------------------------------------------------------------------------
@@ -217,20 +242,17 @@ def load_mcp_tools() -> list[Callable]:
         from mcp.client.stdio import StdioServerParameters, stdio_client
         from mcp.client.sse import sse_client
 
-        CONNECT_TIMEOUT = 10  # seconds per server
+        DEFAULT_TIMEOUT = 10  # seconds per server
 
         for server_name, server_config in config.items():
             try:
                 transport_type = server_config.get("type", "stdio")
+                connect_timeout = server_config.get("timeout", DEFAULT_TIMEOUT)
                 cm = None  # async context manager
 
                 if transport_type == "sse":
                     url = server_config.get("url", "")
                     headers = server_config.get("headers", {})
-                    # Resolve $ENV_VAR references in headers
-                    for k, v in list(headers.items()):
-                        if isinstance(v, str) and v.startswith("$"):
-                            headers[k] = os.getenv(v[1:], "")
                     cm = sse_client(url=url, headers=headers or None, timeout=5)
                 else:
                     command = server_config.get("command", "")
@@ -242,18 +264,18 @@ def load_mcp_tools() -> list[Callable]:
                     cm = stdio_client(params)
 
                 # Enter context manager with timeout (keeps connection alive)
-                streams = await asyncio.wait_for(cm.__aenter__(), timeout=CONNECT_TIMEOUT)
+                streams = await asyncio.wait_for(cm.__aenter__(), timeout=connect_timeout)
                 _cms.append(cm)
                 read, write = streams
 
                 # Create session and initialize
                 session = ClientSession(read, write)
-                await asyncio.wait_for(session.initialize(), timeout=CONNECT_TIMEOUT)
+                await asyncio.wait_for(session.initialize(), timeout=connect_timeout)
                 _sessions.append(session)
 
                 # Discover tools
                 tools_result = await asyncio.wait_for(
-                    session.list_tools(), timeout=CONNECT_TIMEOUT
+                    session.list_tools(), timeout=connect_timeout
                 )
 
                 for mcp_tool in tools_result.tools:
@@ -269,7 +291,7 @@ def load_mcp_tools() -> list[Callable]:
             except asyncio.TimeoutError:
                 print(
                     f"  ⚠ MCP server '{server_name}': "
-                    f"skipped (connection timed out after {CONNECT_TIMEOUT}s)",
+                    f"skipped (connection timed out after {connect_timeout}s)",
                     file=sys.stderr,
                 )
             except Exception as exc:
