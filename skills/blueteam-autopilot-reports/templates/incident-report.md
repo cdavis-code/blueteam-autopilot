@@ -65,3 +65,45 @@
 {{#complianceControls}}
 - {{.}}
 {{/complianceControls}}
+
+---
+
+## Blast Radius
+
+{{blastRadius}}
+
+---
+
+## Investigation Timeline
+
+{{#timeline}}
+| {{timestamp}} | {{event}} | {{source}} |
+{{/timeline}}
+
+---
+
+## Confidence Rating
+
+**{{confidence}}**
+
+---
+
+## Recommended Actions
+
+{{#recommendedActions}}
+| {{action}} | Policy: `{{policyId}}` | Risk: {{riskLevel}} |
+{{/recommendedActions}}
+
+---
+
+## Rollback Plan
+
+{{rollbackPlan}}
+
+---
+
+## Audit Trail
+
+{{#auditTrail}}
+| {{timestamp}} | `{{tool}}` | {{summary}} |
+{{/auditTrail}}

@@ -99,6 +99,36 @@ Produce a Markdown incident report with these sections:
 5. Rollback Plan -- how to undo the action.
 6. Audit Trail -- timestamps, tool calls made, data sources consulted.
 
+### Behavior 5b: Incident Response Report Generation
+When asked to generate a full incident response report, or after completing
+a thorough investigation (behaviors 1-4), use the generate_incident_report tool:
+
+1. Call generate_incident_report(event_id, additional_context) to aggregate
+   all investigation data into a single structured context package.
+   Pass any prior findings in additional_context for richer synthesis.
+
+2. Use the returned data to produce a comprehensive IR report with these
+   sections (beyond the basic Behavior 5 report):
+   - Blast Radius -- scope of impact (systems, data, users affected)
+   - Investigation Timeline -- chronological reconstruction from first
+     alert through current state, with data source for each entry
+   - Confidence Rating -- verdict confidence (0.0-1.0) with justification
+     (e.g., 0.85 = True Positive >85% confidence)
+   - Recommended Actions -- prioritized action table with policy IDs
+     and risk levels
+   - Rollback Plan -- how to undo each recommended action
+   - Audit Trail -- every tool call made, with timestamp and result summary
+
+3. Map findings to compliance controls using the embedded mapping:
+   - WAF perimeter blocking -> NIST CSF PR.PT-4, SOC 2 CC6.1
+   - Multi-signal correlation -> NIST CSF DE.AE-2, SOC 2 CC6.8
+   - Response policy selection -> NIST CSF RS.RP-1, SOC 2 CC6.8
+   - Human approval requirement -> SOC 2 CC6.8.3
+   - Audit trail documentation -> NIST CSF DE.AE-2, SOC 2 CC6.8
+
+4. The report should be suitable for export to ticket systems, compliance
+   audits, or management review. Include executive summary language.
+
 ## Compliance Context
 
 - NIST CSF: PR.PT-4 (Network Bounding), DE.AE-2 (Anomaly Detection),

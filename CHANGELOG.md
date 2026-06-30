@@ -5,7 +5,24 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.2.0] — 2026-06-30
+## [2.1.3] — 2026-06-30
+
+### Added
+
+#### Incident Response Report Generation Tool
+- **`generate_incident_report`** — New tool (19th) that aggregates all investigation data (event detail, alerts, assets, vulnerabilities, WAF, compliance controls) into a structured context package for report synthesis
+- **`connectonion_qwen/report_models.py`** — Pydantic models for structured IR report data: `IncidentReport`, `AttackChainStage`, `AffectedAsset`, `TimelineEvent`, `RecommendedAction`, `AuditEntry`
+- **Extended schema** — `incident-report.json` updated with `timeline`, `blastRadius`, `confidence`, `recommendedActions`, `rollbackPlan`, and `auditTrail` fields
+- **Extended template** — `incident-report.md` updated with Blast Radius, Investigation Timeline, Confidence Rating, Recommended Actions, Rollback Plan, and Audit Trail sections
+- **System prompt** — Added Behavior 5b protocol instructing the agent to use `generate_incident_report` for comprehensive IR reports with compliance mapping and executive summary
+
+### Changed
+- `connectonion_qwen/tools.py` — Added `generate_incident_report` to `ALL_TOOLS` (now 19 tools); added `_safe_parse` helper for JSON parsing
+- `agent.py` — Version bumped to v2.1.3
+
+---
+
+## [2.1.2] — 2026-06-30
 
 ### Added
 

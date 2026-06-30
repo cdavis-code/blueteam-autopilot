@@ -87,9 +87,29 @@ Missing required fields: eventId
 
 ## Report Generation Workflow
 
+### Option A: Agent-Driven Report (Recommended)
+
+Use the `generate_incident_report` tool (Behavior 5b in the agent workflow):
+
+1. **Call the tool**: `generate_incident_report(event_id, additional_context)`
+   - Aggregates all investigation data in one call: event detail, alerts, assets, vulnerabilities, WAF, response policies, and compliance controls (NIST CSF + SOC 2)
+   - Returns structured JSON with all sections needed for a full IR report
+
+2. **Synthesize the report**: The agent uses the returned context to produce a comprehensive Markdown report with:
+   - Summary, Attack Chain, Compliance Mapping
+   - Blast Radius, Investigation Timeline, Confidence Rating
+   - Recommended Actions (with policy IDs and risk levels)
+   - Rollback Plan, Audit Trail
+
+3. **Export**: Copy the Markdown output to a ticket system, compliance audit, or file.
+
+### Option B: Template-Based Rendering
+
+For deterministic rendering from pre-built JSON data:
+
 ### 1. Collect Data
 
-From MCP tools or CLI scripts:
+From MCP tools or CLI scripts (for template-based rendering):
 ```bash
 # Get event detail
 aliyun sas describe-susp-event-detail --region "$REGION" --suspicious-event-id "$EVENT_ID" > event.json
@@ -100,7 +120,7 @@ get_security_event_detail(eventId="evt-xxx")
 
 ### 2. Transform to Schema Format
 
-Map API response to report schema:
+Map API response to report schema (for template-based rendering):
 ```python
 # Example transformation
 report_data = {

@@ -1,4 +1,4 @@
-"""BlueTeam Autopilot tools — 17 SecOps tools as plain Python functions.
+"""BlueTeam Autopilot tools — 19 SecOps tools as plain Python functions.
 
 Each function is auto-converted to an OpenAI-compatible tool schema by
 ConnectOnion's tool_factory using type hints and docstrings.
@@ -287,6 +287,95 @@ def verify_log_delivery() -> str:
 
 
 # ===========================================================================
+# Report Generation
+# ===========================================================================
+
+def generate_incident_report(event_id: str, additional_context: str = "") -> str:
+    """Generate a comprehensive incident response report for a security event.
+
+    Aggregates investigation data from multiple sources (event detail, alerts,
+    assets, vulnerabilities, WAF, compliance controls) into a structured
+    context package. Use this AFTER completing investigation (behaviors 1-4).
+
+    Returns structured JSON with all data needed to produce a full IR report
+    including attack chain, blast radius, compliance mapping (NIST CSF + SOC 2),
+    recommended actions, and audit trail.
+
+    Args:
+        event_id: The security event ID to generate the report for.
+        additional_context: Optional extra context from the current investigation
+            (e.g., findings from prior tool calls, user observations).
+    """
+    from datetime import datetime, timezone
+
+    report_timestamp = datetime.now(timezone.utc).isoformat()
+    context: dict = {
+        "reportType": "incident-response",
+        "generatedAt": report_timestamp,
+        "eventId": event_id,
+        "additionalContext": additional_context,
+        "sections": {},
+    }
+
+    # 1. Event detail — attack chain, CVEs, attacker IPs, geo-location
+    event_detail = _run_script("get-event-detail.sh", [event_id])
+    context["sections"]["eventDetail"] = _safe_parse(event_detail)
+
+    # 2. Correlated alerts grouped by data source
+    alerts = _run_script("list-alerts.sh", [event_id])
+    context["sections"]["alerts"] = _safe_parse(alerts)
+
+    # 3. Current asset inventory with SOC 2 scope tags
+    assets = _run_script("list-assets.sh")
+    context["sections"]["assets"] = _safe_parse(assets)
+
+    # 4. Active vulnerabilities (filtered by severity if possible)
+    vulnerabilities = _run_script("list-vulnerabilities.sh")
+    context["sections"]["vulnerabilities"] = _safe_parse(vulnerabilities)
+
+    # 5. Available response policies for remediation recommendations
+    policies = _run_script("list-response-policies.sh")
+    context["sections"]["responsePolicies"] = _safe_parse(policies)
+
+    # 6. WAF context — instance info and recent attack logs
+    waf_instance = _run_script("get-waf-instance.sh")
+    context["sections"]["wafInstance"] = _safe_parse(waf_instance)
+
+    waf_events = _run_script("list-waf-events.sh")
+    context["sections"]["wafEvents"] = _safe_parse(waf_events)
+
+    # 7. Compliance controls — NIST CSF and SOC 2
+    nist_controls = _run_script("get-knowledge.sh", ["compliance_nist"])
+    context["sections"]["nistControls"] = nist_controls
+
+    soc2_controls = _run_script("get-knowledge.sh", ["compliance_soc2"])
+    context["sections"]["soc2Controls"] = soc2_controls
+
+    # 8. Account context for edition and region info
+    account_ctx = _run_script("get-account-context.sh")
+    context["sections"]["accountContext"] = _safe_parse(account_ctx)
+
+    # Compliance mapping reference (embedded for LLM convenience)
+    context["complianceMapping"] = {
+        "WAF perimeter blocking": ["NIST CSF PR.PT-4", "SOC 2 CC6.1"],
+        "Multi-signal correlation": ["NIST CSF DE.AE-2", "SOC 2 CC6.8"],
+        "Response policy selection": ["NIST CSF RS.RP-1", "SOC 2 CC6.8"],
+        "Human approval requirement": ["SOC 2 CC6.8.3"],
+        "Audit trail documentation": ["NIST CSF DE.AE-2", "SOC 2 CC6.8"],
+    }
+
+    return json.dumps(context, indent=2)
+
+
+def _safe_parse(raw: str) -> dict | list | str:
+    """Try to parse JSON; return raw string on failure."""
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return raw
+
+
+# ===========================================================================
 # Tool list for convenient import
 # ===========================================================================
 
@@ -309,4 +398,5 @@ ALL_TOOLS: list = [
     list_knowledge_documents,
     get_knowledge_document,
     verify_log_delivery,
+    generate_incident_report,
 ]

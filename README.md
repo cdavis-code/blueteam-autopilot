@@ -9,7 +9,7 @@
 * SOC 2 CC6.8 compliant by design
 * Dual-mode: live production & offline demo
 * **Standalone Python agent** built on Qwen Cloud + ConnectOnion with function calling + thinking mode
-* 17 CLI scripts · 7 agent skills · zero credentials for demo
+* 17 CLI scripts · 7 agent skills · 19 agent tools · zero credentials for demo
 
 🎬 **[Watch Demo Video](https://www.youtube.com/watch?v=-eqQJuAFHhA)**
 
@@ -41,17 +41,18 @@ cp .env.example .env
 python agent.py
 ```
 
-The agent uses 17 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
+The agent uses 19 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
 
 #### Agent Features
 
 | Feature | Description |
 |---------|-------------|
-| **Function Calling** | 17 tools mapped to bash scripts with parallel tool call support and configurable max rounds (default: 20) |
+| **Function Calling** | 19 tools mapped to bash scripts with parallel tool call support and configurable max rounds (default: 20) |
 | **Thinking Mode** | Qwen reasoning mode for complex orchestration; internally streamed and aggregated for maximum quality. Toggle via `ENABLE_THINKING` env var (default: enabled) |
 | **Interactive TUI** | Full Textual-based terminal UI via ConnectOnion with status bar, thinking indicator, tool progress, and token/cost tracking |
 | **Human-in-the-Loop** | SOC 2 CC6.8.3-compliant approval gates via ConnectOnion plugin system — state-changing actions run a dry-run preview first, then prompt for y/N confirmation |
 | **Structured Output** | Formal action proposals with reasoning, risk level, and rollback plan generated via JSON response format |
+| **IR Report Generation** | `generate_incident_report` tool aggregates all investigation data into structured context for comprehensive incident response reports with compliance mapping |
 | **Plugin Architecture** | ConnectOnion event system: `before_each_tool` for HITL gates, `after_each_tool` for compliance audit logging with output truncation |
 | **Dual Mode** | Demo mode (default) reads from fixture JSON; real mode calls live APIs — controlled by `SECURITY_CENTER_MODE` env var |
 | **Custom LLM Provider** | `QwenCloudLLM` subclass with internal streaming aggregation preserving Qwen's thinking mode quality |
@@ -246,9 +247,10 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ├── connectonion_qwen/                 # Qwen Cloud integration for ConnectOnion
 │   ├── __init__.py                    # Package marker
 │   ├── qwen_llm.py                   # Custom LLM provider (QwenCloudLLM)
-│   ├── tools.py                       # 17 tool functions + bash script executor
+│   ├── tools.py                       # 19 tool functions + bash script executor
 │   ├── plugins.py                     # HITL approval + compliance logger plugins
 │   ├── system_prompt.py               # System prompt (condensed SKILL.md + BEHAVIORS.md)
+│   ├── report_models.py               # Pydantic models for IR report generation
 │   └── config.py                      # .env loader + typed configuration
 │
 ├── assets/
@@ -325,7 +327,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 | `blueteam-autopilot-ops` | 17 CLI scripts wrapping `aliyun` commands (with demo dispatch) |
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real-mode only) |
 | `blueteam-autopilot-knowledge` | Compliance controls, runbooks, GRC sync pipeline, trusted networks |
-| `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas |
+| `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas + `generate_incident_report` tool |
 | `blueteam-autopilot-compat` | CLI compatibility validation — detects breaking changes in `aliyun` CLI commands, parameters, and response structures |
 | `alibaba-security-ops` | Standalone CLI skill — project evolution reference |
 
@@ -391,7 +393,7 @@ Yes! Region is auto-discovered from your `aliyun` CLI configuration (`aliyun con
 
 ### How does the standalone agent work?
 
-The agent (`agent.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 17 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Slash commands, token tracking, and context management are provided by ConnectOnion's `Chat` TUI.
+The agent (`agent.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 19 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Slash commands, token tracking, and context management are provided by ConnectOnion's `Chat` TUI.
 
 ### How do I contribute or report issues?
 
