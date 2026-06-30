@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Standalone Agent Runtime (`agent/`)
+- **agent/** — Production-ready Python SecOps agent with interactive CLI, built on Qwen Cloud's OpenAI-compatible API
+- **Function Calling Loop** — 17 registered tools mapped to ops bash scripts with parallel tool call support and configurable max rounds
+- **Thinking Mode** — Optional Qwen reasoning mode for complex tool orchestration; reasoning streamed to terminal in rich formatting
+- **Streaming** — Custom stream aggregator handling incremental tool call arguments, reasoning content, and text deltas
+- **Human-in-the-Loop (HITL)** — SOC 2 CC6.8.3-compliant approval gates enforced in code; dry-run preview before state-changing actions
+- **Structured Output** — Formal action proposal generation with reasoning, risk level, and rollback plan via JSON response format
+- **Interactive CLI** — Rich-formatted terminal UI with slash commands (`/help`, `/clear`, `/history`, `/model`, `/quit`), startup banner, and multi-turn conversation
+- **Dual Mode** — Demo mode (default) reads from fixture JSON files; real mode calls live Alibaba Cloud APIs via `SECURITY_CENTER_MODE` env var
+- **Callback Architecture** — `AgentCallbacks` dataclass with hooks for thinking, tool calls, results, text, and HITL — decouples core from CLI for future web UI integration
+- **Configuration** — Typed `.env` configuration via `python-dotenv` with validation; dependencies limited to `openai`, `python-dotenv`, and `rich`
+
 #### CLI Compatibility Validation (blueteam-autopilot-compat)
 - **blueteam-autopilot-compat** — New skill for detecting breaking changes in `aliyun` CLI commands, parameters, and response structures
 - **cli-baseline.json** — Baseline of 26 commands across 6 product namespaces (sas, waf-openapi, sls, cloud-siem, sts, vpc) with expected parameters and response fields

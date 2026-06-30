@@ -1,0 +1,50 @@
+"""Agent configuration -- loads from .env and provides typed access."""
+
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env from project root (agent/ is one level deep)
+_PROJECT_ROOT = Path(__file__).parent.parent
+load_dotenv(_PROJECT_ROOT / ".env")
+
+# ---------------------------------------------------------------------------
+# Qwen Cloud
+# ---------------------------------------------------------------------------
+DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
+QWEN_MODEL: str = os.getenv("QWEN_MODEL", "qwen3.7-plus")
+QWEN_BASE_URL: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+
+# ---------------------------------------------------------------------------
+# Alibaba Cloud (passed through to bash scripts via environment)
+# ---------------------------------------------------------------------------
+ALIBABA_ACCESS_KEY_ID: str = os.getenv("ALIBABA_ACCESS_KEY_ID", "")
+ALIBABA_ACCESS_KEY_SECRET: str = os.getenv("ALIBABA_ACCESS_KEY_SECRET", "")
+ALIBABA_REGION: str = os.getenv("ALIBABA_REGION", "")
+
+# ---------------------------------------------------------------------------
+# Agent behavior
+# ---------------------------------------------------------------------------
+SECURITY_CENTER_MODE: str = os.getenv("SECURITY_CENTER_MODE", "demo")
+ENABLE_THINKING: bool = os.getenv("ENABLE_THINKING", "true").lower() == "true"
+MAX_TOOL_ROUNDS: int = int(os.getenv("MAX_TOOL_ROUNDS", "20"))
+
+# ---------------------------------------------------------------------------
+# Paths (relative to project root)
+# ---------------------------------------------------------------------------
+SCRIPTS_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-ops" / "scripts"
+FIXTURES_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-core" / "fixtures"
+KNOWLEDGE_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-knowledge"
+
+
+def validate() -> list[str]:
+    """Return a list of configuration warnings (empty = all good)."""
+    warnings: list[str] = []
+    if not DASHSCOPE_API_KEY:
+        warnings.append(
+            "DASHSCOPE_API_KEY is not set. "
+            "The agent cannot call Qwen Cloud without it. "
+            "Add DASHSCOPE_API_KEY to your .env file."
+        )
+    return warnings

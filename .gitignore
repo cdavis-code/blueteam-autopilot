@@ -28,5 +28,11 @@ Thumbs.db
 # Qoder
 .qoder/
 
+# skills default
+.agents/
+
+# pyhton venv
+.venv/
+
 # Skills lock
 skills-lock.json

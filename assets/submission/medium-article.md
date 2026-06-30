@@ -58,7 +58,7 @@ This is also SOC 2 CC6.8.3 compliant by design. The approval gate isn't a featur
 
 ## Project Overview
 
-Alibaba Blueteam is a set of 6 modular agent skills orchestrated by a Qwen-powered core agent. It installs via `npx skills add` with no repository clone and no build step.
+Alibaba Blueteam is a set of 7 modular agent skills orchestrated by a Qwen-powered core agent. It installs via `npx skills add` with no repository clone and no build step.
 
 ```bash
 # Install and run (demo mode is the default, zero config)
@@ -66,7 +66,7 @@ mkdir secops && cd secops
 npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
 ```
 
-The 6 skills, in the order you'd meet them:
+The 7 skills, in the order you'd meet them:
 
 | Skill | Role |
 |-------|------|
@@ -75,11 +75,12 @@ The 6 skills, in the order you'd meet them:
 | `blueteam-autopilot-prep` | The gatekeeper. 8-stage environment validator (real mode only). |
 | `blueteam-autopilot-knowledge` | The memory. Compliance controls, runbooks, GRC sync pipeline. |
 | `blueteam-autopilot-reports` | The voice. Structured Markdown reports from JSON schemas. |
+| `blueteam-autopilot-compat` | The watchdog. CLI compatibility validator — detects breaking changes in `aliyun` commands and response structures. |
 | `alibaba-security-ops` | The origin. The standalone CLI skill the project evolved from. |
 
 Here's the architecture at a glance:
 
-![Architecture diagram: Qwen-powered core agent orchestrating 6 skills, 5 Alibaba Cloud services, and GRC MCP servers](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/assets/submission/slides/demo_0009.png)
+![Architecture diagram: Qwen-powered core agent orchestrating 7 skills, 6 Alibaba Cloud services, and GRC MCP servers](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/assets/submission/slides/demo_0009.png)
 
 ---
 
@@ -191,13 +192,13 @@ The Model Context Protocol gave the agent a clean interface to Alibaba Cloud's A
 
 Here's what I like about this pattern: adding a new capability means writing a CLI script and registering it as a tool. That's it. The agent doesn't need to know about API versioning quirks or authentication details. The script handles that. The agent just calls the tool and gets structured data back.
 
-The project wraps 25+ API operations across 5 Alibaba Cloud services (Security Center, WAF 3.0, SLS, VPC, STS) into 17 CLI scripts. Each script follows the same pattern: load environment, check mode, dispatch to fixture or live API, format output.
+The project wraps 26+ API operations across 6 Alibaba Cloud services (Security Center, WAF 3.0, SLS, Cloud SIEM, VPC, STS) into 17 CLI scripts. Each script follows the same pattern: load environment, check mode, dispatch to fixture or live API, format output.
 
 The alternative would be to call the Alibaba Cloud APIs directly from the agent prompt. That's faster to build for one or two operations, but it puts API authentication logic, error handling, and pagination code into the prompt context. The prompt gets long, the model gets confused, and adding a new operation means editing the prompt. With MCP tools, the prompt stays focused on security reasoning and the scripts handle the plumbing.
 
 > **Design principle:** Separate the agent's reasoning from the system's plumbing. The prompt should think about attacks and compliance. The scripts should think about APIs and authentication.
 
-The gotcha: the Alibaba Cloud APIs have quirks that aren't obvious from the documentation. WAF 3.0 uses a different API product name (`waf-openapi`) than you'd expect. SLS log queries need a `From: aqs` parameter that isn't mentioned in the main reference. Each quirk lives in exactly one script, which is the right place for it.
+The gotcha: the Alibaba Cloud APIs have quirks that aren't obvious from the documentation. WAF 3.0 uses a different API product name (`waf-openapi`) than you'd expect. SLS log queries need a `From: aqs` parameter that isn't mentioned in the main reference. Cloud SIEM (response policies) uses PascalCase action names (`ListAutomateResponseConfigs`) with a required `--Version 2022-06-16` flag, and only works on Enterprise edition. Each quirk lives in exactly one script, which is the right place for it.
 
 ---
 

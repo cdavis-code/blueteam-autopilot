@@ -10,7 +10,7 @@ When Alibaba Cloud launched Agentic SOC, it solved the alert surfacing problem. 
 
 Security teams using Alibaba Cloud face a constant flood of Security Center alerts, WAF logs, and vulnerability reports. Manually triaging every event takes hours. Real attacks go uninvestigated in the meantime.
 
-Alibaba Blueteam is an AI copilot that automates the full triage cycle:
+Alibaba Blueteam is a standalone AI agent that automates the full triage cycle:
 
 1. **Discovers** security events from Agentic SOC and WAF
 2. **Investigates** each incident with deep-dive analysis (attack chain, CVEs, attacker IPs)
@@ -21,25 +21,48 @@ Alibaba Blueteam is an AI copilot that automates the full triage cycle:
 
 All state-changing actions require explicit human approval. SOC 2 CC6.8.3 compliant by design.
 
-Works in two modes: `demo` (default, offline, zero setup) and `real` (production with live Alibaba Cloud APIs). A security analyst can be triaging events in 5 minutes with no credentials.
+Works in two modes: `demo` (default, offline fixture data, only needs a Qwen Cloud API key) and `real` (production with live Alibaba Cloud APIs). A security analyst can be triaging events in 5 minutes with no Alibaba Cloud credentials.
 
 ## How we built it
 
-The project is structured as **6 modular agent skills** orchestrated by a Qwen-powered core agent:
+A **standalone Python agent application** built on Qwen Cloud's OpenAI-compatible API using function calling, thinking mode, streaming, and structured output. The agent uses Qwen Cloud's function calling to orchestrate 17 Alibaba Cloud API tools, each mapped to a production bash script that works transparently in both real and demo modes.
 
-1. **blueteam-autopilot-core:** The brain. Defines the agent's role, 5-behavior triage cycle, MCP tool registry, and human-in-the-loop guardrails. Mode-aware: dispatches to live APIs or bundled fixtures based on a single environment variable.
+### Agent Architecture (`agent/`)
 
-2. **blueteam-autopilot-ops:** The hands. 17 production CLI scripts wrapping Alibaba Cloud APIs across 5 services: Security Center (SAS), WAF 3.0, Simple Log Service (SLS), VPC, and STS. Each script supports both real and demo modes transparently.
+The agent runtime (`agent/main.py`) implements the standard Qwen Cloud function calling loop:
 
-3. **blueteam-autopilot-prep:** The gatekeeper. An 8-stage environment validator that checks CLI installation, credentials, RAM policies, service enablement, infrastructure, log delivery, config generation, and readiness before the agent ever touches a live API.
+1. Send conversation messages + 17 tool definitions to Qwen Cloud
+2. Receive tool_calls from the model (with thinking mode reasoning)
+3. Execute tools via subprocess dispatch to bash scripts
+4. Feed results back as tool messages
+5. Repeat until the model produces a final answer
+6. Pause for human approval on state-changing actions
 
-4. **blueteam-autopilot-knowledge:** The memory. Compliance controls (NIST CSF v2.0, SOC 2 Type II CC6), runbooks, trusted network profiles, and a GRC sync pipeline that pulls live framework data from CISO Assistant and Vanta MCP servers.
+Key Qwen Cloud API features used:
 
-5. **blueteam-autopilot-reports:** The voice. Generates structured Markdown incident reports, action proposals, and vulnerability prioritization documents from JSON schemas and templates.
+| Feature | Qwen Cloud API | Usage in Agent |
+|---------|----------------|----------------|
+| **Function calling** | `tools` parameter with JSON schemas | All 17 tools registered as OpenAI-format function definitions |
+| **Thinking mode** | `extra_body={"enable_thinking": true}` | Complex multi-step tool orchestration reasoning |
+| **Parallel tool calls** | `parallel_tool_calls=True` | Independent queries (e.g., assets + events simultaneously) |
+| **Streaming** | `stream=True` | Real-time CLI feedback, required for thinking mode |
+| **Structured output** | `response_format={"type": "json_object"}` | Formal action proposals with guaranteed valid JSON |
+
+### Skill Layer (`skills/`)
+
+The existing skills become the tool implementation layer:
+
+1. **blueteam-autopilot-ops:** 17 production CLI scripts wrapping Alibaba Cloud APIs across 5 services: Security Center (SAS), WAF 3.0, Simple Log Service (SLS), VPC, and STS. Each script supports both real and demo modes transparently.
+
+2. **blueteam-autopilot-core:** Fixtures and references. 15 JSON fixture files for demo mode, MCP tool specifications, and compliance control mappings.
+
+3. **blueteam-autopilot-prep:** An 8-stage environment validator that checks CLI installation, credentials, RAM policies, service enablement, infrastructure, log delivery, config generation, and readiness before the agent ever touches a live API.
+
+4. **blueteam-autopilot-knowledge:** Compliance controls (NIST CSF v2.0, SOC 2 Type II CC6), runbooks, trusted network profiles, and a GRC sync pipeline that pulls live framework data from CISO Assistant and Vanta MCP servers.
+
+5. **blueteam-autopilot-reports:** Generates structured Markdown incident reports, action proposals, and vulnerability prioritization documents from JSON schemas and templates.
 
 6. **alibaba-security-ops:** The origin. The standalone CLI skill from which the project evolved.
-
-The entire project installs via `npx skills add`. No repository clone, no build step.
 
 ## Challenges we ran into
 
@@ -55,11 +78,13 @@ The entire project installs via `npx skills add`. No repository clone, no build 
 
 ## Accomplishments that we're proud of
 
-**Zero-setup demo mode.** Bundling 15 JSON fixture files so the entire agent runs offline with no credentials and no cloud account was one of the best design decisions. Judges and users can `npx skills add` and start triaging in under 5 minutes. Demo mode is the default, no configuration needed. No repository clone, no build step.
+**Zero-setup demo mode.** Bundling 15 JSON fixture files so the entire agent runs offline with no Alibaba Cloud credentials was one of the best design decisions. Judges and users can clone, `pip install`, add a Qwen Cloud API key, and start triaging in under 5 minutes. Demo mode is the default.
+
+**Built on Qwen Cloud.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, streaming, and structured output to drive complex multi-step security investigations. The agent isn't a wrapper around a chat API, it's a proper tool-orchestrating runtime.
 
 **GRC integration that actually works.** Connecting two live GRC MCP servers (CISO Assistant and Vanta) into the incident response workflow means compliance mapping happens during investigation, not as an afterthought. The fallback chain (live MCP, then synced documents, then bundled knowledge) keeps the agent running even when external services are down.
 
-**20+ MCP tools across 4 categories.** The Model Context Protocol gave us a clean, extensible interface to Alibaba Cloud's APIs. Core, WAF, response, and GRC tools are organized by function, each wrapping production CLI scripts that work identically in real and demo modes.
+**17 registered tools across 4 categories.** The agent registers tools as OpenAI-format function definitions, each wrapping a production CLI script that works identically in real and demo modes. Core, WAF, response, and GRC tools are organized by function.
 
 **SOC 2 compliance by design.** The "propose, don't execute" architecture means every state-changing action requires explicit human approval. This isn't a feature bolted on. It's the core design principle, and it made the architecture cleaner, not harder.
 
