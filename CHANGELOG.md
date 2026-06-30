@@ -5,6 +5,25 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] — 2026-06-30
+
+### Fixed
+
+#### Agent WAF Fallback for Basic Edition
+- **System prompt** — Added Basic/Advanced edition fallback instructions: when `list_security_events` returns 0 events, the agent now automatically queries WAF logs via `list_waf_security_events`, `list_waf_top_rules`, and `list_waf_top_ips`
+- **list-events.sh** — Added WAF fallback hint when Security Center returns 0 events; suppressed human-readable headers in agent mode (`AGENT_MODE=1`)
+
+#### WAF CLI Parameter Naming
+- **list-waf-top-rules.sh** — Fixed `--InstanceId` → `--instance-id`, `--StartTimestamp` → `--start-timestamp`, `--EndTimestamp` → `--end-timestamp` (WAF CLI requires lowercase-hyphenated params)
+- **list-waf-top-ips.sh** — Same parameter naming fix as above
+
+#### Script Output Parsing
+- **list-waf-top-rules.sh** — Changed from human-readable text to structured JSON output; fixed `HitCount` → `Count` field name to match actual API response; resolved bash double-quote conflicts by using single-quoted Python
+- **list-waf-top-ips.sh** — Same JSON output fix and quote conflict resolution
+- **tools.py** — Added `AGENT_MODE=1` environment variable to suppress human-readable script headers when agent calls tools, ensuring clean JSON output for LLM parsing
+
+---
+
 ## [2.1.0] — 2026-07-01
 
 ### Added

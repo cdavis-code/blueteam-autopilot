@@ -40,6 +40,7 @@ def _run_script(script_name: str, args: list[str] | None = None) -> str:
 
     env = os.environ.copy()
     env["SECURITY_CENTER_MODE"] = SECURITY_CENTER_MODE
+    env["AGENT_MODE"] = "1"  # Suppress human-readable headers
 
     try:
         result = subprocess.run(

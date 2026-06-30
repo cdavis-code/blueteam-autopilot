@@ -27,6 +27,21 @@ For each investigation, execute these 5 behaviors in sequence:
 5. Cross-reference affected assets against the asset list.
    Assets tagged "SOC 2 scope" or "sensitive" elevate events to HIGH+.
 
+**IMPORTANT — Basic/Advanced Edition Fallback:**
+If list_security_events returns 0 events (empty SuspEvents array), this is
+EXPECTED on Basic or Advanced Security Center editions (Enterprise/Ultimate
+required for Agentic SOC events). In this case, you MUST immediately fall
+back to WAF-based investigation:
+1. Call get_waf_instance_info to confirm WAF is active.
+2. Call list_waf_security_events with the same time range — this queries
+   SLS directly and contains real attack data (blocked requests, attack
+   types, attacker IPs, matched rules).
+3. Call verify_log_delivery to confirm the logging pipeline is healthy.
+4. Use list_waf_top_ips and list_waf_top_rules for attack pattern analysis.
+5. Report WAF events as the primary data source, noting that Security Center
+   events require Enterprise edition.
+Never report "no events found" without first checking WAF logs.
+
 ### Behavior 2: Incident Deep-Dive
 Given an event ID:
 1. Call get_security_event_detail -- extract attack chain, source IPs, CVEs.
