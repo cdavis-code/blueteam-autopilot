@@ -43,6 +43,23 @@ python -m agent
 
 The agent uses 17 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
 
+#### Agent Features
+
+| Feature | Description |
+|---------|-------------|
+| **Function Calling** | 17 tools mapped to bash scripts with parallel tool call support and configurable max rounds (default: 20) |
+| **Thinking Mode** | Qwen reasoning mode for complex orchestration; thinking output streamed to terminal in dim italic text. Toggle via `ENABLE_THINKING` env var (default: enabled) |
+| **Streaming Output** | Real-time CLI output via custom stream aggregator handling incremental tool call arguments, reasoning content, and text deltas |
+| **Human-in-the-Loop** | SOC 2 CC6.8.3-compliant approval gates enforced in code — state-changing actions run a dry-run preview first, then prompt for y/N confirmation |
+| **Structured Output** | Formal action proposals with reasoning, risk level, and rollback plan generated via JSON response format |
+| **Interactive CLI** | Rich-formatted terminal UI with slash commands: `/help`, `/clear`, `/history`, `/model`, `/quit` |
+| **Dual Mode** | Demo mode (default) reads from fixture JSON; real mode calls live APIs — controlled by `SECURITY_CENTER_MODE` env var |
+| **Callback Architecture** | `AgentCallbacks` dataclass with hooks (`on_thinking`, `on_tool_call`, `on_tool_result`, `on_text`, `on_hitl`) — decouples core from CLI for future web UI integration |
+| **Multi-turn Conversation** | Persistent conversation history across turns with system prompt deduplication |
+| **Error Handling** | 30-second timeout per tool call; graceful handling of missing scripts, subprocess errors; JSON error objects returned to model |
+
+**Dependencies:** Only `openai`, `python-dotenv`, and `rich` — no heavy frameworks.
+
 ### Option B: Skills for AI IDE Harness
 
 Install as skills for Qoder, Cursor, or other AI IDEs:
