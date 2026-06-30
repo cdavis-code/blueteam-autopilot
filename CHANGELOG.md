@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `connectonion_qwen/tools.py` — Added `generate_incident_report` to `ALL_TOOLS` (now 19 tools); added `_safe_parse` helper for JSON parsing
-- `agent.py` — Version bumped to v2.1.3
+- `agent.py` — Version bumped to v2.3.0
 
 ---
 

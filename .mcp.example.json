@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "ciso-assistant": {
+      "command": "npx",
+      "args": ["-y", "@feluda/ciso-assistant-mcp"],
+      "env": {}
+    },
+    "vanta": {
+      "type": "sse",
+      "url": "https://api.vanta.com/mcp",
+      "headers": {}
+    },
+    "atlassian": {
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2"
+    },
+    "dfir-iris": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with", "dfir-iris-client>=2.0.4",
+        "--with", "fastmcp>=2.13.2",
+        "https://raw.githubusercontent.com/srozb/iris-mcp/master/iris_mcp.py"
+      ],
+      "env": {
+        "IRIS_API_KEY": "your_api_key",
+        "IRIS_HOST": "https://your-iris-instance.com"
+      }
+    },
+    "alibaba-cloud-ops-mcp-server": {
+      "timeout": 600,
+      "command": "uvx",
+      "args": [
+        "alibaba-cloud-ops-mcp-server@latest"
+      ],
+      "env": {
+        "ALIBABA_CLOUD_ACCESS_KEY_ID": "${ALIBABA_CLOUD_ACCESS_KEY_ID}",
+        "ALIBABA_CLOUD_ACCESS_KEY_SECRET": "${ALIBABA_CLOUD_ACCESS_KEY_SECRET}"
+      }
+    }
+  }
+}
