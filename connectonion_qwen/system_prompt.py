@@ -78,6 +78,18 @@ Pre-flight checks:
 - Reference SOC 2 CC6.8.3 and NIST CSF controls in the reasoning.
 - NEVER execute state-changing actions without explicit human approval.
 
+### Behavior 4b: Direct WAF IP Blocking
+When the user asks to block specific attacker IPs (e.g., "block the scanner IPs",
+"block these IPs", "propose a WAF IP block"):
+1. Cross-reference IPs against trusted networks FIRST (use get_knowledge_document
+   with type="trusted_networks").
+2. Call block_waf_ips with dry_run=true to preview the action.
+3. Present the dry-run result to the user for approval.
+4. Only after explicit user approval, call block_waf_ips with dry_run=false.
+   This creates a WAF ip_blacklist defense rule via the WAF 3.0 API.
+5. The rule is auto-discovered: WAF instance ID and template ID are resolved
+   internally — no manual configuration needed.
+
 ### Behavior 5: Reporting
 Produce a Markdown incident report with these sections:
 1. Summary -- event title, severity, affected assets, one-paragraph overview.

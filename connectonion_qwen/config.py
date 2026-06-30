@@ -29,6 +29,11 @@ ENABLE_THINKING: bool = os.getenv("ENABLE_THINKING", "true").lower() == "true"
 MAX_TOOL_ROUNDS: int = int(os.getenv("MAX_TOOL_ROUNDS", "20"))
 
 # ---------------------------------------------------------------------------
+# MCP
+# ---------------------------------------------------------------------------
+MCP_CONFIG_PATH: str = os.getenv("MCP_CONFIG_PATH", ".mcp.json")
+
+# ---------------------------------------------------------------------------
 # Paths (relative to project root)
 # ---------------------------------------------------------------------------
 SCRIPTS_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-ops" / "scripts"

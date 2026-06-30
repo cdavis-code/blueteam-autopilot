@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "ciso-assistant": {
+      "command": "npx",
+      "args": ["-y", "@feluda/ciso-assistant-mcp"],
+      "env": {}
+    },
+    "vanta": {
+      "type": "sse",
+      "url": "https://api.vanta.com/mcp",
+      "headers": {}
+    }
+  }
+}

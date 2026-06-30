@@ -5,6 +5,26 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] — 2026-06-30
+
+### Added
+
+#### MCP Server Integration
+- **`connectonion_qwen/mcp.py`** — MCP client bridge that connects to external MCP servers, discovers tools, and wraps them as ConnectOnion-compatible Python functions
+- **`.mcp.json`** — Default MCP server config with CISO Assistant (stdio) and Vanta (SSE) presets
+- **Async bridge** — Background event loop thread bridges sync ConnectOnion tools to async MCP SDK, with 10s per-server connection timeout
+- **Dynamic tool wrapping** — MCP tool schemas (JSON Schema) auto-converted to Python type hints + signatures for ConnectOnion's tool_factory
+- **Graceful degradation** — Unreachable MCP servers are skipped with warnings; existing knowledge documents serve as fallback
+- **`MCP_CONFIG_PATH`** — New env var / config option to override `.mcp.json` path
+- **`mcp>=1.27,<2`** — Official MCP Python SDK added to dependencies
+
+### Changed
+- `requirements.txt` — Added `mcp>=1.27,<2`
+- `agent.py` — Loads MCP tools at startup and appends to built-in tools; cleans up on exit
+- `.env.example` — Added MCP configuration section
+
+---
+
 ## [2.1.1] — 2026-06-30
 
 ### Fixed
@@ -24,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.1.0] — 2026-07-01
+## [2.1.0] — 2026-06-30
 
 ### Added
 

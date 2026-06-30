@@ -17,7 +17,7 @@ from pathlib import Path
 from connectonion_qwen.config import SCRIPTS_DIR, SECURITY_CENTER_MODE
 
 # Tools that require HITL approval before real execution (state-changing)
-STATE_CHANGING_TOOLS: set[str] = {"execute_response_policy"}
+STATE_CHANGING_TOOLS: set[str] = {"execute_response_policy", "block_waf_ips"}
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +223,25 @@ def list_waf_top_ips(time_range: str = "") -> str:
     return _run_script("list-waf-top-ips.sh", args)
 
 
+def block_waf_ips(ips: str, dry_run: bool = True) -> str:
+    """Block attacker IPs in WAF via IP blacklist defense rule.
+    Uses WAF 3.0 create-defense-rule API with ip_blacklist scene.
+
+    ALWAYS set dry_run=true first to show what would be blocked.
+    NEVER call with dry_run=false without explicit human approval
+    (SOC 2 CC6.8.3 mandate).
+
+    Args:
+        ips: Comma-separated list of IPs or CIDRs to block (e.g. "1.2.3.4,5.6.7.8/24")
+        dry_run: If true, show what would be blocked without making API calls.
+    """
+    ip_list = [ip.strip() for ip in ips.split(",") if ip.strip()]
+    args: list[str] = ip_list
+    if dry_run:
+        args.append("--dry-run")
+    return _run_script("block-waf-ips.sh", args)
+
+
 # ===========================================================================
 # Assets
 # ===========================================================================
@@ -285,6 +304,7 @@ ALL_TOOLS: list = [
     list_waf_security_events,
     list_waf_top_rules,
     list_waf_top_ips,
+    block_waf_ips,
     list_assets,
     list_knowledge_documents,
     get_knowledge_document,
