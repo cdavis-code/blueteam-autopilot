@@ -5,6 +5,42 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] — 2026-07-01
+
+### Added
+
+#### ConnectOnion Framework Integration
+- **ConnectOnion adoption** — Migrated from custom agent loop to the [ConnectOnion](https://github.com/openonion/connectonion) agent framework (v1.0.4) for full agent runtime, plugin system, and Textual TUI
+- **`agent.py`** — Single entry point (`python agent.py`) wiring QwenCloudLLM + Agent + Chat TUI with slash commands (`/help`, `/clear`, `/model`, `/quit`)
+- **`connectonion_qwen/`** — New package containing all Qwen Cloud integration code:
+  - `qwen_llm.py` — Custom `QwenCloudLLM(LLM)` provider with internal streaming aggregation preserving Qwen's thinking mode quality
+  - `tools.py` — 17 tools converted from JSON schemas to plain Python functions (auto-schema from type hints + docstrings)
+  - `plugins.py` — HITL approval plugin (`before_each_tool` hook) and compliance audit logger (`after_each_tool` hook)
+  - `config.py` — Typed `.env` configuration (moved from `agent/config.py`)
+  - `system_prompt.py` — System prompt (moved from `agent/system_prompt.py`)
+- **Interactive TUI** — Full Textual-based terminal UI via ConnectOnion with status bar, thinking indicator, tool progress, and token/cost tracking
+- **Plugin architecture** — ConnectOnion event system replacing inline HITL gates and adding compliance audit logging with output truncation
+
+### Changed
+
+#### Architecture
+- Entry point changed from `python -m agent` to `python agent.py`
+- Dependencies simplified to `connectonion>=1.0.0` + `python-dotenv` (ConnectOnion pulls in `textual`, `openai`, `rich` transitively)
+- Tool registration: 17 tools auto-generate JSON schemas from Python type hints instead of hand-crafted schema definitions
+- HITL approval gates now implemented as ConnectOnion `before_each_tool` plugin instead of inline agent loop logic
+
+### Removed
+
+- **`agent/` package** — Entire custom agent runtime deleted (9 files, ~1,282 lines): `main.py`, `cli.py`, `tools.py`, `hitl.py`, `config.py`, `system_prompt.py`, `__init__.py`, `__main__.py`, `requirements.txt`
+- Custom `AgentCallbacks` dataclass — replaced by ConnectOnion's plugin event system
+- Custom Rich-based CLI — replaced by ConnectOnion's Textual TUI
+
+### Documentation
+- README.md: Updated install instructions, directory tree, architecture diagram, feature table, and FAQ to reflect ConnectOnion architecture
+- about.md: Updated "How we built it" section with ConnectOnion integration details
+
+---
+
 ## [2.0.0] — 2026-06-30
 
 ### Added

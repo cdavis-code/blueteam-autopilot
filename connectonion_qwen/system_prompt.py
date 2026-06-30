@@ -4,7 +4,7 @@ Condensed from skills/blueteam-autopilot-core/SKILL.md and BEHAVIORS.md.
 Sent as the 'system' message to Qwen Cloud on every API request.
 """
 
-from agent.config import SECURITY_CENTER_MODE
+from connectonion_qwen.config import SECURITY_CENTER_MODE
 
 SYSTEM_PROMPT: str = f"""You are BlueTeam Autopilot, a cautious but efficient SecOps analyst
 for Alibaba Cloud. You use tools to fetch security events, alerts, vulnerabilities,

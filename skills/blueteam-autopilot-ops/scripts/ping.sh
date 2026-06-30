@@ -44,20 +44,48 @@ fi
 # Check 2: Credentials configured
 echo ""
 echo "2. Credentials"
-if [ -n "${ALIBABA_ACCESS_KEY_ID:-}" ]; then
+# Check env vars first, then aliyun CLI config
+CREDENTIALS_FOUND=false
+
+# Check environment variables
+if [ -n "${ALIBABA_ACCESS_KEY_ID:-}" ] && [ -n "${ALIBABA_ACCESS_KEY_SECRET:-}" ]; then
   MASKED_KEY="${ALIBABA_ACCESS_KEY_ID:0:4}****${ALIBABA_ACCESS_KEY_ID: -4}"
-  echo "   ✓ ALIBABA_ACCESS_KEY_ID set ($MASKED_KEY)"
-else
-  echo "   ✗ ALIBABA_ACCESS_KEY_ID not set"
-  echo "   Set: export ALIBABA_ACCESS_KEY_ID=\"your-key-id\""
-  exit 1
+  echo "   ✓ Credentials from environment ($MASKED_KEY)"
+  CREDENTIALS_FOUND=true
 fi
 
-if [ -n "${ALIBABA_ACCESS_KEY_SECRET:-}" ]; then
-  echo "   ✓ ALIBABA_ACCESS_KEY_SECRET set"
-else
-  echo "   ✗ ALIBABA_ACCESS_KEY_SECRET not set"
-  echo "   Set: export ALIBABA_ACCESS_KEY_SECRET=\"your-key-secret\""
+# Check aliyun CLI config
+if [ "$CREDENTIALS_FOUND" = false ]; then
+  ALIYUN_CONFIG="$HOME/.aliyun/config.json"
+  if [ -f "$ALIYUN_CONFIG" ]; then
+    # Try to get current profile's access key ID
+    CURRENT_KEY=$(python3 -c "
+import json, sys
+try:
+    with open('$ALIYUN_CONFIG') as f:
+        config = json.load(f)
+    current = config.get('current', '')
+    for profile in config.get('profiles', []):
+        if profile.get('name') == current:
+            key_id = profile.get('access_key_id', '')
+            if key_id:
+                print(key_id[:4] + '****' + key_id[-4:])
+                sys.exit(0)
+    sys.exit(1)
+except:
+    sys.exit(1)
+" 2>/dev/null || echo "")
+    if [ -n "$CURRENT_KEY" ]; then
+      echo "   ✓ Credentials from aliyun CLI config ($CURRENT_KEY)"
+      CREDENTIALS_FOUND=true
+    fi
+  fi
+fi
+
+if [ "$CREDENTIALS_FOUND" = false ]; then
+  echo "   ✗ No credentials found"
+  echo "   Configure: aliyun configure"
+  echo "   Or set: export ALIBABA_ACCESS_KEY_ID=\"your-key-id\""
   exit 1
 fi
 

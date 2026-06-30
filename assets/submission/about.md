@@ -25,27 +25,27 @@ Works in two modes: `demo` (default, offline fixture data, only needs a Qwen Clo
 
 ## How we built it
 
-A **standalone Python agent application** built on Qwen Cloud's OpenAI-compatible API using function calling, thinking mode, streaming, and structured output. The agent uses Qwen Cloud's function calling to orchestrate 17 Alibaba Cloud API tools, each mapped to a production bash script that works transparently in both real and demo modes.
+A **standalone Python agent application** built on Qwen Cloud's OpenAI-compatible API and the **ConnectOnion** agent framework. The agent uses ConnectOnion's Agent class for tool orchestration, plugin lifecycle, and Textual TUI, with a custom `QwenCloudLLM` provider that preserves Qwen Cloud's thinking mode quality via internal streaming aggregation.
 
-### Agent Architecture (`agent/`)
+### Agent Architecture (`agent.py` + `connectonion_qwen/`)
 
-The agent runtime (`agent/main.py`) implements the standard Qwen Cloud function calling loop:
+The agent runtime uses ConnectOnion's `Agent` class with a custom LLM provider:
 
-1. Send conversation messages + 17 tool definitions to Qwen Cloud
-2. Receive tool_calls from the model (with thinking mode reasoning)
-3. Execute tools via subprocess dispatch to bash scripts
-4. Feed results back as tool messages
-5. Repeat until the model produces a final answer
-6. Pause for human approval on state-changing actions
+1. `QwenCloudLLM` sends messages + 17 tool definitions to Qwen Cloud (with internal `stream=True`)
+2. Stream is aggregated internally — reasoning content, tool call arguments, and text deltas are collected into a single `LLMResponse`
+3. ConnectOnion's `tool_executor` dispatches tool calls to plain Python functions
+4. Results feed back as tool messages; loop repeats until final answer
+5. `before_each_tool` plugin fires for state-changing tools — dry-run preview + human approval gate
+6. `after_each_tool` plugin logs audit trail with output truncation
 
 Key Qwen Cloud API features used:
 
 | Feature | Qwen Cloud API | Usage in Agent |
 |---------|----------------|----------------|
-| **Function calling** | `tools` parameter with JSON schemas | All 17 tools registered as OpenAI-format function definitions |
+| **Function calling** | `tools` parameter with auto-generated schemas | All 17 tools as plain Python functions (type hints → JSON schema) |
 | **Thinking mode** | `extra_body={"enable_thinking": true}` | Complex multi-step tool orchestration reasoning |
 | **Parallel tool calls** | `parallel_tool_calls=True` | Independent queries (e.g., assets + events simultaneously) |
-| **Streaming** | `stream=True` | Real-time CLI feedback, required for thinking mode |
+| **Streaming** | `stream=True` (internal aggregation) | Preserves thinking mode quality; aggregated before returning to ConnectOnion |
 | **Structured output** | `response_format={"type": "json_object"}` | Formal action proposals with guaranteed valid JSON |
 
 ### Skill Layer (`skills/`)
@@ -80,7 +80,7 @@ The existing skills become the tool implementation layer:
 
 **Zero-setup demo mode.** Bundling 15 JSON fixture files so the entire agent runs offline with no Alibaba Cloud credentials was one of the best design decisions. Judges and users can clone, `pip install`, add a Qwen Cloud API key, and start triaging in under 5 minutes. Demo mode is the default.
 
-**Built on Qwen Cloud.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, streaming, and structured output to drive complex multi-step security investigations. The agent isn't a wrapper around a chat API, it's a proper tool-orchestrating runtime.
+**Built on Qwen Cloud + ConnectOnion.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, and structured output, delivered through the ConnectOnion framework's Agent class, plugin system, and Textual TUI. The agent isn't a wrapper around a chat API — it's a proper tool-orchestrating runtime with HITL plugins, compliance logging, and token tracking.
 
 **GRC integration that actually works.** Connecting two live GRC MCP servers (CISO Assistant and Vanta) into the incident response workflow means compliance mapping happens during investigation, not as an afterthought. The fallback chain (live MCP, then synced documents, then bundled knowledge) keeps the agent running even when external services are down.
 

@@ -34,5 +34,8 @@ Thumbs.db
 # pyhton venv
 .venv/
 
+# ConnectOnion
+.co/
+
 # Skills lock
 skills-lock.json

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env from project root (agent/ is one level deep)
+# Load .env from project root (connectonion_qwen/ is one level deep)
 _PROJECT_ROOT = Path(__file__).parent.parent
 load_dotenv(_PROJECT_ROOT / ".env")
 
@@ -19,8 +19,6 @@ QWEN_BASE_URL: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 # ---------------------------------------------------------------------------
 # Alibaba Cloud (passed through to bash scripts via environment)
 # ---------------------------------------------------------------------------
-ALIBABA_ACCESS_KEY_ID: str = os.getenv("ALIBABA_ACCESS_KEY_ID", "")
-ALIBABA_ACCESS_KEY_SECRET: str = os.getenv("ALIBABA_ACCESS_KEY_SECRET", "")
 ALIBABA_REGION: str = os.getenv("ALIBABA_REGION", "")
 
 # ---------------------------------------------------------------------------

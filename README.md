@@ -8,7 +8,7 @@
 
 * SOC 2 CC6.8 compliant by design
 * Dual-mode: live production & offline demo
-* **Standalone Python agent** built on Qwen Cloud with function calling + thinking mode
+* **Standalone Python agent** built on Qwen Cloud + ConnectOnion with function calling + thinking mode
 * 17 CLI scripts · 7 agent skills · zero credentials for demo
 
 🎬 **[Watch Demo Video](https://www.youtube.com/watch?v=-eqQJuAFHhA)**
@@ -23,7 +23,7 @@
 
 ### Option A: Standalone Agent (Recommended)
 
-A standalone Python agent built on **Qwen Cloud's OpenAI-compatible API** using function calling, thinking mode, and streaming. Run it directly from the terminal — no AI IDE harness required.
+A standalone Python agent built on **Qwen Cloud** and the **ConnectOnion** agent framework. Run it directly from the terminal — no AI IDE harness required.
 
 ```bash
 # Clone the repository
@@ -31,14 +31,14 @@ git clone https://github.com/cdavis-code/blueteam-autopilot.git
 cd blueteam-autopilot
 
 # Install Python dependencies
-pip install -r agent/requirements.txt
+pip install -r requirements.txt
 
 # Configure your Qwen Cloud API key
 cp .env.example .env
 # Edit .env and add: DASHSCOPE_API_KEY="sk-..."
 
 # Run the agent
-python -m agent
+python agent.py
 ```
 
 The agent uses 17 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
@@ -48,17 +48,17 @@ The agent uses 17 registered tools (mapped to the bundled bash scripts) and enfo
 | Feature | Description |
 |---------|-------------|
 | **Function Calling** | 17 tools mapped to bash scripts with parallel tool call support and configurable max rounds (default: 20) |
-| **Thinking Mode** | Qwen reasoning mode for complex orchestration; thinking output streamed to terminal in dim italic text. Toggle via `ENABLE_THINKING` env var (default: enabled) |
-| **Streaming Output** | Real-time CLI output via custom stream aggregator handling incremental tool call arguments, reasoning content, and text deltas |
-| **Human-in-the-Loop** | SOC 2 CC6.8.3-compliant approval gates enforced in code — state-changing actions run a dry-run preview first, then prompt for y/N confirmation |
+| **Thinking Mode** | Qwen reasoning mode for complex orchestration; internally streamed and aggregated for maximum quality. Toggle via `ENABLE_THINKING` env var (default: enabled) |
+| **Interactive TUI** | Full Textual-based terminal UI via ConnectOnion with status bar, thinking indicator, tool progress, and token/cost tracking |
+| **Human-in-the-Loop** | SOC 2 CC6.8.3-compliant approval gates via ConnectOnion plugin system — state-changing actions run a dry-run preview first, then prompt for y/N confirmation |
 | **Structured Output** | Formal action proposals with reasoning, risk level, and rollback plan generated via JSON response format |
-| **Interactive CLI** | Rich-formatted terminal UI with slash commands: `/help`, `/clear`, `/history`, `/model`, `/quit` |
+| **Plugin Architecture** | ConnectOnion event system: `before_each_tool` for HITL gates, `after_each_tool` for compliance audit logging with output truncation |
 | **Dual Mode** | Demo mode (default) reads from fixture JSON; real mode calls live APIs — controlled by `SECURITY_CENTER_MODE` env var |
-| **Callback Architecture** | `AgentCallbacks` dataclass with hooks (`on_thinking`, `on_tool_call`, `on_tool_result`, `on_text`, `on_hitl`) — decouples core from CLI for future web UI integration |
-| **Multi-turn Conversation** | Persistent conversation history across turns with system prompt deduplication |
-| **Error Handling** | 30-second timeout per tool call; graceful handling of missing scripts, subprocess errors; JSON error objects returned to model |
+| **Custom LLM Provider** | `QwenCloudLLM` subclass with internal streaming aggregation preserving Qwen's thinking mode quality |
+| **Multi-turn Conversation** | Persistent conversation history across turns with ConnectOnion's built-in context management |
+| **Slash Commands** | `/help`, `/clear`, `/model`, `/quit` with autocomplete in the TUI |
 
-**Dependencies:** Only `openai`, `python-dotenv`, and `rich` — no heavy frameworks.
+**Dependencies:** `connectonion>=1.0.0` and `python-dotenv` — ConnectOnion pulls in `textual`, `openai`, and `rich` transitively.
 
 ### Option B: Skills for AI IDE Harness
 
@@ -95,22 +95,16 @@ All state-changing actions require **explicit human approval** — SOC 2 CC6.8.3
 | Mode | Network | Prerequisites | Speed | Use Case |
 |------|---------|--------------|-------|----------|
 | `demo` | ❌ Offline | None (agent: `DASHSCOPE_API_KEY` only) | Instant | Demos, CI, development (default) |
-| `real` | ✅ Live API | `aliyun` CLI + RAM credentials + `.env` | ~1-3s per call | Production incidents |
+| `real` | ✅ Live API | `aliyun` CLI configured (`aliyun configure`) + `.env` with `SECURITY_CENTER_MODE=real` | ~1-3s per call | Production incidents |
 
-**Demo mode is the default.** For the standalone agent, you need a Qwen Cloud API key. For the skills (AI IDE harness), no `.env` file is needed. To switch to real mode with live Alibaba Cloud API calls, create a `.env` file:
+**Demo mode is the default.** For the standalone agent, you need a Qwen Cloud API key. For real mode, the `aliyun` CLI credentials (from `aliyun configure`) are used automatically. To switch to real mode:
 
 ```bash
-# Standalone agent + real mode
-cat > .env << 'EOF'
-DASHSCOPE_API_KEY="sk-..."             # Qwen Cloud API key (required for agent)
-ALIBABA_ACCESS_KEY_ID="LTAI5t..."
-ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
-SECURITY_CENTER_MODE=real
-# ALIBABA_REGION="ap-southeast-1"  # Optional — auto-discovered from aliyun CLI config
-EOF
+# .env file — only these are needed:
+DASHSCOPE_API_KEY="sk-..."        # Qwen Cloud API key (required for agent)
+SECURITY_CENTER_MODE=real          # Switch to live APIs
+# ALIBABA_REGION="ap-southeast-1" # Optional — auto-discovered from aliyun CLI
 ```
-
-See [.env.example](.env.example) for all available configuration options.
 
 ---
 
@@ -124,14 +118,14 @@ No Alibaba Cloud account? No problem. Demo mode works with zero cloud setup:
 # 1. Clone and install
 git clone https://github.com/cdavis-code/blueteam-autopilot.git
 cd blueteam-autopilot
-pip install -r agent/requirements.txt
+pip install -r requirements.txt
 
 # 2. Configure Qwen Cloud API key
 cp .env.example .env
 # Edit .env: DASHSCOPE_API_KEY="sk-..."
 
 # 3. Run the agent and start investigating
-python -m agent
+python agent.py
 # > Show me recent security events
 # > Investigate event evt-demo-20260614-001
 # > What response policies are available?
@@ -183,15 +177,31 @@ For production use with live Alibaba Cloud data:
 
 ### Quick Setup
 
-Your `.env` file must include Qwen Cloud API key plus Alibaba Cloud credentials:
+**1. Configure `aliyun` CLI** (if not already done):
+
+```bash
+# Interactive configuration — prompts for AccessKey ID, Secret, and region
+aliyun configure
+
+# Or configure with a named profile (recommended for multiple accounts)
+aliyun configure --profile blueteam
+
+# List configured profiles
+aliyun configure list
+
+# Switch to a specific profile
+aliyun configure set --profile blueteam
+```
+
+The `aliyun` CLI stores credentials in `~/.aliyun/config.json`. The agent's scripts use these credentials automatically — no need to configure them elsewhere.
+
+**2. Create `.env`** with Qwen Cloud API key and mode:
 
 | Variable | Purpose | Example |
 |----------|---------|--------|
 | `DASHSCOPE_API_KEY` | Qwen Cloud API key (required for agent) | `sk-...` |
-| `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `LTAI5t...` |
-| `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `HkfZ...` |
 | `SECURITY_CENTER_MODE` | Execution mode (`demo` or `real`) | `real` |
-| `ALIBABA_REGION` | Target region (optional — auto-discovered from `aliyun configure`) | `ap-southeast-1` |
+| `ALIBABA_REGION` | Optional override (auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 
 ```bash
 # 1. Clone the repository
@@ -199,23 +209,19 @@ git clone https://github.com/cdavis-code/blueteam-autopilot.git
 cd blueteam-autopilot
 
 # 2. Install Python dependencies
-pip install -r agent/requirements.txt
+pip install -r requirements.txt
 
-# 3. Configure credentials (Qwen Cloud + Alibaba Cloud + real mode)
+# 3. Configure Qwen Cloud API key and real mode
 cp .env.example .env
 # Edit .env:
 #   DASHSCOPE_API_KEY="sk-..."
-#   ALIBABA_ACCESS_KEY_ID="LTAI5t..."
-#   ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
 #   SECURITY_CENTER_MODE=real
 
-# 4. Validate your environment (optional, for real mode)
-# Use the blueteam-autopilot-prep skill — it runs an 8-stage automated
-# check (CLI, credentials, RAM policies, services, infrastructure, logs,
-# config generation, readiness report) before you start investigating.
+# 4. Verify your configuration
+SECURITY_CENTER_MODE=real bash skills/blueteam-autopilot-ops/scripts/ping.sh
 
 # 5. Run the agent and start investigating
-python -m agent
+python agent.py
 # > Show me HIGH severity events from the last hour
 # > Deep-dive into event evt-xxx-yyy
 ```
@@ -234,16 +240,16 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ├── CHANGELOG.md                       # Version history
 ├── .env.example                       # Environment variable template
 │
-├── agent/                             # Standalone Python agent (Qwen Cloud)
+├── agent.py                           # Entry point: python agent.py (wires ConnectOnion Agent + TUI)
+├── requirements.txt                   # connectonion, python-dotenv
+│
+├── connectonion_qwen/                 # Qwen Cloud integration for ConnectOnion
 │   ├── __init__.py                    # Package marker
-│   ├── __main__.py                    # Entry point: python -m agent
-│   ├── main.py                        # Agent loop: Qwen API with function calling
-│   ├── tools.py                       # 17 tool schemas + bash script executor
+│   ├── qwen_llm.py                   # Custom LLM provider (QwenCloudLLM)
+│   ├── tools.py                       # 17 tool functions + bash script executor
+│   ├── plugins.py                     # HITL approval + compliance logger plugins
 │   ├── system_prompt.py               # System prompt (condensed SKILL.md + BEHAVIORS.md)
-│   ├── hitl.py                        # Human-in-the-loop approval gates
-│   ├── cli.py                         # Interactive CLI with rich formatting
-│   ├── config.py                      # .env loader + typed configuration
-│   └── requirements.txt               # openai, python-dotenv, rich
+│   └── config.py                      # .env loader + typed configuration
 │
 ├── assets/
 │   ├── banner.svg                     # Project banner
@@ -334,19 +340,19 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 ```
 ┌──────────────┐
-│   User / CLI  │  "Show me recent security events"
-│   (python -m  │
-│    agent)     │
+│   User / TUI  │  "Show me recent security events"
+│   (python     │
+│    agent.py)  │
 └──────┬───────┘
        │
        ▼
 ┌──────────────────────────────────────────────┐
-│  Agent Runtime (agent/main.py)                │
-│  • Qwen Cloud API (OpenAI-compatible)         │
-│  • Function calling: 17 tool schemas          │
-│  • Thinking mode: complex orchestration         │
-│  • Streaming: real-time CLI output            │
-│  • HITL gates: SOC 2 CC6.8.3 in code          │
+│  ConnectOnion Agent + Chat TUI                │
+│  • QwenCloudLLM (custom LLM provider)         │
+│  • 17 function-based tools (auto-schema)       │
+│  • Thinking mode: internal stream aggregation  │
+│  • Plugin: HITL approval gates (SOC 2)         │
+│  • Plugin: Compliance audit logger             │
 └──────┬───────────────────────────────────────┘
        │
        ├─── tools.py ──▶ bash scripts ──┬─── real mode ──▶ Alibaba Cloud APIs
@@ -385,7 +391,7 @@ Yes! Region is auto-discovered from your `aliyun` CLI configuration (`aliyun con
 
 ### How does the standalone agent work?
 
-The agent (`agent/main.py`) runs a function calling loop against Qwen Cloud's OpenAI-compatible API. It registers 17 tools (each mapped to a bash script), enables thinking mode for complex orchestration, and streams results to the CLI in real-time. State-changing tools require human approval before execution.
+The agent (`agent.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 17 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Slash commands, token tracking, and context management are provided by ConnectOnion's `Chat` TUI.
 
 ### How do I contribute or report issues?
 
