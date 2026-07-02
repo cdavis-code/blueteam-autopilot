@@ -254,6 +254,14 @@ def load_mcp_tools() -> list[Callable]:
         DEFAULT_TIMEOUT = 10  # seconds per server
 
         for server_name, server_config in config.items():
+            # Skip disabled servers
+            if server_config.get("enabled") is False:
+                print(
+                    f"  ⚠ MCP server '{server_name}': skipped (disabled in config)",
+                    file=sys.stderr,
+                )
+                continue
+
             try:
                 transport_type = server_config.get("type", "stdio")
                 connect_timeout = server_config.get("timeout", DEFAULT_TIMEOUT)
