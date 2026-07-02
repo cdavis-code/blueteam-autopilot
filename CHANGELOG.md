@@ -5,6 +5,21 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.4] — 2026-07-02
+
+### Fixed
+
+#### MCP Server Loading (ClientSession lifecycle)
+- **`connectonion_qwen/mcp.py`** — Fixed MCP servers failing to load at startup (0 tools registered, empty `/mcp` status, 60s overall timeout). Root cause: `ClientSession` was constructed without entering its async context manager, so `__aenter__` never started the `_receive_loop` that routes server responses to per-request streams. `initialize()` hung waiting for a response that was never delivered, until the async bridge's 60s overall cap cancelled everything — producing a `BrokenResourceError` cascade and leaving `_server_status` empty. Verified against `.mcp.json` (ciso-assistant: 101 tools, alibabacloud-mcp-server: 26 tools — both now connect cleanly).
+- **Session lifecycle** — `ClientSession` is now entered via `__aenter__()` after creation (starts the receive loop) and kept alive in `_sessions` for the agent's lifetime so later tool calls reuse the live connection.
+- **`shutdown_mcp()`** — Now exits each `ClientSession` (`__aexit__`) before closing the stdio transports that back them, cancelling their receive loops cleanly on quit.
+
+### Changed
+- `agent.py` — TUI welcome banner version set to v2.1.4
+- README.md — Slash Commands feature row updated to include `/mcp` (MCP server connection status), which was already registered in `agent.py` but missing from the docs
+
+---
+
 ## [2.1.3] — 2026-06-30
 
 ### Added

@@ -57,7 +57,7 @@ The agent uses 19 registered tools (mapped to the bundled bash scripts) and enfo
 | **Dual Mode** | Demo mode (default) reads from fixture JSON; real mode calls live APIs — controlled by `SECURITY_CENTER_MODE` env var |
 | **Custom LLM Provider** | `QwenCloudLLM` subclass with internal streaming aggregation preserving Qwen's thinking mode quality |
 | **Multi-turn Conversation** | Persistent conversation history across turns with ConnectOnion's built-in context management |
-| **Slash Commands** | `/help`, `/clear`, `/model`, `/quit` with autocomplete in the TUI |
+| **Slash Commands** | `/help`, `/clear`, `/model`, `/mcp`, `/quit` with autocomplete in the TUI (`/mcp` shows per-server connection status and tool count) |
 
 **Dependencies:** `connectonion>=1.0.0` and `python-dotenv` — ConnectOnion pulls in `textual`, `openai`, and `rich` transitively.
 

@@ -309,10 +309,15 @@ def load_mcp_tools() -> list[Callable]:
                 _cms.append(cm)
                 read, write = streams
 
-                # Create session and initialize
+                # Create session and initialize. ClientSession must be entered
+                # as a context manager so __aenter__ starts _receive_loop,
+                # which routes responses to per-request streams. Without it,
+                # initialize() hangs until the outer timeout. Session is kept
+                # alive in _sessions and exited in shutdown_mcp().
                 session = ClientSession(read, write)
-                await asyncio.wait_for(session.initialize(), timeout=connect_timeout)
+                await session.__aenter__()
                 _sessions.append(session)
+                await asyncio.wait_for(session.initialize(), timeout=connect_timeout)
 
                 # Discover tools
                 tools_result = await asyncio.wait_for(
@@ -397,8 +402,14 @@ def shutdown_mcp() -> None:
     global _bridge, _cms, _sessions, _mcp_tools
 
     if _bridge and _sessions:
-        # Close sessions in the event loop
+        # Exit sessions (cancels their receive loops) before closing the
+        # stdio transports that back them.
         async def _cleanup() -> None:
+            for session in reversed(_sessions):
+                try:
+                    await session.__aexit__(None, None, None)
+                except Exception:
+                    pass
             for cm in reversed(_cms):
                 try:
                     await cm.__aexit__(None, None, None)
