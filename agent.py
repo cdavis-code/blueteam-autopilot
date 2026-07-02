@@ -21,7 +21,7 @@ from connectonion_qwen.config import (
     validate,
 )
 from connectonion_qwen.qwen_llm import QwenCloudLLM
-from connectonion_qwen.tools import ALL_TOOLS
+from connectonion_qwen.tools import ALL_TOOLS, STATE_CHANGING_TOOLS
 from connectonion_qwen.plugins import hitl_approval_plugin, compliance_logger_plugin
 from connectonion_qwen.system_prompt import SYSTEM_PROMPT
 from connectonion_qwen.mcp import load_mcp_tools, shutdown_mcp, get_mcp_status
@@ -86,6 +86,7 @@ def main() -> None:
                 CommandItem(main="/clear", prefix="⌫", id="/clear"),
                 CommandItem(main="/model", prefix="⚙", id="/model"),
                 CommandItem(main="/mcp", prefix="🔌", id="/mcp"),
+                CommandItem(main="/tool", prefix="🔧", id="/tool"),
                 CommandItem(main="/quit", prefix="→", id="/quit"),
             ]
         },
@@ -96,6 +97,7 @@ def main() -> None:
     chat.command("/clear", _cmd_clear(agent))
     chat.command("/model", _cmd_model)
     chat.command("/mcp", _cmd_mcp)
+    chat.command("/tool", _cmd_tool)
 
     try:
         chat.run()
@@ -112,6 +114,7 @@ HELP_TEXT = """**Available Commands:**
 - `/clear` — Clear conversation history
 - `/model` — Show current model and configuration
 - `/mcp` — Show MCP server connection status
+- `/tool` — List all built-in agent tools
 - `/quit` — Exit the agent
 
 **Example Prompts:**
@@ -170,6 +173,40 @@ def _cmd_mcp(text: str) -> str:
 
     connected = sum(1 for v in status.values() if v["status"] == "connected")
     lines.append(f"\n*{connected}/{len(status)} servers connected, {total_tools} total tools*")
+    return "\n".join(lines)
+
+
+# Tool category definitions (mirrors the section headers in tools.py)
+_TOOL_CATEGORIES: list[tuple[str, list[str]]] = [
+    ("Core", ["ping", "get_account_context"]),
+    ("Security Events", ["list_security_events", "get_security_event_detail", "list_alerts_for_event"]),
+    ("Vulnerabilities", ["list_vulnerabilities", "get_vulnerability_detail"]),
+    ("Response Policies", ["list_response_policies", "execute_response_policy"]),
+    ("WAF", ["get_waf_instance_info", "list_waf_security_events", "list_waf_top_rules", "list_waf_top_ips", "block_waf_ips"]),
+    ("Assets", ["list_assets"]),
+    ("Knowledge", ["list_knowledge_documents", "get_knowledge_document"]),
+    ("Diagnostics", ["verify_log_delivery"]),
+    ("Reporting", ["generate_incident_report"]),
+]
+
+# Build a lookup: tool function name → docstring first line
+_TOOL_DOC: dict[str, str] = {}
+for _t in ALL_TOOLS:
+    _doc = (_t.__doc__ or "").strip().split("\n")[0].strip()
+    _TOOL_DOC[_t.__name__] = _doc
+
+
+def _cmd_tool(text: str) -> str:
+    """List all built-in agent tools grouped by category."""
+    lines = ["**Built-in Tools:**\n"]
+    for category, tool_names in _TOOL_CATEGORIES:
+        lines.append(f"**{category}**")
+        for name in tool_names:
+            doc = _TOOL_DOC.get(name, "")
+            marker = " ⚠️" if name in STATE_CHANGING_TOOLS else ""
+            lines.append(f"- `{name}`{marker} — {doc}")
+        lines.append("")
+    lines.append(f"*{len(ALL_TOOLS)} built-in tools | ⚠️ = requires human approval*")
     return "\n".join(lines)
 
 
