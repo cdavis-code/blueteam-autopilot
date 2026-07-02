@@ -24,7 +24,7 @@ from connectonion_qwen.qwen_llm import QwenCloudLLM
 from connectonion_qwen.tools import ALL_TOOLS
 from connectonion_qwen.plugins import hitl_approval_plugin, compliance_logger_plugin
 from connectonion_qwen.system_prompt import SYSTEM_PROMPT
-from connectonion_qwen.mcp import load_mcp_tools, shutdown_mcp
+from connectonion_qwen.mcp import load_mcp_tools, shutdown_mcp, get_mcp_status
 
 
 def main() -> None:
@@ -85,6 +85,7 @@ def main() -> None:
                 CommandItem(main="/help", prefix="?", id="/help"),
                 CommandItem(main="/clear", prefix="⌫", id="/clear"),
                 CommandItem(main="/model", prefix="⚙", id="/model"),
+                CommandItem(main="/mcp", prefix="🔌", id="/mcp"),
                 CommandItem(main="/quit", prefix="→", id="/quit"),
             ]
         },
@@ -94,6 +95,7 @@ def main() -> None:
     chat.command("/help", _cmd_help)
     chat.command("/clear", _cmd_clear(agent))
     chat.command("/model", _cmd_model)
+    chat.command("/mcp", _cmd_mcp)
 
     try:
         chat.run()
@@ -109,6 +111,7 @@ HELP_TEXT = """**Available Commands:**
 - `/help` — Show this help message
 - `/clear` — Clear conversation history
 - `/model` — Show current model and configuration
+- `/mcp` — Show MCP server connection status
 - `/quit` — Exit the agent
 
 **Example Prompts:**
@@ -138,6 +141,36 @@ def _cmd_model(text: str) -> str:
         f"**Mode:** `{SECURITY_CENTER_MODE}`\n"
         f"**Base URL:** `{QWEN_BASE_URL}`"
     )
+
+
+def _cmd_mcp(text: str) -> str:
+    status = get_mcp_status()
+    if not status:
+        return "**MCP Servers:** No servers configured or loaded."
+
+    lines = ["**MCP Server Status:**\n"]
+    total_tools = 0
+    for name, info in status.items():
+        state = info["status"]
+        tools = info.get("tools", 0)
+        total_tools += tools
+        if state == "connected":
+            icon = "✓"
+            detail = f"{tools} tools ({info.get('transport', 'stdio')})"
+        elif state == "failed":
+            icon = "✗"
+            detail = info.get("reason", "unknown error")
+        elif state == "disabled":
+            icon = "⊘"
+            detail = "disabled in config"
+        else:  # skipped
+            icon = "⚠"
+            detail = info.get("reason", "skipped")
+        lines.append(f"- {icon} **{name}** — {detail}")
+
+    connected = sum(1 for v in status.values() if v["status"] == "connected")
+    lines.append(f"\n*{connected}/{len(status)} servers connected, {total_tools} total tools*")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":

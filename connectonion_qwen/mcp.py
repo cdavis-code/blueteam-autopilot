@@ -215,6 +215,7 @@ _bridge: _AsyncBridge | None = None
 _cms: list[Any] = []  # async context managers to clean up
 _sessions: list[Any] = []
 _mcp_tools: list[Callable] = []
+_server_status: dict[str, dict[str, Any]] = {}  # per-server connection status
 
 
 def load_mcp_tools() -> list[Callable]:
@@ -254,8 +255,27 @@ def load_mcp_tools() -> list[Callable]:
         DEFAULT_TIMEOUT = 10  # seconds per server
 
         for server_name, server_config in config.items():
+            # Skip non-dict entries (e.g. stray top-level keys like "timeout")
+            if not isinstance(server_config, dict):
+                _server_status[server_name] = {
+                    "status": "skipped",
+                    "reason": f"not a server definition (type={type(server_config).__name__})",
+                    "tools": 0,
+                }
+                print(
+                    f"  ⚠ MCP config key '{server_name}' is not a server "
+                    f"definition (type={type(server_config).__name__}), skipping",
+                    file=sys.stderr,
+                )
+                continue
+
             # Skip disabled servers
             if server_config.get("enabled") is False:
+                _server_status[server_name] = {
+                    "status": "disabled",
+                    "reason": "disabled in config",
+                    "tools": 0,
+                }
                 print(
                     f"  ⚠ MCP server '{server_name}': skipped (disabled in config)",
                     file=sys.stderr,
@@ -303,19 +323,36 @@ def load_mcp_tools() -> list[Callable]:
                     func = _make_tool_function(_bridge, session, server_name, mcp_tool)
                     _mcp_tools.append(func)
 
+                tool_count = len(tools_result.tools)
+                _server_status[server_name] = {
+                    "status": "connected",
+                    "reason": None,
+                    "tools": tool_count,
+                    "transport": transport_type,
+                }
                 print(
                     f"  ✓ MCP server '{server_name}': "
-                    f"{len(tools_result.tools)} tools loaded",
+                    f"{tool_count} tools loaded",
                     file=sys.stderr,
                 )
 
             except asyncio.TimeoutError:
+                _server_status[server_name] = {
+                    "status": "failed",
+                    "reason": f"connection timed out after {connect_timeout}s",
+                    "tools": 0,
+                }
                 print(
                     f"  ⚠ MCP server '{server_name}': "
                     f"skipped (connection timed out after {connect_timeout}s)",
                     file=sys.stderr,
                 )
             except Exception as exc:
+                _server_status[server_name] = {
+                    "status": "failed",
+                    "reason": f"{type(exc).__name__}: {exc}",
+                    "tools": 0,
+                }
                 print(
                     f"  ⚠ MCP server '{server_name}': "
                     f"skipped ({type(exc).__name__}: {exc})",
@@ -341,6 +378,18 @@ def load_mcp_tools() -> list[Callable]:
         print(f"\n  Total MCP tools: {len(_mcp_tools)}", file=sys.stderr)
 
     return _mcp_tools
+
+
+def get_mcp_status() -> dict[str, dict[str, Any]]:
+    """Return per-server connection status for the /mcp slash command.
+
+    Returns a dict keyed by server name, each value containing:
+      - status: "connected" | "failed" | "disabled" | "skipped"
+      - reason: error message or None
+      - tools: number of tools loaded (0 if not connected)
+      - transport: "stdio" | "sse" (only for connected servers)
+    """
+    return dict(_server_status)
 
 
 def shutdown_mcp() -> None:
