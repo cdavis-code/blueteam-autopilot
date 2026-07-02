@@ -238,9 +238,18 @@ def load_mcp_tools() -> list[Callable]:
 
     # Run the entire connection sequence as one coroutine on the background loop
     async def _connect_all() -> None:
-        from mcp.client.session import ClientSession
-        from mcp.client.stdio import StdioServerParameters, stdio_client
-        from mcp.client.sse import sse_client
+        try:
+            from mcp.client.session import ClientSession
+            from mcp.client.stdio import StdioServerParameters, stdio_client
+            from mcp.client.sse import sse_client
+        except ImportError:
+            import warnings
+            warnings.warn(
+                "MCP package not installed. Skipping MCP server integration. "
+                "Install with: pip install 'mcp>=1.27,<2'",
+                stacklevel=2,
+            )
+            return
 
         DEFAULT_TIMEOUT = 10  # seconds per server
 
@@ -258,8 +267,12 @@ def load_mcp_tools() -> list[Callable]:
                     command = server_config.get("command", "")
                     args = server_config.get("args", [])
                     env = server_config.get("env", {})
+                    # Merge config env with parent env (config takes precedence)
+                    # StdioServerParameters needs a complete environment
+                    merged_env = os.environ.copy()
+                    merged_env.update(env)
                     params = StdioServerParameters(
-                        command=command, args=args, env=env or None
+                        command=command, args=args, env=merged_env
                     )
                     cm = stdio_client(params)
 
@@ -301,7 +314,20 @@ def load_mcp_tools() -> list[Callable]:
                     file=sys.stderr,
                 )
 
-    _bridge.run_sync(_connect_all())
+    try:
+        _bridge.run_sync(_connect_all())
+    except TimeoutError:
+        print(
+            "  ⚠ MCP connection timed out (60s overall limit). "
+            f"Loaded {len(_mcp_tools)} tools before timeout.",
+            file=sys.stderr,
+        )
+    except Exception as exc:
+        print(
+            f"  ⚠ MCP integration failed ({type(exc).__name__}: {exc}). "
+            "Continuing without MCP tools.",
+            file=sys.stderr,
+        )
 
     if _mcp_tools:
         print(f"\n  Total MCP tools: {len(_mcp_tools)}", file=sys.stderr)
