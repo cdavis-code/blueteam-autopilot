@@ -31,11 +31,11 @@
   <!-- CORE SKILL (center brain) -->
   <!-- ═══════════════════════════════════════════════════ -->
   <rect x="280" y="162" width="400" height="100" rx="10" fill="url(#core)" filter="url(#shadow)"/>
-  <text x="480" y="186" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">blueteam-autopilot-core</text>
-  <text x="480" y="204" text-anchor="middle" fill="#bfdbfe" font-size="10">SKILL.md · BEHAVIORS.md · 5-Behavior Triage Cycle</text>
-  <text x="480" y="222" text-anchor="middle" fill="#bfdbfe" font-size="10">Mode-aware dispatch · Human-in-the-loop guardrails (SOC 2 CC6.8.3)</text>
-  <text x="480" y="240" text-anchor="middle" fill="#bfdbfe" font-size="10">MCP Tool Registry · GRC Live Query Integration</text>
-  <text x="480" y="254" text-anchor="middle" fill="#93c5fd" font-size="9">Qwen-powered agent reasoning</text>
+  <text x="480" y="186" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">ConnectOnion Agent Runtime</text>
+  <text x="480" y="204" text-anchor="middle" fill="#bfdbfe" font-size="10">QwenCloudLLM · 19 built-in tools · Plugin system (HITL + audit)</text>
+  <text x="480" y="222" text-anchor="middle" fill="#bfdbfe" font-size="10">MCP async bridge · Dynamic tool discovery · IR report generation</text>
+  <text x="480" y="240" text-anchor="middle" fill="#bfdbfe" font-size="10">Mode-aware dispatch · Human-in-the-loop guardrails (SOC 2 CC6.8.3)</text>
+  <text x="480" y="254" text-anchor="middle" fill="#93c5fd" font-size="9">Qwen-powered agent reasoning · Textual TUI · /tool /mcp slash commands</text>
 
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- THREE BRANCHES FROM CORE -->
@@ -63,7 +63,7 @@
   <rect x="50" y="322" width="180" height="80" rx="8" fill="url(#demo)" filter="url(#shadow)"/>
   <text x="140" y="346" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Demo Mode</text>
   <text x="140" y="362" text-anchor="middle" fill="#cbd5e1" font-size="9">SECURITY_CENTER_MODE=demo</text>
-  <text x="140" y="378" text-anchor="middle" fill="#cbd5e1" font-size="9">14 bundled JSON fixtures</text>
+  <text x="140" y="378" text-anchor="middle" fill="#cbd5e1" font-size="9">15 bundled JSON fixtures</text>
   <text x="140" y="392" text-anchor="middle" fill="#cbd5e1" font-size="9">Zero network · Zero credentials</text>
 
   <!-- ═══════════════════════════════════════════════════ -->
@@ -72,7 +72,7 @@
   <rect x="250" y="322" width="180" height="80" rx="8" fill="url(#cloud)" filter="url(#shadow)"/>
   <text x="340" y="346" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Real Mode</text>
   <text x="340" y="362" text-anchor="middle" fill="#fed7aa" font-size="9">SECURITY_CENTER_MODE=real</text>
-  <text x="340" y="378" text-anchor="middle" fill="#fed7aa" font-size="9">17 CLI scripts → aliyun CLI</text>
+  <text x="340" y="378" text-anchor="middle" fill="#fed7aa" font-size="9">19 built-in tools → 17 CLI scripts</text>
   <text x="340" y="392" text-anchor="middle" fill="#fed7aa" font-size="9">RAM auth · Region discovery</text>
 
   <!-- Alibaba Cloud Services sub-box -->
@@ -92,8 +92,8 @@
   <rect x="530" y="322" width="180" height="80" rx="8" fill="url(#grc)" filter="url(#shadow)"/>
   <text x="620" y="346" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">GRC MCP Servers</text>
   <text x="620" y="362" text-anchor="middle" fill="#a7f3d0" font-size="9">Live compliance data queries</text>
-  <text x="620" y="378" text-anchor="middle" fill="#a7f3d0" font-size="9">CISO Assistant Community MCP</text>
-  <text x="620" y="392" text-anchor="middle" fill="#a7f3d0" font-size="9">Vanta MCP Server (OAuth)</text>
+  <text x="620" y="378" text-anchor="middle" fill="#a7f3d0" font-size="9">CISO Assistant · Vanta (OAuth)</text>
+  <text x="620" y="392" text-anchor="middle" fill="#a7f3d0" font-size="9">Alibaba Cloud MCP (uvx + stdio)</text>
 
   <!-- GRC Sync Pipeline sub-box -->
   <rect x="530" y="416" width="180" height="108" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1" stroke-dasharray="4,2"/>
@@ -129,9 +129,9 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- QWEN CLOUD (bottom center) -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <rect x="330" y="560" width="300" height="60" rx="10" fill="#1e293b" stroke="#e11d48" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="310" y="560" width="340" height="60" rx="10" fill="#1e293b" stroke="#e11d48" stroke-width="2" filter="url(#shadow)"/>
   <text x="480" y="584" text-anchor="middle" fill="#fb7185" font-size="13" font-weight="700">☁ Qwen Cloud</text>
-  <text x="480" y="602" text-anchor="middle" fill="#fda4af" font-size="10">Qwen LLM · Advanced Reasoning · Agent Orchestration</text>
+  <text x="480" y="602" text-anchor="middle" fill="#fda4af" font-size="10">Qwen LLM · Function Calling · Thinking Mode · Structured Output</text>
 
   <!-- Arrow: Core → Qwen Cloud -->
   <line x1="480" y1="262" x2="480" y2="290" stroke="none"/>
@@ -145,18 +145,20 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- INSTALL METHOD (bottom) -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <rect x="280" y="640" width="400" height="40" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-  <text x="480" y="658" text-anchor="middle" fill="#94a3b8" font-size="10">Install: <tspan fill="#e2e8f0" font-family="monospace">npx skills add cdavis-code/blueteam-autopilot --skill '*' -y</tspan></text>
-  <text x="480" y="672" text-anchor="middle" fill="#64748b" font-size="9">No clone required · 6 skills · 17 CLI scripts · 14 demo fixtures · Node.js 18+</text>
+  <rect x="280" y="640" width="400" height="52" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+  <text x="480" y="658" text-anchor="middle" fill="#94a3b8" font-size="10"><tspan fill="#e2e8f0" font-family="monospace">git clone cdavis-code/blueteam-autopilot</tspan></text>
+  <text x="480" y="672" text-anchor="middle" fill="#94a3b8" font-size="10"><tspan fill="#e2e8f0" font-family="monospace">pip install -r requirements.txt</tspan></text>
+  <text x="480" y="686" text-anchor="middle" fill="#64748b" font-size="9">Standalone agent · 19 tools · 15 demo fixtures · MCP servers · python blueteam.py</text>
 
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- LEGEND -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <rect x="50" y="560" width="200" height="120" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5"/>
+  <rect x="50" y="560" width="200" height="138" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5"/>
   <text x="150" y="578" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600">LEGEND</text>
-  <rect x="62" y="586" width="12" height="12" rx="2" fill="url(#core)"/><text x="82" y="596" fill="#cbd5e1" font-size="8">Core Agent (SKILL.md)</text>
+  <rect x="62" y="586" width="12" height="12" rx="2" fill="url(#core)"/><text x="82" y="596" fill="#cbd5e1" font-size="8">Agent Runtime (ConnectOnion)</text>
   <rect x="62" y="604" width="12" height="12" rx="2" fill="url(#cloud)"/><text x="82" y="614" fill="#cbd5e1" font-size="8">Alibaba Cloud (Real Mode)</text>
-  <rect x="62" y="622" width="12" height="12" rx="2" fill="url(#grc)"/><text x="82" y="632" fill="#cbd5e1" font-size="8">GRC Integration</text>
+  <rect x="62" y="622" width="12" height="12" rx="2" fill="url(#grc)"/><text x="82" y="632" fill="#cbd5e1" font-size="8">GRC / MCP Integration</text>
   <rect x="62" y="640" width="12" height="12" rx="2" fill="url(#skill)"/><text x="82" y="650" fill="#cbd5e1" font-size="8">Skills Layer</text>
   <rect x="62" y="658" width="12" height="12" rx="2" fill="url(#demo)"/><text x="82" y="668" fill="#cbd5e1" font-size="8">Demo Mode (Offline)</text>
+  <line x1="62" y1="682" x2="74" y2="682" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4,2"/><text x="82" y="686" fill="#cbd5e1" font-size="8">Qwen Cloud (LLM)</text>
 </svg>

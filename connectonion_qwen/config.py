@@ -14,7 +14,7 @@ load_dotenv(_PROJECT_ROOT / ".env")
 # ---------------------------------------------------------------------------
 DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
 QWEN_MODEL: str = os.getenv("QWEN_MODEL", "qwen3.7-plus")
-QWEN_BASE_URL: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+QWEN_BASE_URL: str = os.getenv("QWEN_BASE_URL", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
 
 # ---------------------------------------------------------------------------
 # Alibaba Cloud (passed through to bash scripts via environment)

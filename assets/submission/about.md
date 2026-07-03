@@ -16,22 +16,30 @@ Alibaba Blueteam is a standalone AI agent that automates the full triage cycle:
 2. **Investigates** each incident with deep-dive analysis (attack chain, CVEs, attacker IPs)
 3. **Recommends** the least-disruptive effective response (IP block, host isolation, vuln patch)
 4. **Proposes** structured action plans for human approval
-5. **Reports** with NIST CSF and SOC 2 compliance mapping
-6. **Queries** live GRC data (CISO Assistant, Vanta) for compliance context during incident response
+5. **Reports** with NIST CSF and SOC 2 compliance mapping, including blast radius, investigation timeline, and confidence ratings
+6. **Queries** live GRC data (CISO Assistant, Vanta, Alibaba Cloud) for compliance context during incident response
+7. **Discovers tools dynamically** from external MCP servers at startup, extending the agent's capabilities without code changes
 
 All state-changing actions require explicit human approval. SOC 2 CC6.8.3 compliant by design.
 
 Works in two modes: `demo` (default, offline fixture data, only needs a Qwen Cloud API key) and `real` (production with live Alibaba Cloud APIs). A security analyst can be triaging events in 5 minutes with no Alibaba Cloud credentials.
 
+**Cron and automation ready.** The agent runs non-interactively via `--prompt` flag or piped stdin, making it suitable for scheduled security checks, CI/CD pipelines, and scripted workflows. Output goes to stdout for clean redirection; errors go to stderr with non-zero exit codes.
+
 ## How we built it
 
 A **standalone Python agent application** built on Qwen Cloud's OpenAI-compatible API and the **ConnectOnion** agent framework. The agent uses ConnectOnion's Agent class for tool orchestration, plugin lifecycle, and Textual TUI, with a custom `QwenCloudLLM` provider that preserves Qwen Cloud's thinking mode quality via internal streaming aggregation.
 
-### Agent Architecture (`agent.py` + `connectonion_qwen/`)
+### Agent Architecture (`blueteam.py` + `connectonion_qwen/`)
 
-The agent runtime uses ConnectOnion's `Agent` class with a custom LLM provider:
+The agent runtime uses ConnectOnion's `Agent` class with a custom LLM provider. It supports two execution modes:
 
-1. `QwenCloudLLM` sends messages + 17 tool definitions to Qwen Cloud (with internal `stream=True`)
+- **Interactive TUI** — Full Textual-based terminal UI with status bar, thinking indicator, tool progress, token/cost tracking, and slash commands
+- **Headless/Cron mode** — Non-interactive execution via `--prompt` flag or piped stdin. Creates agent with `quiet=True` (no TUI, no banner), runs a single prompt, prints response to stdout, and exits cleanly with graceful error handling
+
+The agent processing flow:
+
+1. `QwenCloudLLM` sends messages + 19 built-in tool definitions to Qwen Cloud (with internal `stream=True`), plus any dynamically discovered MCP tools
 2. Stream is aggregated internally — reasoning content, tool call arguments, and text deltas are collected into a single `LLMResponse`
 3. ConnectOnion's `tool_executor` dispatches tool calls to plain Python functions
 4. Results feed back as tool messages; loop repeats until final answer
@@ -42,11 +50,34 @@ Key Qwen Cloud API features used:
 
 | Feature | Qwen Cloud API | Usage in Agent |
 |---------|----------------|----------------|
-| **Function calling** | `tools` parameter with auto-generated schemas | All 17 tools as plain Python functions (type hints → JSON schema) |
+| **Function calling** | `tools` parameter with auto-generated schemas | All 19 built-in tools + dynamic MCP tools as plain Python functions (type hints → JSON schema) |
 | **Thinking mode** | `extra_body={"enable_thinking": true}` | Complex multi-step tool orchestration reasoning |
 | **Parallel tool calls** | `parallel_tool_calls=True` | Independent queries (e.g., assets + events simultaneously) |
 | **Streaming** | `stream=True` (internal aggregation) | Preserves thinking mode quality; aggregated before returning to ConnectOnion |
 | **Structured output** | `response_format={"type": "json_object"}` | Formal action proposals with guaranteed valid JSON |
+
+### MCP Server Integration (`connectonion_qwen/mcp.py`)
+
+External MCP servers are connected at startup via a background async event loop bridge:
+
+1. Reads `.mcp.json` (or `MCP_CONFIG_PATH`) with `${VAR}` environment variable interpolation
+2. Connects to each server via stdio or SSE transport with per-server configurable timeouts
+3. MCP tool schemas are dynamically converted to Python type hints and `inspect.Signature` objects
+4. Each MCP tool becomes a ConnectOnion-compatible function — indistinguishable from built-in tools
+5. Unreachable servers are skipped with a warning; locally synced knowledge documents serve as fallback
+6. `/mcp` slash command shows per-server connection status and tool counts
+7. Clean session lifecycle management — sessions are entered via `__aenter__()` and exited on shutdown, preventing orphaned subprocesses and `BrokenPipeError` cascades
+
+### Report Generation (`connectonion_qwen/report_models.py`)
+
+Structured incident response reports are generated via Pydantic models:
+
+- `IncidentReport` — top-level report with severity, AI summary, root cause, business impact
+- `AttackChainStage` — attack chain reconstruction with evidence per stage
+- `AffectedAsset` — impacted assets with criticality and SOC 2 scope tags
+- `TimelineEvent` — chronological investigation reconstruction with data sources
+- `RecommendedAction` — prioritized response actions with policy IDs and risk levels
+- `AuditEntry` — complete audit trail of tool calls made during investigation
 
 ### Skill Layer (`skills/`)
 
@@ -72,6 +103,8 @@ The existing skills become the tool implementation layer:
 
 **GRC integration with fallback.** Connecting to CISO Assistant and Vanta MCP servers for live compliance data was straightforward. Designing the graceful fallback was not. When MCP is unavailable, the agent uses locally synced compliance documents with a source-priority resolution chain. That required careful architecture to make sure the agent never stalls waiting for a GRC response.
 
+**MCP server lifecycle management.** The MCP Python SDK's `ClientSession` requires entering its async context manager to start the internal receive loop that routes server responses to per-request streams. Without `__aenter__()`, `initialize()` hangs waiting for a response that is never delivered, until the async bridge's 60-second timeout cancels everything — producing a `BrokenResourceError` cascade and leaving the server status empty. Getting the session lifecycle right — entering sessions after creation, keeping them alive for the agent's lifetime, and exiting them before closing stdio transports on shutdown — was a subtle debugging exercise that spanned two releases.
+
 **Human-in-the-loop without friction.** The design principle is "propose, don't execute." Implementing this across response policies, WAF rules, and vulnerability patches while keeping the workflow fluid meant thinking through every state transition. The dry-run simulation capability (show what *would* happen before asking for approval) was the key insight that made it work.
 
 **Scope management.** The temptation to add more Alibaba Cloud services, more GRC integrations, and more response playbooks was constant. Staying focused on Track 4's core requirement, an autopilot agent that automates real-world security workflows end-to-end, meant saying no to interesting tangents and polishing what was already there.
@@ -82,11 +115,15 @@ The existing skills become the tool implementation layer:
 
 **Built on Qwen Cloud + ConnectOnion.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, and structured output, delivered through the ConnectOnion framework's Agent class, plugin system, and Textual TUI. The agent isn't a wrapper around a chat API — it's a proper tool-orchestrating runtime with HITL plugins, compliance logging, and token tracking.
 
-**GRC integration that actually works.** Connecting two live GRC MCP servers (CISO Assistant and Vanta) into the incident response workflow means compliance mapping happens during investigation, not as an afterthought. The fallback chain (live MCP, then synced documents, then bundled knowledge) keeps the agent running even when external services are down.
+**19 built-in tools + dynamic MCP tools.** The agent ships 19 registered tools across 5 categories (core, events, WAF, response, reporting), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
 
-**17 registered tools across 4 categories.** The agent registers tools as OpenAI-format function definitions, each wrapping a production CLI script that works identically in real and demo modes. Core, WAF, response, and GRC tools are organized by function.
+**Structured incident response reports.** The `generate_incident_report` tool aggregates data from 9 sources (event detail, alerts, assets, vulnerabilities, response policies, WAF instance, WAF events, NIST CSF controls, SOC 2 controls) into a single structured context package. Pydantic models enforce the schema: attack chain stages, blast radius, investigation timeline, confidence ratings, and a complete audit trail. Reports are suitable for export to ticket systems, compliance audits, or management review.
+
+**MCP server integration that scales.** The async bridge pattern — background event loop thread bridging sync ConnectOnion tools to async MCP SDK — means any MCP server can be plugged in via `.mcp.json`. Stdio and SSE transports, per-server timeouts, environment variable interpolation, and graceful degradation are all handled. Adding a new MCP server means adding three lines to the config.
 
 **SOC 2 compliance by design.** The "propose, don't execute" architecture means every state-changing action requires explicit human approval. This isn't a feature bolted on. It's the core design principle, and it made the architecture cleaner, not harder.
+
+**Cron and automation from day one.** The agent isn't limited to interactive use. The `--prompt` flag and stdin piping enable scheduled security checks, CI/CD integration, and scripted workflows. Clean stdout/stderr separation means output can be redirected to files, logs, or other tools without parsing hacks.
 
 ## What we learned
 
@@ -96,7 +133,11 @@ The existing skills become the tool implementation layer:
 
 **GRC and SecOps belong in the same conversation.** Integrating live GRC data into incident response showed that compliance mapping isn't an after-the-fact report. It's real-time context that shapes the response itself.
 
-**MCP is the right abstraction for cloud security.** Organizing 20+ tools through the Model Context Protocol gave the agent a clean, extensible interface to Alibaba Cloud's APIs without tight coupling. Adding a new tool means writing a CLI script and registering it. That's it.
+**MCP is the right abstraction for cloud security.** Organizing tools through the Model Context Protocol gave the agent a clean, extensible interface to Alibaba Cloud's APIs without tight coupling. Dynamic tool discovery means adding a new capability can be as simple as adding a server config. But MCP's async lifecycle requires careful attention — session management, context manager ordering, and graceful degradation are the difference between a demo and a production system.
+
+**Aggregating investigation data into reports is non-trivial.** The `generate_incident_report` tool pulls from 9 different data sources in a single call. Getting the orchestration right — parallel where possible, sequential where dependencies exist, with proper error handling for each source — taught us that report generation is its own tool category, not just a formatting exercise.
+
+**Headless mode changes the use cases.** Adding `--prompt` and stdin support wasn't just a CLI convenience — it unlocked cron jobs, CI/CD integration, and scripted security checks. The key insight was keeping the same agent runtime for both interactive and headless modes, just toggling `quiet=True` and skipping the TUI. Clean stdout/stderr separation makes the output pipe-friendly without any special handling.
 
 ## What's next for Alibaba Blueteam
 

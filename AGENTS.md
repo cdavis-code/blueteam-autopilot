@@ -13,7 +13,7 @@ cp .env.example .env
 # Edit .env: DASHSCOPE_API_KEY="sk-..."
 
 # Run the agent
-python agent.py
+python blueteam.py
 ```
 
 **Demo mode is the default** — reads from fixture JSON files in `skills/blueteam-autopilot-core/fixtures/`. No Alibaba Cloud credentials needed. Zero network calls.
@@ -31,20 +31,20 @@ Then run `aliyun configure` to set up credentials (stored in `~/.aliyun/config.j
 
 | Task | Command |
 |------|---------|
-| Run agent | `python agent.py` |
+| Run agent | `python blueteam.py` |
 | Switch to real mode | Add `SECURITY_CENTER_MODE=real` to `.env` + run `aliyun configure` |
 | Configure aliyun CLI | `aliyun configure` (sets AccessKey ID, Secret, region) |
 | Verify setup (real mode) | `SECURITY_CENTER_MODE=real bash skills/blueteam-autopilot-ops/scripts/ping.sh` |
 | Test a single script | `bash skills/blueteam-autopilot-ops/scripts/list-events.sh` |
 
-No build, no tests, no codegen. Just `python agent.py`.
+No build, no tests, no codegen. Just `python blueteam.py`.
 
 ---
 
 ## Architecture
 
 ```
-agent.py
+blueteam.py
 ├── ConnectOnion Agent + Textual TUI
 ├── QwenCloudLLM (custom provider, internal thinking-mode stream aggregation)
 ├── 19 tools (connectonion_qwen/tools.py)
@@ -84,7 +84,7 @@ Region is auto-discovered from `aliyun configure` output. Set `ALIBABA_REGION` t
 
 | Path | Purpose |
 |------|---------|
-| `agent.py` | Entry point — wires ConnectOnion Agent + TUI + plugins |
+| `blueteam.py` | Entry point — wires ConnectOnion Agent + TUI + plugins |
 | `connectonion_qwen/` | Custom Qwen provider, 19 tool functions, plugins, config |
 | `connectonion_qwen/tools.py` | 19 tools as plain Python functions (auto-schema from type hints) |
 | `connectonion_qwen/plugins.py` | HITL approval gate + compliance logger |
@@ -154,7 +154,7 @@ To add a new state-changing tool, append to `_STATE_CHANGING_TOOLS` in `plugins.
 
 ## Skills Summary
 
-7 skills total (intended for AI IDE harness use). Standalone agent only needs `agent.py` + `connectonion_qwen/`.
+7 skills total (intended for AI IDE harness use). Standalone agent only needs `blueteam.py` + `connectonion_qwen/`.
 
 | Skill | Purpose | Used by Agent |
 |-------|---------|---------------|
@@ -182,10 +182,10 @@ ConnectOnion transitively pulls: `textual` (TUI), `openai` (client), `rich` (for
 
 ## No IDE Harness? No Problem.
 
-This repo was originally packaged as 7 skills for Qoder/Cursor/OpenCode. The standalone agent (`agent.py`) was added later to demonstrate the framework without requiring an AI IDE.
+This repo was originally packaged as 7 skills for Qoder/Cursor/OpenCode. The standalone agent (`blueteam.py`) was added later to demonstrate the framework without requiring an AI IDE.
 
 Both modes work:
-- **Standalone agent:** `python agent.py` → full Textual TUI with Qwen Cloud
+- **Standalone agent:** `python blueteam.py` → full Textual TUI with Qwen Cloud
 - **Skills in AI IDE:** `npx skills add cdavis-code/blueteam-autopilot --skill '*'` → IDE provides LLM
 
 Same tools, same scripts, same fixtures. Pick your workflow.

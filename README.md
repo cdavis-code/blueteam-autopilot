@@ -38,7 +38,7 @@ cp .env.example .env
 # Edit .env and add: DASHSCOPE_API_KEY="sk-..."
 
 # Run the agent
-python agent.py
+python blueteam.py
 ```
 
 The agent uses 19 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
@@ -58,6 +58,7 @@ The agent uses 19 registered tools (mapped to the bundled bash scripts) and enfo
 | **Custom LLM Provider** | `QwenCloudLLM` subclass with internal streaming aggregation preserving Qwen's thinking mode quality |
 | **Multi-turn Conversation** | Persistent conversation history across turns with ConnectOnion's built-in context management |
 | **Slash Commands** | `/help`, `/clear`, `/model`, `/mcp`, `/quit` with autocomplete in the TUI (`/mcp` shows per-server connection status and tool count) |
+| **Cron / Headless Mode** | Run non-interactively via `--prompt` flag or piped stdin. Ideal for cron jobs, CI pipelines, and automation. Output goes to stdout; errors to stderr with non-zero exit code |
 
 **Dependencies:** `connectonion>=1.0.0` and `python-dotenv` — ConnectOnion pulls in `textual`, `openai`, and `rich` transitively.
 
@@ -109,6 +110,35 @@ SECURITY_CENTER_MODE=real          # Switch to live APIs
 
 ---
 
+## Cron / Automation
+
+Run the agent non-interactively for scheduled jobs, CI pipelines, or scripted workflows:
+
+```bash
+# Single prompt via --prompt flag
+python blueteam.py --prompt "Show me recent security events"
+
+# Pipe prompt via stdin
+echo "Show me recent security events" | python blueteam.py
+
+# Combine both (concatenated with newline)
+python blueteam.py --prompt "Context: check WAF" <<< "for IP 1.2.3.4"
+
+# Redirect output to file (only the response — stderr is not captured)
+python blueteam.py --prompt "Show events" > result.md
+
+# Cron example: check events every hour
+0 * * * * /path/to/blueteam.py --prompt "Check for new CRITICAL events" >> /var/log/blueteam.log 2>&1
+```
+
+**Behavior:**
+- Output goes to **stdout** (clean for piping/redirecting)
+- Errors and warnings go to **stderr** with non-zero exit code
+- No TUI, no banner — just the agent's response
+- State-changing tools (e.g., `execute_response_policy`) are auto-rejected in headless mode (no interactive approval possible)
+
+---
+
 ## 5-Minute Getting Started (Demo Mode)
 
 No Alibaba Cloud account? No problem. Demo mode works with zero cloud setup:
@@ -126,7 +156,7 @@ cp .env.example .env
 # Edit .env: DASHSCOPE_API_KEY="sk-..."
 
 # 3. Run the agent and start investigating
-python agent.py
+python blueteam.py
 # > Show me recent security events
 # > Investigate event evt-demo-20260614-001
 # > What response policies are available?
@@ -202,6 +232,7 @@ The `aliyun` CLI stores credentials in `~/.aliyun/config.json`. The agent's scri
 |----------|---------|--------|
 | `DASHSCOPE_API_KEY` | Qwen Cloud API key (required for agent) | `sk-...` |
 | `SECURITY_CENTER_MODE` | Execution mode (`demo` or `real`) | `real` |
+| `QWEN_BASE_URL` | DashScope API endpoint override | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | `ALIBABA_REGION` | Optional override (auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 
 ```bash
@@ -222,7 +253,7 @@ cp .env.example .env
 SECURITY_CENTER_MODE=real bash skills/blueteam-autopilot-ops/scripts/ping.sh
 
 # 5. Run the agent and start investigating
-python agent.py
+python blueteam.py
 # > Show me HIGH severity events from the last hour
 # > Deep-dive into event evt-xxx-yyy
 ```
@@ -241,7 +272,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ├── CHANGELOG.md                       # Version history
 ├── .env.example                       # Environment variable template
 │
-├── agent.py                           # Entry point: python agent.py (wires ConnectOnion Agent + TUI)
+├── blueteam.py                        # Entry point: python blueteam.py (wires ConnectOnion Agent + TUI) or --prompt for cron
 ├── requirements.txt                   # connectonion, python-dotenv
 │
 ├── connectonion_qwen/                 # Qwen Cloud integration for ConnectOnion
@@ -344,7 +375,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ┌──────────────┐
 │   User / TUI  │  "Show me recent security events"
 │   (python     │
-│    agent.py)  │
+│    blueteam.py) │
 └──────┬───────┘
        │
        ▼
@@ -393,7 +424,7 @@ Yes! Region is auto-discovered from your `aliyun` CLI configuration (`aliyun con
 
 ### How does the standalone agent work?
 
-The agent (`agent.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 19 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Slash commands, token tracking, and context management are provided by ConnectOnion's `Chat` TUI.
+The agent (`blueteam.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 19 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Slash commands, token tracking, and context management are provided by ConnectOnion's `Chat` TUI.
 
 ### How do I contribute or report issues?
 

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """BlueTeam Autopilot — SecOps Agent powered by Qwen Cloud + ConnectOnion.
 
-Entry point: python agent.py
+Usage:
+    python blueteam.py                          # Interactive TUI
+    python blueteam.py --prompt "Show events"   # Single prompt (cron)
+    echo "Show events" | python blueteam.py     # Piped stdin
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 
 from connectonion import Agent
@@ -27,8 +31,96 @@ from connectonion_qwen.system_prompt import SYSTEM_PROMPT
 from connectonion_qwen.mcp import load_mcp_tools, shutdown_mcp, get_mcp_status
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the CLI argument parser."""
+    parser = argparse.ArgumentParser(
+        description="BlueTeam Autopilot — SecOps Agent",
+        prog="blueteam",
+    )
+    parser.add_argument(
+        "--prompt", "-p",
+        type=str,
+        default=None,
+        help="Run non-interactively with this prompt (for cron/automation)",
+    )
+    return parser
+
+
+def _read_stdin_if_piped() -> str:
+    """Read stdin if data is piped in (non-blocking), else return empty string."""
+    if sys.stdin.isatty():
+        return ""
+    return sys.stdin.read().strip()
+
+
+def _run_prompt(prompt: str) -> None:
+    """Run the agent with a single prompt and exit (cron/automation mode)."""
+    # Validate configuration
+    warnings = validate()
+    if warnings:
+        for w in warnings:
+            print(f"Warning: {w}", file=sys.stderr)
+        if not DASHSCOPE_API_KEY:
+            print(
+                "Error: DASHSCOPE_API_KEY required. Add to .env file.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    # Create Qwen Cloud LLM provider
+    llm = QwenCloudLLM(
+        api_key=DASHSCOPE_API_KEY,
+        model=QWEN_MODEL,
+        base_url=QWEN_BASE_URL,
+        enable_thinking=ENABLE_THINKING,
+    )
+
+    # Load MCP tools (graceful degradation — skipped if unavailable)
+    mcp_tools = load_mcp_tools()
+    all_tools = list(ALL_TOOLS) + mcp_tools
+
+    # Create agent with quiet=True (suppress banner/console output for cron)
+    agent = Agent(
+        name="BlueTeam Autopilot",
+        llm=llm,
+        tools=all_tools,
+        system_prompt=SYSTEM_PROMPT,
+        max_iterations=MAX_TOOL_ROUNDS,
+        plugins=[hitl_approval_plugin, compliance_logger_plugin],
+        quiet=True,
+    )
+
+    try:
+        response = agent.input(prompt)
+        print(response)
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+    finally:
+        shutdown_mcp()
+
+
 def main() -> None:
-    """Launch the BlueTeam Autopilot TUI."""
+    """Launch the BlueTeam Autopilot TUI or run a single prompt."""
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    # Collect prompt from --prompt and/or stdin
+    prompt_parts: list[str] = []
+    if args.prompt:
+        prompt_parts.append(args.prompt)
+    stdin_data = _read_stdin_if_piped()
+    if stdin_data:
+        prompt_parts.append(stdin_data)
+
+    if prompt_parts:
+        # Cron/automation mode: run single prompt and exit
+        combined_prompt = "\n".join(prompt_parts)
+        _run_prompt(combined_prompt)
+        return
+
+    # --- Interactive TUI mode (unchanged below) ---
+
     # Validate configuration
     warnings = validate()
     if warnings:
@@ -66,7 +158,7 @@ def main() -> None:
     # Build welcome message
     thinking_label = "on" if ENABLE_THINKING else "off"
     welcome = (
-        f"**BlueTeam Autopilot v2.1.4** — SecOps Agent\n\n"
+        f"**BlueTeam Autopilot v2.2.0** — SecOps Agent\n\n"
         f"Model: `{QWEN_MODEL}` | "
         f"Thinking: `{thinking_label}` | "
         f"Mode: `{SECURITY_CENTER_MODE}`\n\n"

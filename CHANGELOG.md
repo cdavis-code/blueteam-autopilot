@@ -5,6 +5,26 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] — 2026-07-03
+
+### Added
+
+#### Headless / Cron Mode
+- **`--prompt` / `-p` CLI argument** — Run the agent non-interactively with a single prompt, then exit. Ideal for cron jobs, CI pipelines, and automation workflows.
+- **Stdin piping** — Pipe prompts via stdin (`echo "Show events" | python blueteam.py`). If both `--prompt` and stdin are provided, they are concatenated with a newline separator.
+- **`_run_prompt()`** — Headless execution path: creates agent with `quiet=True` (no TUI, no banner), runs a single prompt, prints response to stdout, and exits cleanly.
+- **Graceful error handling** — Headless mode catches exceptions and prints clean error messages to stderr with non-zero exit code (no raw tracebacks).
+
+#### Configurable API Endpoint
+- **`QWEN_BASE_URL` env var** — Override the DashScope API base URL via `.env`. Defaults to the international endpoint (`https://dashscope-intl.aliyuncs.com/compatible-mode/v1`). Supports mainland China endpoint and custom gateways.
+- **.env.example** — Documented `QWEN_BASE_URL` option with examples for both international and mainland China endpoints.
+
+### Changed
+- `blueteam.py` — Welcome banner version updated to v2.2.0
+- `connectonion_qwen/config.py` — `QWEN_BASE_URL` now reads from environment variable with default fallback (previously hardcoded)
+
+---
+
 ## [2.1.4] — 2026-07-02
 
 ### Fixed
