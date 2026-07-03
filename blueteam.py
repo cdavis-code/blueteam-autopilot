@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 import sys
 
+from rich.console import Console
+
 from connectonion import Agent
 from connectonion.tui import Chat, CommandItem
 
@@ -142,7 +144,8 @@ def main() -> None:
     )
 
     # Load MCP tools (graceful degradation — skipped if unavailable)
-    mcp_tools = load_mcp_tools()
+    with Console(stderr=True).status("[bold cyan]Loading MCP servers…"):
+        mcp_tools = load_mcp_tools()
     all_tools = list(ALL_TOOLS) + mcp_tools
 
     # Create the agent with all tools and plugins
