@@ -11,7 +11,7 @@
 * **Standalone Python agent** built on Qwen Cloud + ConnectOnion with function calling + thinking mode
 * 17 CLI scripts · 7 agent skills · 19 agent tools · zero credentials for demo
 
-🎬 **[Watch Demo Video](https://www.youtube.com/watch?v=-eqQJuAFHhA)**
+🎬 **[Watch Demo Video](https://youtu.be/v0by8nknCQc)**
 
 [Getting Started ↓](#5-minute-getting-started-demo-mode) · [Real Mode Setup ↓](#real-mode-setup) · [Architecture ↓](#architecture)
 
