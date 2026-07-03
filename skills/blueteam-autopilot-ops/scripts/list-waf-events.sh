@@ -14,12 +14,13 @@ elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
   source "$(dirname "$SCRIPT_DIR")/../../../.env" 2>/dev/null || true
 fi
 
-# ----- Demo mode: return fixture data -----
+# ----- Demo mode: return fixture data with fresh timestamps -----
 if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
   FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
   FIXTURE_FILE="$FIXTURE_DIR/waf_events.json"
   if [ -f "$FIXTURE_FILE" ]; then
-    cat "$FIXTURE_FILE"
+    source "$SCRIPT_DIR/_rewrite-timestamps.sh"
+    cat "$FIXTURE_FILE" | rewrite_timestamps
     exit 0
   else
     echo "{\"error\": \"Fixture not found: $FIXTURE_FILE. Run 'aliyun sls GetLogs > $FIXTURE_FILE' to capture.\"}"

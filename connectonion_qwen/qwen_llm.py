@@ -94,7 +94,8 @@ class QwenCloudLLM(LLM):
         try:
             stream = self.client.chat.completions.create(**api_kwargs)
         except openai.APIError as e:
-            raise ValueError(f"Qwen Cloud API Error: {e}") from e
+            logger.error(f"Qwen Cloud API error: {e}")
+            raise ValueError("Qwen Cloud API error. Check your API key and model configuration.") from e
 
         # Aggregate the streaming response
         content, reasoning_content, tool_calls_map, usage_data = self._aggregate_stream(stream)

@@ -5,6 +5,30 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] — 2026-07-03
+
+### Added
+
+#### Demo Mode Timestamp Rewriting
+- **`_rewrite-timestamps.sh`** — Shared helper script that rewrites fixture timestamps relative to "now" at runtime, preserving chronological spacing between events while making demo data appear fresh
+- **`list-events.sh`** — Demo mode now pipes fixture through `rewrite_timestamps` function before returning
+- **`list-waf-events.sh`** — Same timestamp rewriting applied to WAF event fixtures
+- Timestamp fields handled: `createdAt`, `timestamp`, `detectedAt`, `updatedAt`
+
+### Fixed
+
+#### Secure Coding Audit Fixes
+- **`connectonion_qwen/tools.py`** — Generic exception handler now logs detail server-side and returns sanitized "Tool execution failed. Please retry." message to LLM (prevents information leakage)
+- **`connectonion_qwen/tools.py`** — `block_waf_ips` now validates IP/CIDR inputs using Python's `ipaddress` module before passing to script (prevents malformed input to state-changing tool)
+- **`connectonion_qwen/mcp.py`** — MCP tool failures log detail server-side, return "MCP tool execution failed. Please retry." (prevents internal error exposure)
+- **`connectonion_qwen/qwen_llm.py`** — Qwen Cloud API errors log detail server-side, return "Qwen Cloud API error. Check your API key and model configuration." (prevents API key/endpoint leakage)
+- **`connectonion_qwen/config.py`** — `MAX_TOOL_ROUNDS` int parse wrapped in try/except, defaults to 20 on invalid env var input (prevents crash on malformed config)
+
+### Changed
+- `blueteam.py` — Welcome banner version updated to v2.2.1
+
+---
+
 ## [2.2.0] — 2026-07-03
 
 ### Added

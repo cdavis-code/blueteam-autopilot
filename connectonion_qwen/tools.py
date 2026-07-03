@@ -9,12 +9,16 @@ skills/blueteam-autopilot-ops/scripts/ via subprocess.
 
 from __future__ import annotations
 
+import ipaddress
 import json
+import logging
 import os
 import subprocess
 from pathlib import Path
 
 from connectonion_qwen.config import SCRIPTS_DIR, SECURITY_CENTER_MODE
+
+logger = logging.getLogger(__name__)
 
 # Tools that require HITL approval before real execution (state-changing)
 STATE_CHANGING_TOOLS: set[str] = {"execute_response_policy", "block_waf_ips"}
@@ -61,11 +65,12 @@ def _run_script(script_name: str, args: list[str] | None = None) -> str:
         return output or json.dumps({"status": "ok", "message": "No output from script."})
 
     except subprocess.TimeoutExpired:
-        return json.dumps({"error": f"Tool timed out after 30s."})
+        return json.dumps({"error": "Tool timed out after 30s."})
     except FileNotFoundError:
         return json.dumps({"error": "bash not found. Ensure bash is installed and in PATH."})
     except Exception as exc:
-        return json.dumps({"error": str(exc)})
+        logger.error(f"Script execution failed ({script_name}): {exc}", exc_info=True)
+        return json.dumps({"error": "Tool execution failed. Please retry."})
 
 
 # ===========================================================================
@@ -223,6 +228,19 @@ def list_waf_top_ips(time_range: str = "") -> str:
     return _run_script("list-waf-top-ips.sh", args)
 
 
+def _validate_ip_or_cidr(value: str) -> bool:
+    """Check if a string is a valid IP address or CIDR range."""
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        try:
+            ipaddress.ip_network(value, strict=False)
+            return True
+        except ValueError:
+            return False
+
+
 def block_waf_ips(ips: str, dry_run: bool = True) -> str:
     """Block attacker IPs in WAF via IP blacklist defense rule.
     Uses WAF 3.0 create-defense-rule API with ip_blacklist scene.
@@ -236,6 +254,9 @@ def block_waf_ips(ips: str, dry_run: bool = True) -> str:
         dry_run: If true, show what would be blocked without making API calls.
     """
     ip_list = [ip.strip() for ip in ips.split(",") if ip.strip()]
+    invalid = [ip for ip in ip_list if not _validate_ip_or_cidr(ip)]
+    if invalid:
+        return json.dumps({"error": f"Invalid IP/CIDR: {', '.join(invalid)}"})
     args: list[str] = ip_list
     if dry_run:
         args.append("--dry-run")

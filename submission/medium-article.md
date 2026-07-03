@@ -18,15 +18,15 @@ When Alibaba Cloud launched Agentic SOC, it solved the alert surfacing problem. 
 
 By the end of this article, you'll understand the three design decisions that shaped the whole project: why the agent proposes actions instead of executing them, why demo mode is the default (not an afterthought), and how the Model Context Protocol became the right abstraction for cloud security APIs.
 
-If you'd rather watch than read, here's a 3-minute demo: [Watch on YouTube](https://www.youtube.com/watch?v=-eqQJuAFHhA)
+If you'd rather watch than read, here's a 3-minute demo: [Watch on YouTube](https://youtu.be/v0by8nknCQc)
 
 Here's what the agent's output looks like when it finishes investigating a critical event:
 
-![Agent triaging security events, sorted by severity with asset cross-referencing](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/assets/submission/slides/demo_0005.png)
+![Agent triaging security events, sorted by severity with asset cross-referencing](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/submission/slides/demo_0005.png)
 
 And here's what happens when it recommends a response. Notice the dry-run simulation and the explicit approval gate:
 
-![Agent proposing a WAF IP-block response with dry-run simulation, awaiting human approval](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/assets/submission/slides/demo_0007.png)
+![Agent proposing a WAF IP-block response with dry-run simulation, awaiting human approval](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/submission/slides/demo_0007.png)
 
 ---
 
@@ -58,13 +58,38 @@ This is also SOC 2 CC6.8.3 compliant by design. The approval gate isn't a featur
 
 ## Project Overview
 
-Alibaba Blueteam is a set of 7 modular agent skills orchestrated by a Qwen-powered core agent. It installs via `npx skills add` with no repository clone and no build step.
+Alibaba Blueteam is available in two forms: a **standalone Python agent** built on Qwen Cloud and the ConnectOnion framework, and a set of **7 modular agent skills** for AI IDE harnesses like Qoder or Cursor.
+
+### Option A: Standalone Agent (Recommended)
+
+A production-ready agent with an interactive Textual TUI, thinking mode, and function calling:
 
 ```bash
-# Install and run (demo mode is the default, zero config)
+# Clone and install
+git clone https://github.com/cdavis-code/blueteam-autopilot.git
+cd blueteam-autopilot
+pip install -r requirements.txt
+
+# Configure your Qwen Cloud API key
+cp .env.example .env
+# Edit .env: DASHSCOPE_API_KEY="sk-..."
+
+# Run the agent
+python blueteam.py
+```
+
+The standalone agent provides a full terminal UI with status bar, thinking indicator, tool progress, token/cost tracking, and slash commands (`/help`, `/clear`, `/model`, `/mcp`, `/quit`). It uses ConnectOnion's plugin system for HITL approval gates and compliance audit logging.
+
+### Option B: Skills for AI IDE Harness
+
+Install as skills for Qoder, Cursor, or other AI IDEs:
+
+```bash
 mkdir secops && cd secops
 npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
 ```
+
+Both options use the same 19 tools, 17 CLI scripts, and 15 demo fixtures. The choice is whether you want the standalone agent with its purpose-built TUI, or the flexibility of your preferred AI IDE.
 
 The 7 skills, in the order you'd meet them:
 
@@ -80,7 +105,7 @@ The 7 skills, in the order you'd meet them:
 
 Here's the architecture at a glance:
 
-![Architecture diagram: Qwen-powered core agent orchestrating 7 skills, 6 Alibaba Cloud services, and GRC MCP servers](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/assets/submission/slides/demo_0009.png)
+![Architecture diagram: Qwen-powered core agent orchestrating 7 skills, 6 Alibaba Cloud services, and GRC MCP servers](https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/submission/slides/demo_0009.png)
 
 ---
 
@@ -142,7 +167,9 @@ The tradeoff here is latency. Proposing instead of executing adds a human round-
 
 ### Behavior 5: Reporting
 
-The agent produces a Markdown incident report with six sections: summary, attack chain, compliance mapping, recommended action, rollback plan, and audit trail. The compliance mapping references NIST CSF and SOC 2 controls by ID, which means the report is ready for auditor review without someone manually adding the control references after the fact.
+The agent produces a comprehensive incident response report using the `generate_incident_report` tool — the 19th tool in the agent's toolkit. This tool aggregates all investigation data (event detail, alerts, assets, vulnerabilities, WAF logs, compliance controls) into a structured context package, then synthesizes a Markdown report with eight sections: executive summary, blast radius, attack chain timeline, affected assets, confidence rating, recommended actions, rollback plan, and audit trail.
+
+The report schema is enforced by Pydantic models (`IncidentReport`, `AttackChainStage`, `AffectedAsset`, `TimelineEvent`, `RecommendedAction`, `AuditEntry`), ensuring the output is ready for ticket systems or compliance audits without manual schema validation. The compliance mapping references NIST CSF and SOC 2 controls by ID, which means the report is ready for auditor review without someone manually adding the control references after the fact.
 
 ---
 
@@ -176,13 +203,42 @@ The cost of this approach is upfront work on the fixtures. Each JSON file had to
 To switch to real mode with live Alibaba Cloud APIs:
 
 ```bash
+# 1. Configure aliyun CLI credentials (stored in ~/.aliyun/config.json)
+aliyun configure
+
+# 2. Add Qwen Cloud API key and enable real mode in .env
 cat > .env << 'EOF'
-ALIBABA_ACCESS_KEY_ID="LTAI5t..."
-ALIBABA_ACCESS_KEY_SECRET="HkfZ..."
+DASHSCOPE_API_KEY="sk-..."
 SECURITY_CENTER_MODE=real
 EOF
 # ALIBABA_REGION is auto-discovered from aliyun CLI config (set ALIBABA_REGION in .env to override)
 ```
+
+---
+
+## Headless Mode: Automation and Cron Jobs
+
+Sometimes you don't want an interactive agent. You want a scheduled job that checks for new critical events every hour and logs the results. Or a CI pipeline that runs the agent against a pull request's security impact analysis.
+
+The standalone agent supports headless execution via the `--prompt` flag or stdin piping:
+
+```bash
+# Single prompt, output to stdout
+python blueteam.py --prompt "Show me recent security events"
+
+# Pipe from stdin
+echo "Investigate event evt-demo-20260614-001" | python blueteam.py
+
+# Combine both (concatenated with newline)
+python blueteam.py --prompt "Context: WAF analysis" <<< "for IP 1.2.3.4"
+
+# Cron job: check events every hour
+0 * * * * /path/to/blueteam.py --prompt "Check for new CRITICAL events" >> /var/log/blueteam.log 2>&1
+```
+
+In headless mode, the agent runs with `quiet=True` (no TUI, no banner), processes a single prompt, prints the response to stdout, and exits. State-changing tools are auto-rejected since there's no interactive approval possible. Errors go to stderr with a non-zero exit code.
+
+This pattern turns the agent from an interactive copilot into a batch processor. The same investigation logic, the same compliance checks, the same structured output — just without the human in the loop. For monitoring dashboards or automated triage pipelines, headless mode means the agent can run on a schedule and feed results into your existing alerting infrastructure.
 
 ---
 
@@ -192,7 +248,20 @@ The Model Context Protocol gave the agent a clean interface to Alibaba Cloud's A
 
 Here's what I like about this pattern: adding a new capability means writing a CLI script and registering it as a tool. That's it. The agent doesn't need to know about API versioning quirks or authentication details. The script handles that. The agent just calls the tool and gets structured data back.
 
-The project wraps 26+ API operations across 6 Alibaba Cloud services (Security Center, WAF 3.0, SLS, Cloud SIEM, VPC, STS) into 17 CLI scripts. Each script follows the same pattern: load environment, check mode, dispatch to fixture or live API, format output.
+The project wraps 26+ API operations across 6 Alibaba Cloud services (Security Center, WAF 3.0, SLS, Cloud SIEM, VPC, STS) into 19 tools. Each script follows the same pattern: load environment, check mode, dispatch to fixture or live API, format output.
+
+### External MCP Server Integration
+
+Beyond the built-in tools, the agent also connects to external MCP servers at startup for live GRC data. The `connectonion_qwen/mcp.py` module provides an MCP client bridge that:
+
+1. Reads server configurations from `.mcp.json` (with `${VAR}` environment variable interpolation)
+2. Connects via stdio or SSE transports with per-server timeouts
+3. Dynamically discovers tools and wraps them as ConnectOnion-compatible Python functions
+4. Gracefully degrades when servers are unreachable — synced knowledge documents serve as fallback
+
+The `.mcp.json` includes presets for CISO Assistant (live GRC framework data), Vanta (compliance posture), Alibaba Cloud Ops (extended cloud operations), DFIR-IRIS (incident response ticketing), and Atlassian (Jira/Confluence). Use `/mcp` in the TUI to see per-server connection status and tool count.
+
+This means the agent can query live compliance data during an investigation — checking whether a control is actually implemented, not just whether the documentation says it should be.
 
 The alternative would be to call the Alibaba Cloud APIs directly from the agent prompt. That's faster to build for one or two operations, but it puts API authentication logic, error handling, and pagination code into the prompt context. The prompt gets long, the model gets confused, and adding a new operation means editing the prompt. With MCP tools, the prompt stays focused on security reasoning and the scripts handle the plumbing.
 
@@ -242,16 +311,32 @@ Three design principles shaped this project, and they're the ones I'd carry to t
 
 If you want to try it:
 
+**Standalone Agent** (recommended — full TUI with thinking mode):
+```bash
+git clone https://github.com/cdavis-code/blueteam-autopilot.git
+cd blueteam-autopilot
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env: DASHSCOPE_API_KEY="sk-..."
+python blueteam.py
+```
+
+**AI IDE Harness** (Qoder, Cursor, etc.):
 ```bash
 mkdir secops && cd secops
 npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
 ```
 
-No Alibaba Cloud account needed. No credentials. No `.env` file. Demo mode is the default. You'll be triaging events in under 5 minutes.
+**Headless / Cron** (non-interactive):
+```bash
+python blueteam.py --prompt "Show me recent security events"
+```
+
+No Alibaba Cloud account needed for demo mode. Demo mode is the default. You'll be triaging events in under 5 minutes.
 
 **GitHub:** [github.com/cdavis-code/blueteam-autopilot](https://github.com/cdavis-code/blueteam-autopilot)
 
-**Demo Video:** [Watch on YouTube](https://www.youtube.com/watch?v=-eqQJuAFHhA)
+**Demo Video:** [Watch on YouTube](https://youtu.be/v0by8nknCQc)
 
 ---
 

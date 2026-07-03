@@ -26,7 +26,11 @@ ALIBABA_REGION: str = os.getenv("ALIBABA_REGION", "")
 # ---------------------------------------------------------------------------
 SECURITY_CENTER_MODE: str = os.getenv("SECURITY_CENTER_MODE", "demo")
 ENABLE_THINKING: bool = os.getenv("ENABLE_THINKING", "true").lower() == "true"
-MAX_TOOL_ROUNDS: int = int(os.getenv("MAX_TOOL_ROUNDS", "20"))
+
+try:
+    MAX_TOOL_ROUNDS: int = int(os.getenv("MAX_TOOL_ROUNDS", "20"))
+except ValueError:
+    MAX_TOOL_ROUNDS = 20
 
 # ---------------------------------------------------------------------------
 # MCP

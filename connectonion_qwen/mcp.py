@@ -175,7 +175,8 @@ def _make_tool_function(
                     parts.append(str(item))
             return "\n".join(parts) if parts else json.dumps({"status": "ok"})
         except Exception as exc:
-            return json.dumps({"error": str(exc), "tool": tool_name, "server": server_name})
+            logger.error(f"MCP tool call failed ({tool_name}@{server_name}): {exc}", exc_info=True)
+            return json.dumps({"error": "MCP tool execution failed. Please retry.", "tool": tool_name})
 
     # The sync wrapper
     def _sync_wrapper(**kwargs: Any) -> str:
