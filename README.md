@@ -262,6 +262,40 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 
 ---
 
+## Optional: MCP Server Integration
+
+The agent dynamically discovers tools from external MCP (Model Context Protocol) servers at startup. MCP servers provide live GRC data, ticketing integrations, and additional cloud services.
+
+### Configuration
+
+Copy the example config and customize it:
+
+```bash
+cp .mcp.example.json .mcp.json
+# Edit .mcp.json to enable/configure MCP servers
+```
+
+The `.mcp.example.json` includes presets for:
+- **CISO Assistant** — Live GRC framework data (stdtio, via `npx`)
+- **Vanta** — Compliance posture (SSE)
+- **Alibaba Cloud Ops** — Extended cloud operations (stdtio, via `uvx`)
+- **DFIR-IRIS** — Incident response ticketing (stdtio, via `uv`)
+- **Atlassian** — Jira/Confluence integration (SSE)
+
+### Environment Variables
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `MCP_CONFIG_PATH` | Path to MCP server config file | `.mcp.json` |
+
+### Behavior
+
+- **Optional** — If `.mcp.json` is missing or servers are unreachable, the agent skips MCP tools and uses synced knowledge documents as fallback
+- **Dynamic discovery** — Tools from connected MCP servers are automatically registered and available to the agent
+- **Status command** — Use `/mcp` in the TUI to see per-server connection status and tool count
+
+---
+
 ## What's Inside
 
 ```
@@ -271,6 +305,7 @@ See [skills/blueteam-autopilot-prep/SKILL.md](skills/blueteam-autopilot-prep/SKI
 ├── LICENSE                            # MIT License
 ├── CHANGELOG.md                       # Version history
 ├── .env.example                       # Environment variable template
+├── .mcp.example.json                  # MCP server config template (CISO Assistant, Vanta, etc.)
 │
 ├── blueteam.py                        # Entry point: python blueteam.py (wires ConnectOnion Agent + TUI) or --prompt for cron
 ├── requirements.txt                   # connectonion, python-dotenv

@@ -87,10 +87,10 @@
 
   <!-- Right side stats -->
   <g font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" text-anchor="end">
-    <text x="1120" y="120" font-size="36" font-weight="700" fill="#3b82f6">17</text>
-    <text x="1120" y="142" font-size="13" fill="#64748b">CLI Scripts</text>
+    <text x="1120" y="120" font-size="36" font-weight="700" fill="#3b82f6">19</text>
+    <text x="1120" y="142" font-size="13" fill="#64748b">Agent Tools</text>
 
-    <text x="1120" y="178" font-size="36" font-weight="700" fill="#06b6d4">6</text>
+    <text x="1120" y="178" font-size="36" font-weight="700" fill="#06b6d4">7</text>
     <text x="1120" y="200" font-size="13" fill="#64748b">Agent Skills</text>
 
     <text x="1120" y="236" font-size="36" font-weight="700" fill="#10b981">SOC 2</text>
