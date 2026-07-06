@@ -13,7 +13,7 @@
 
 > **[About the Project](submission/about.md)** — Inspiration, architecture decisions, and technical deep-dive.
 
-🎬 **[Watch Demo Video](https://youtu.be/IbpzVH3cYus)**
+🎬 **[Watch Demo Video](https://youtu.be/IbpzVH3cYus)** · 📊 **[View Slides](https://docs.google.com/presentation/d/e/2PACX-1vSsBonXp9VJgpyn-bjStEx8Y80QvS4sAPU4RvIrPA15Jd3LJJkaxG4agW8KyfnVXNSqmAdXhUbrx7He/pub?start=false&loop=false&delayms=3000)**
 
 [Getting Started ↓](#5-minute-getting-started-demo-mode) · [Real Mode Setup ↓](#real-mode-setup) · [Architecture ↓](#architecture)
 
