@@ -17,14 +17,8 @@ from connectonion_qwen.config import SCRIPTS_DIR, SECURITY_CENTER_MODE
 
 logger = logging.getLogger(__name__)
 
-# Tools that require HITL approval before real execution
-_STATE_CHANGING_TOOLS = {
-    "execute_response_policy",
-    "block_waf_ips",
-    "detach_policy",
-    "rotate_access_key",
-    "delete_stale_user",
-}
+# Import merged state-changing tools from all active providers
+from connectonion_qwen.tools import STATE_CHANGING_TOOLS as _STATE_CHANGING_TOOLS
 
 # Maximum tool output length before truncation
 _MAX_OUTPUT_LENGTH = 4000
@@ -37,11 +31,15 @@ _MAX_OUTPUT_LENGTH = 4000
 def _run_dry_run(tool_name: str, arguments: dict) -> str:
     """Execute a tool in dry-run mode and return the result."""
     script_map = {
+        # Aliyun tools
         "execute_response_policy": "execute-response-policy.sh",
         "block_waf_ips": "block-waf-ips.sh",
         "detach_policy": "detach-policy.sh",
         "rotate_access_key": "rotate-access-key.sh",
         "delete_stale_user": "delete-stale-user.sh",
+        # AWS tools
+        "aws_block_waf_ips": "aws-block-waf-ips.sh",
+        "aws_update_finding": "aws-update-finding.sh",
     }
     script = script_map.get(tool_name)
     if not script:
@@ -71,6 +69,15 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
         args.append(arguments.get("access_key_id", ""))
     elif tool_name == "delete_stale_user":
         args.append(arguments.get("user_name", ""))
+    elif tool_name == "aws_block_waf_ips":
+        args.append(arguments.get("ips", ""))
+        if arguments.get("dry_run", True):
+            pass  # no --real flag = dry-run
+        else:
+            args.append("--real")
+    elif tool_name == "aws_update_finding":
+        args.append(arguments.get("finding_id", ""))
+        args.append(arguments.get("status", "NOTIFIED"))
 
     env = os.environ.copy()
     env["SECURITY_CENTER_MODE"] = SECURITY_CENTER_MODE

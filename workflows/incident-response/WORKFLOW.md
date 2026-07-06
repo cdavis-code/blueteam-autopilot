@@ -39,6 +39,13 @@ phases:
 Full incident lifecycle from initial discovery through reporting.
 Executes 5 phases in sequence, each with a specialist persona.
 
+## Cloud Provider Awareness
+
+This workflow supports both Alibaba Cloud and AWS. When investigating events,
+check the event source to determine which provider's tools to use:
+- Alibaba Cloud events use tools like `list_security_events`, `get_security_event_detail`
+- AWS events use tools like `aws_list_findings`, `aws_get_finding_detail`, `aws_list_guardduty_findings`
+
 ## Phase: discovery
 
 Enumerate the security landscape and identify active incidents:

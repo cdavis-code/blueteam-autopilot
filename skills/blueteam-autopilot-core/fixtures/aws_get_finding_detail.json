@@ -1,0 +1,55 @@
+{
+  "Findings": [
+    {
+      "Id": "us-east-1/123456789012/abc123def456",
+      "ProductArn": "arn:aws:securityhub:us-east-1::product/aws/guardduty",
+      "GeneratorId": "arn:aws:guardduty:us-east-1:123456789012:detector/abc123",
+      "AwsAccountId": "123456789012",
+      "Types": ["UnauthorizedAccess:IAMUser/AnomalousBehavior"],
+      "FirstObservedAt": "2026-07-06T10:00:00.000Z",
+      "LastObservedAt": "2026-07-06T12:30:00.000Z",
+      "CreatedAt": "2026-07-06T12:00:00.000Z",
+      "UpdatedAt": "2026-07-06T12:00:00.000Z",
+      "Severity": {"Label": "HIGH", "Normalized": 70, "Product": 7.0},
+      "Title": "UnauthorizedAccess: IAMUser AnomalousBehavior",
+      "Description": "An API commonly used for reconnaissance was called from an unusual IP address by IAM user demo-service-account.",
+      "SourceIpAddress": "203.0.113.42",
+      "ResourceType": "AwsIamAccessKey",
+      "AffectedResource": "AIDAEXAMPLEKEY123",
+      "Remediation": {"Recommendation": {"Text": "Disable the compromised access key immediately. Rotate credentials for demo-service-account. Investigate all API calls made from 203.0.113.42."}},
+      "Compliance": {"Status": "FAILED", "RelatedRequirements": ["CIS AWS Foundations Benchmark 1.4", "NIST 800-53 AC-2"]},
+      "WorkflowState": "NEW",
+      "Workflow": {"Status": "NEW"},
+      "RecordState": "ACTIVE",
+      "Resources": [
+        {
+          "Type": "AwsIamAccessKey",
+          "Id": "AIDAEXAMPLEKEY123",
+          "Region": "us-east-1",
+          "Details": {
+            "AwsIamAccessKey": {
+              "PrincipalId": "AIDAEXAMPLEKEY123",
+              "UserName": "demo-service-account",
+              "AccessKeyId": "AKIAEXAMPLEKEY123",
+              "Status": "Active",
+              "CreateDate": "2026-01-15T08:00:00Z"
+            }
+          }
+        }
+      ],
+      "Network": {"SourceIpV4": "203.0.113.42", "DestinationIpV4": "10.0.1.50"},
+      "Action": {
+        "ActionType": "AWS_API_CALL",
+        "AwsApiCallAction": {
+          "Api": "ListBuckets",
+          "CallerType": "Remote IP",
+          "RemoteIpDetails": {
+            "IpAddressV4": "203.0.113.42",
+            "GeoLocation": {"Lat": 39.9042, "Lon": 116.4074},
+            "Country": {"CountryName": "Unknown"}
+          }
+        }
+      }
+    }
+  ]
+}

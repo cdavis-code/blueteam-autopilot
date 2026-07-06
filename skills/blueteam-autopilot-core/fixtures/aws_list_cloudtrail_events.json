@@ -1,0 +1,64 @@
+{
+  "Events": [
+    {
+      "EventId": "ct-evt-001",
+      "EventName": "ListBuckets",
+      "EventSource": "s3.amazonaws.com",
+      "EventTime": "2026-07-06T12:10:00Z",
+      "Username": "demo-service-account",
+      "SourceIPAddress": "203.0.113.42",
+      "UserAgent": "aws-sdk-python/1.28.0",
+      "ReadOnly": true,
+      "AwsRegion": "us-east-1",
+      "Resources": [{"ResourceType": "AWS::S3::Bucket", "ResourceName": "production-data-bucket"}]
+    },
+    {
+      "EventId": "ct-evt-002",
+      "EventName": "DescribeInstances",
+      "EventSource": "ec2.amazonaws.com",
+      "EventTime": "2026-07-06T12:05:00Z",
+      "Username": "demo-service-account",
+      "SourceIPAddress": "203.0.113.42",
+      "UserAgent": "aws-sdk-python/1.28.0",
+      "ReadOnly": true,
+      "AwsRegion": "us-east-1",
+      "Resources": []
+    },
+    {
+      "EventId": "ct-evt-003",
+      "EventName": "CreateAccessKey",
+      "EventSource": "iam.amazonaws.com",
+      "EventTime": "2026-07-06T11:45:00Z",
+      "Username": "admin-user",
+      "SourceIPAddress": "10.0.1.100",
+      "UserAgent": "console.amazonaws.com",
+      "ReadOnly": false,
+      "AwsRegion": "us-east-1",
+      "Resources": [{"ResourceType": "AWS::IAM::User", "ResourceName": "new-service-account"}]
+    },
+    {
+      "EventId": "ct-evt-004",
+      "EventName": "AuthorizeSecurityGroupIngress",
+      "EventSource": "ec2.amazonaws.com",
+      "EventTime": "2026-07-06T11:30:00Z",
+      "Username": "admin-user",
+      "SourceIPAddress": "10.0.1.100",
+      "UserAgent": "console.amazonaws.com",
+      "ReadOnly": false,
+      "AwsRegion": "us-east-1",
+      "Resources": [{"ResourceType": "AWS::EC2::SecurityGroup", "ResourceName": "sg-0abc123def456"}]
+    },
+    {
+      "EventId": "ct-evt-005",
+      "EventName": "GetCallerIdentity",
+      "EventSource": "sts.amazonaws.com",
+      "EventTime": "2026-07-06T11:00:00Z",
+      "Username": "demo-service-account",
+      "SourceIPAddress": "203.0.113.42",
+      "UserAgent": "aws-cli/2.13.0",
+      "ReadOnly": true,
+      "AwsRegion": "us-east-1",
+      "Resources": []
+    }
+  ]
+}

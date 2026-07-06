@@ -30,8 +30,14 @@ phases:
 ---
 # Threat Hunt Workflow
 
-Proactive threat hunting across Alibaba Cloud security data.
+Proactive threat hunting across cloud security data.
 Executes 4 phases: collect → analyze → correlate → report.
+
+## Cloud Provider Awareness
+
+This workflow supports both Alibaba Cloud and AWS. Use provider-appropriate tools:
+- Alibaba Cloud: `list_security_events`, `list_waf_security_events`, `list_waf_top_ips`
+- AWS: `aws_list_findings`, `aws_list_guardduty_findings`, `aws_list_waf_events`, `aws_list_cloudtrail_events`
 
 ## Phase: collect
 

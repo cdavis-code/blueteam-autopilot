@@ -1,0 +1,9 @@
+{
+  "MFADevices": [
+    {
+      "UserName": "admin-user",
+      "SerialNumber": "arn:aws:iam::123456789012:mfa/admin-user",
+      "EnableDate": "2026-01-01T00:00:00Z"
+    }
+  ]
+}

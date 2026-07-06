@@ -1,0 +1,33 @@
+{
+  "DetectorId": "abc123def456",
+  "Findings": [
+    {
+      "Id": "gd-finding-001",
+      "Type": "UnauthorizedAccess:IAMUser/AnomalousBehavior",
+      "Severity": 7.0,
+      "Title": "Anomalous behavior of an IAM user",
+      "Description": "APIs commonly used for reconnaissance were called from an unusual IP.",
+      "CreatedAt": "2026-07-06T12:00:00.000Z",
+      "Resource": {"Arn": "arn:aws:iam::123456789012:user/demo-service-account", "Type": "AccessKey"}
+    },
+    {
+      "Id": "gd-finding-002",
+      "Type": "Recon:EC2/Portscan",
+      "Severity": 5.0,
+      "Title": "EC2 instance is performing a port scan",
+      "Description": "EC2 instance i-0abc123def456 is probing ports on 10.0.0.0/16.",
+      "CreatedAt": "2026-07-06T11:30:00.000Z",
+      "Resource": {"Arn": "arn:aws:ec2:us-east-1:123456789012:instance/i-0abc123def456", "Type": "Instance"}
+    },
+    {
+      "Id": "gd-finding-003",
+      "Type": "CryptoCurrency:EC2/BitcoinTool.DNS",
+      "Severity": 8.0,
+      "Title": "EC2 instance querying Bitcoin mining pool DNS",
+      "Description": "EC2 instance i-0def456ghi789 is querying DNS names associated with Bitcoin mining pools.",
+      "CreatedAt": "2026-07-06T10:15:00.000Z",
+      "Resource": {"Arn": "arn:aws:ec2:us-east-1:123456789012:instance/i-0def456ghi789", "Type": "Instance"}
+    }
+  ],
+  "NextToken": null
+}

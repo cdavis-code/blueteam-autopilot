@@ -24,6 +24,7 @@ from connectonion.tui import Chat, CommandItem
 from connectonion_qwen.config import (
     DASHSCOPE_API_KEY,
     ENABLE_THINKING,
+    INFRA,
     MAX_TOOL_ROUNDS,
     QWEN_BASE_URL,
     QWEN_MODEL,
@@ -293,10 +294,11 @@ def main() -> None:
     # Build welcome message
     thinking_label = "on" if ENABLE_THINKING else "off"
     welcome = (
-        f"**BlueTeam Autopilot v3.0.1** — SecOps Agent\n\n"
+        f"**BlueTeam Autopilot v3.1.0** — SecOps Agent\n\n"
         f"Model: `{QWEN_MODEL}` | "
         f"Thinking: `{thinking_label}` | "
-        f"Mode: `{SECURITY_CENTER_MODE}`\n\n"
+        f"Mode: `{SECURITY_CENTER_MODE}` | "
+        f"Providers: `{','.join(INFRA)}`\n\n"
         f"Ask me to investigate security events, check vulnerabilities, "
         f"or propose response actions."
     )
@@ -426,6 +428,15 @@ _TOOL_CATEGORIES: list[tuple[str, list[str]]] = [
     ("Workflows", ["run_workflow"]),
     ("Vector Memory", ["search_similar_incidents", "store_incident_memory"]),
     ("Monitoring", ["get_monitor_state", "update_monitor_state"]),
+    # AWS Tools
+    ("AWS Diagnostics", ["aws_ping"]),
+    ("AWS Security Hub", ["aws_list_findings", "aws_get_finding_detail"]),
+    ("AWS WAF", ["aws_list_waf_events"]),
+    ("AWS GuardDuty", ["aws_list_guardduty_findings", "aws_get_guardduty_finding"]),
+    ("AWS CloudTrail", ["aws_list_cloudtrail_events"]),
+    ("AWS Assets", ["aws_list_assets"]),
+    ("AWS IAM", ["aws_list_iam_users", "aws_get_iam_mfa", "aws_list_iam_access_keys"]),
+    ("AWS Response", ["aws_update_finding", "aws_block_waf_ips"]),
 ]
 
 # Build a lookup: tool function name → docstring first line

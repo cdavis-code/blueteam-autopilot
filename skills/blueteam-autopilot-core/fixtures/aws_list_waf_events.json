@@ -1,0 +1,46 @@
+{
+  "SampledRequests": [
+    {
+      "Timestamp": "2026-07-06T12:05:00Z",
+      "Action": "BLOCK",
+      "RuleName": "SQLi-Rule-001",
+      "TerminatingRuleId": "AWS#AWSManagedRulesSQLiRuleSet#SQLi_BODY",
+      "HttpRequest": {
+        "ClientIp": "198.51.100.23",
+        "Country": "XX",
+        "URI": "/api/search",
+        "Method": "POST",
+        "Headers": [{"Name": "User-Agent", "Value": "sqlmap/1.7"}]
+      },
+      "SourceName": "WebACL-Production"
+    },
+    {
+      "Timestamp": "2026-07-06T12:03:00Z",
+      "Action": "BLOCK",
+      "RuleName": "XSS-Rule-001",
+      "TerminatingRuleId": "AWS#AWSManagedRulesCommonRuleSet#CrossSiteScripting_BODY",
+      "HttpRequest": {
+        "ClientIp": "203.0.113.42",
+        "Country": "XX",
+        "URI": "/login",
+        "Method": "POST",
+        "Headers": [{"Name": "User-Agent", "Value": "Mozilla/5.0"}]
+      },
+      "SourceName": "WebACL-Production"
+    },
+    {
+      "Timestamp": "2026-07-06T11:58:00Z",
+      "Action": "BLOCK",
+      "RuleName": "RateLimit-Rule",
+      "TerminatingRuleId": "RateLimit-100-req-5min",
+      "HttpRequest": {
+        "ClientIp": "192.0.2.100",
+        "Country": "XX",
+        "URI": "/api/v1/users",
+        "Method": "GET",
+        "Headers": [{"Name": "User-Agent", "Value": "python-requests/2.31"}]
+      },
+      "SourceName": "WebACL-Production"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "Id": "gd-finding-001",
+  "Type": "UnauthorizedAccess:IAMUser/AnomalousBehavior",
+  "Severity": 7.0,
+  "Title": "Anomalous behavior of an IAM user",
+  "Description": "APIs commonly used for reconnaissance were called from an unusual IP address by IAM user demo-service-account.",
+  "CreatedAt": "2026-07-06T12:00:00.000Z",
+  "UpdatedAt": "2026-07-06T12:00:00.000Z",
+  "Service": {
+    "Action": {
+      "ActionType": "AWS_API_CALL",
+      "AwsApiCallAction": {
+        "Api": "ListBuckets",
+        "CallerType": "Remote IP",
+        "RemoteIpDetails": {
+          "IpAddressV4": "203.0.113.42",
+          "GeoLocation": {"Lat": 39.9042, "Lon": 116.4074},
+          "Country": {"CountryName": "Unknown"},
+          "City": {"CityName": "Unknown"},
+          "Organization": {"Asn": 64496, "Org": "Example ISP"}
+        }
+      }
+    },
+    "Evidence": {
+      "ThreatIntelligenceDetails": [
+        {"ThreatListName": "ProofPoint", "ThreatNames": ["Threat-12345"]}
+      ]
+    },
+    "EventFirstSeenAt": "2026-07-06T10:00:00.000Z",
+    "EventLastSeenAt": "2026-07-06T12:30:00.000Z",
+    "Count": 47
+  },
+  "Resource": {
+    "Arn": "arn:aws:iam::123456789012:user/demo-service-account",
+    "Type": "AccessKey",
+    "AccessKeyDetails": {
+      "UserName": "demo-service-account",
+      "PrincipalId": "AIDAEXAMPLEKEY123",
+      "AccessKeyId": "AKIAEXAMPLEKEY123"
+    }
+  }
+}

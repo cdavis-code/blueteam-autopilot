@@ -30,8 +30,14 @@ phases:
 ---
 # Compliance Audit Workflow
 
-Compliance gap analysis across Alibaba Cloud environment.
+Compliance gap analysis across cloud environments.
 Executes 4 phases: inventory → map → evidence → report.
+
+## Cloud Provider Awareness
+
+This workflow supports both Alibaba Cloud and AWS. Use provider-appropriate tools:
+- Alibaba Cloud: `list_ram_users`, `list_ram_roles`, `analyze_trust_relationships`, `score_risk_matrix`
+- AWS: `aws_list_iam_users`, `aws_get_iam_mfa`, `aws_list_iam_access_keys`, `aws_list_findings`
 
 ## Phase: inventory
 

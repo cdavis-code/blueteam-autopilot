@@ -1,0 +1,6 @@
+{
+  "status": "ok",
+  "message": "Finding updated successfully",
+  "FindingIds": ["us-east-1/123456789012/abc123def456"],
+  "NewWorkflowStatus": "NOTIFIED"
+}

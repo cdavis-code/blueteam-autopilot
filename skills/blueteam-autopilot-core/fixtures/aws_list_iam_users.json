@@ -1,0 +1,8 @@
+{
+  "Users": [
+    {"UserName": "admin-user", "UserId": "AIDAADMINUSER123", "Arn": "arn:aws:iam::123456789012:user/admin-user", "CreateDate": "2026-01-01T00:00:00Z", "PasswordLastUsed": "2026-07-06T10:00:00Z"},
+    {"UserName": "demo-service-account", "UserId": "AIDASVCACCT123", "Arn": "arn:aws:iam::123456789012:user/demo-service-account", "CreateDate": "2026-01-15T08:00:00Z", "PasswordLastUsed": null},
+    {"UserName": "ci-deploy-user", "UserId": "AIDACIDEPLOY123", "Arn": "arn:aws:iam::123456789012:user/ci-deploy-user", "CreateDate": "2026-02-20T14:00:00Z", "PasswordLastUsed": null},
+    {"UserName": "legacy-admin", "UserId": "AIDALEGACY123", "Arn": "arn:aws:iam::123456789012:user/legacy-admin", "CreateDate": "2025-06-01T00:00:00Z", "PasswordLastUsed": "2025-09-15T00:00:00Z"}
+  ]
+}

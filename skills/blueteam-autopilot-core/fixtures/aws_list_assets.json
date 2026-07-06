@@ -1,0 +1,52 @@
+{
+  "Reservations": [
+    {
+      "Instances": [
+        {
+          "InstanceId": "i-0abc123def456",
+          "InstanceType": "t3.medium",
+          "State": {"Code": 16, "Name": "running"},
+          "PublicIpAddress": "54.123.45.67",
+          "PrivateIpAddress": "10.0.1.50",
+          "SubnetId": "subnet-0abc123",
+          "VpcId": "vpc-0abc123",
+          "Tags": [{"Key": "Name", "Value": "web-server-prod"}, {"Key": "Environment", "Value": "production"}],
+          "SecurityGroups": [{"GroupId": "sg-0abc123", "GroupName": "web-sg"}],
+          "LaunchTime": "2026-06-01T08:00:00Z"
+        }
+      ]
+    },
+    {
+      "Instances": [
+        {
+          "InstanceId": "i-0def456ghi789",
+          "InstanceType": "t3.large",
+          "State": {"Code": 16, "Name": "running"},
+          "PublicIpAddress": "54.123.45.89",
+          "PrivateIpAddress": "10.0.2.100",
+          "SubnetId": "subnet-0def456",
+          "VpcId": "vpc-0abc123",
+          "Tags": [{"Key": "Name", "Value": "api-server-prod"}, {"Key": "Environment", "Value": "production"}],
+          "SecurityGroups": [{"GroupId": "sg-0def456", "GroupName": "api-sg"}],
+          "LaunchTime": "2026-06-01T08:00:00Z"
+        }
+      ]
+    },
+    {
+      "Instances": [
+        {
+          "InstanceId": "i-0ghi789jkl012",
+          "InstanceType": "t3.small",
+          "State": {"Code": 16, "Name": "running"},
+          "PublicIpAddress": null,
+          "PrivateIpAddress": "10.0.3.25",
+          "SubnetId": "subnet-0ghi789",
+          "VpcId": "vpc-0abc123",
+          "Tags": [{"Key": "Name", "Value": "bastion-host"}, {"Key": "Environment", "Value": "management"}],
+          "SecurityGroups": [{"GroupId": "sg-0ghi789", "GroupName": "bastion-sg"}],
+          "LaunchTime": "2026-05-15T12:00:00Z"
+        }
+      ]
+    }
+  ]
+}

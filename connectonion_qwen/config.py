@@ -22,6 +22,11 @@ QWEN_BASE_URL: str = os.getenv("QWEN_BASE_URL", "https://dashscope-intl.aliyuncs
 ALIBABA_REGION: str = os.getenv("ALIBABA_REGION", "")
 
 # ---------------------------------------------------------------------------
+# Multi-cloud provider selection (comma-separated: aliyun, aws)
+# ---------------------------------------------------------------------------
+INFRA: list[str] = [p.strip() for p in os.getenv("INFRA", "aliyun").split(",") if p.strip()]
+
+# ---------------------------------------------------------------------------
 # Agent behavior
 # ---------------------------------------------------------------------------
 SECURITY_CENTER_MODE: str = os.getenv("SECURITY_CENTER_MODE", "demo")

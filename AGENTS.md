@@ -1,6 +1,6 @@
 # BlueTeam Autopilot — Agent Setup
 
-Standalone Python agent for Alibaba Cloud SecOps. Built on Qwen Cloud + ConnectOnion framework with 19 security tools and human-in-the-loop guardrails.
+Standalone Python agent for multi-cloud SecOps (Alibaba Cloud + AWS). Built on Qwen Cloud + ConnectOnion framework with modular provider components and human-in-the-loop guardrails.
 
 ---
 
@@ -16,14 +16,16 @@ cp .env.example .env
 python blueteam.py
 ```
 
-**Demo mode is the default** — reads from fixture JSON files in `skills/blueteam-autopilot-core/fixtures/`. No Alibaba Cloud credentials needed. Zero network calls.
+**Demo mode is the default** — reads from fixture JSON files in `skills/blueteam-autopilot-core/fixtures/`. No cloud credentials needed. Zero network calls.
 
-For live Alibaba Cloud APIs, add to `.env`:
+For live cloud APIs, add to `.env`:
 ```bash
 SECURITY_CENTER_MODE=real
 ```
 
-Then run `aliyun configure` to set up credentials (stored in `~/.aliyun/config.json`). Scripts use the `aliyun` CLI credentials automatically.
+Then configure CLI credentials:
+- Alibaba Cloud: `aliyun configure` (stored in `~/.aliyun/config.json`)
+- AWS: `aws configure` (stored in `~/.aws/credentials`)
 
 ---
 
@@ -72,6 +74,7 @@ blueteam.py
 | `QWEN_MODEL` | Qwen model name | `qwen3.7-plus` |
 | `ENABLE_THINKING` | Thinking mode for orchestration | `true` |
 | `SECURITY_CENTER_MODE` | `demo` or `real` | `demo` |
+| `INFRA` | Cloud providers to load (comma-separated) | `aliyun` |
 | `MAX_TOOL_ROUNDS` | Agent iteration limit | `20` |
 | `ALIBABA_REGION` | Override region auto-discovery | None (auto from `aliyun configure`) |
 | `MCP_CONFIG_PATH` | Optional GRC MCP server config | `.mcp.json` |
@@ -80,13 +83,33 @@ Region is auto-discovered from `aliyun configure` output. Set `ALIBABA_REGION` t
 
 ---
 
+## Multi-Cloud Support
+
+The agent supports multiple cloud providers via the `INFRA` environment variable:
+
+| Value | Providers Loaded |
+|-------|------------------|
+| `aliyun` (default) | Alibaba Cloud only (37 tools) |
+| `aws` | AWS only (13 tools) |
+| `aliyun,aws` | Both providers (50 tools) |
+
+AWS tools are prefixed with `aws_` (e.g., `aws_list_findings`, `aws_ping`).
+Alibaba Cloud tools have no prefix (e.g., `list_security_events`, `ping`).
+
+**AWS services covered:** Security Hub, GuardDuty, WAF, CloudTrail, IAM, EC2.
+
+---
+
 ## Repository Structure
 
 | Path | Purpose |
 |------|---------|
 | `blueteam.py` | Entry point — wires ConnectOnion Agent + TUI + plugins |
-| `connectonion_qwen/` | Custom Qwen provider, 19 tool functions, plugins, config |
-| `connectonion_qwen/tools.py` | 19 tools as plain Python functions (auto-schema from type hints) |
+| `connectonion_qwen/` | Custom Qwen provider, plugins, config |
+| `connectonion_qwen/tools.py` | Thin dispatcher — loads tools from active providers |
+| `connectonion_qwen/providers/` | Provider components (aliyun/, aws/) |
+| `connectonion_qwen/providers/aliyun/tools.py` | 37 Alibaba Cloud tool functions |
+| `connectonion_qwen/providers/aws/tools.py` | 13 AWS tool functions |
 | `connectonion_qwen/plugins.py` | HITL approval gate + compliance logger |
 | `connectonion_qwen/qwen_llm.py` | Custom LLM provider with thinking-mode internal streaming |
 | `skills/blueteam-autopilot-ops/scripts/` | 17 bash scripts called by tools (demo vs. real dispatch) |

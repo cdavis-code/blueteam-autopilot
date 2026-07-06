@@ -1,0 +1,8 @@
+{
+  "status": "ok",
+  "message": "IP set updated (dry-run mode)",
+  "IPSetId": "ipset-abc123def456",
+  "IPsAdded": ["198.51.100.23", "203.0.113.42"],
+  "WebACLId": "waf-webacl-001",
+  "LockToken": "demo-lock-token"
+}

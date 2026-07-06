@@ -1,0 +1,80 @@
+{
+  "Findings": [
+    {
+      "Id": "us-east-1/123456789012/abc123def456",
+      "ProductArn": "arn:aws:securityhub:us-east-1::product/aws/guardduty",
+      "GeneratorId": "arn:aws:guardduty:us-east-1:123456789012:detector/abc123",
+      "AwsAccountId": "123456789012",
+      "Types": ["UnauthorizedAccess:IAMUser/AnomalousBehavior"],
+      "FirstObservedAt": "2026-07-06T10:00:00.000Z",
+      "LastObservedAt": "2026-07-06T12:30:00.000Z",
+      "CreatedAt": "2026-07-06T12:00:00.000Z",
+      "UpdatedAt": "2026-07-06T12:00:00.000Z",
+      "Severity": {"Label": "HIGH", "Normalized": 70, "Product": 7.0},
+      "Title": "UnauthorizedAccess: IAMUser AnomalousBehavior",
+      "Description": "An API commonly used for reconnaissance was called from an unusual IP address by IAM user demo-service-account.",
+      "Remediation": {"Recommendation": {"Text": "Investigate the source IP and disable the compromised access key if unauthorized."}},
+      "WorkflowState": "NEW",
+      "Workflow": {"Status": "NEW"},
+      "RecordState": "ACTIVE",
+      "Resources": [
+        {
+          "Type": "AwsIamAccessKey",
+          "Id": "AIDAEXAMPLEKEY123",
+          "Details": {"AwsIamAccessKey": {"PrincipalId": "AIDAEXAMPLEKEY123", "UserName": "demo-service-account"}}
+        }
+      ]
+    },
+    {
+      "Id": "us-east-1/123456789012/def456ghi789",
+      "ProductArn": "arn:aws:securityhub:us-east-1::product/aws/securityhub",
+      "GeneratorId": "cis-aws-foundations-benchmark/v/1.4.0",
+      "AwsAccountId": "123456789012",
+      "Types": ["Software and Configuration Checks/Industry and Regulatory Standards/CIS AWS Foundations Benchmark"],
+      "FirstObservedAt": "2026-07-06T08:00:00.000Z",
+      "LastObservedAt": "2026-07-06T12:00:00.000Z",
+      "CreatedAt": "2026-07-06T08:00:00.000Z",
+      "UpdatedAt": "2026-07-06T08:00:00.000Z",
+      "Severity": {"Label": "MEDIUM", "Normalized": 40, "Product": 4.0},
+      "Title": "CIS AWS Foundations Benchmark v1.4.0 - 1.4 — Ensure no root account access key exists",
+      "Description": "The root account has an active access key. Root account access keys should be deleted as they grant unrestricted access.",
+      "Remediation": {"Recommendation": {"Text": "Delete the root account access key and use IAM users with MFA instead."}},
+      "WorkflowState": "NEW",
+      "Workflow": {"Status": "NEW"},
+      "RecordState": "ACTIVE",
+      "Resources": [
+        {
+          "Type": "AwsAccount",
+          "Id": "arn:aws:iam::123456789012:root",
+          "Details": {"AwsAccount": {"AccountId": "123456789012"}}
+        }
+      ]
+    },
+    {
+      "Id": "us-east-1/123456789012/ghi789jkl012",
+      "ProductArn": "arn:aws:securityhub:us-east-1::product/aws/guardduty",
+      "GeneratorId": "arn:aws:guardduty:us-east-1:123456789012:detector/abc123",
+      "AwsAccountId": "123456789012",
+      "Types": ["Recon:EC2/PortProbeUnprotectedPort"],
+      "FirstObservedAt": "2026-07-06T11:00:00.000Z",
+      "LastObservedAt": "2026-07-06T12:15:00.000Z",
+      "CreatedAt": "2026-07-06T12:15:00.000Z",
+      "UpdatedAt": "2026-07-06T12:15:00.000Z",
+      "Severity": {"Label": "MEDIUM", "Normalized": 50, "Product": 5.0},
+      "Title": "Recon: EC2 PortProbeUnprotectedPort",
+      "Description": "EC2 instance i-0abc123def456 has an unprotected port that is being probed by a known malicious IP.",
+      "Remediation": {"Recommendation": {"Text": "Review security group rules and restrict inbound traffic to necessary ports only."}},
+      "WorkflowState": "NEW",
+      "Workflow": {"Status": "NEW"},
+      "RecordState": "ACTIVE",
+      "Resources": [
+        {
+          "Type": "AwsEc2Instance",
+          "Id": "arn:aws:ec2:us-east-1:123456789012:instance/i-0abc123def456",
+          "Details": {"AwsEc2Instance": {"InstanceId": "i-0abc123def456", "Type": "t3.medium"}}
+        }
+      ]
+    }
+  ],
+  "NextToken": null
+}
