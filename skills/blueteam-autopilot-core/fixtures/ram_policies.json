@@ -1,0 +1,60 @@
+{
+  "RequestId": "C3D4E5F6-A7B8-9012-CDEF-123456789012",
+  "Policies": [
+    {
+      "PolicyName": "AdministratorAccess",
+      "PolicyType": "System",
+      "Description": "Full access to all Alibaba Cloud resources",
+      "CreateDate": "2024-01-01T00:00:00Z",
+      "DefaultVersion": "v1",
+      "AttachmentCount": 3
+    },
+    {
+      "PolicyName": "ReadOnlyAccess",
+      "PolicyType": "System",
+      "Description": "Read-only access to all resources",
+      "CreateDate": "2024-01-01T00:00:00Z",
+      "DefaultVersion": "v1",
+      "AttachmentCount": 2
+    },
+    {
+      "PolicyName": "AliyunECSFullAccess",
+      "PolicyType": "System",
+      "Description": "Full access to ECS",
+      "CreateDate": "2024-01-01T00:00:00Z",
+      "DefaultVersion": "v1",
+      "AttachmentCount": 1
+    },
+    {
+      "PolicyName": "AliyunRAMReadOnlyAccess",
+      "PolicyType": "System",
+      "Description": "Read-only access to RAM",
+      "CreateDate": "2024-01-01T00:00:00Z",
+      "DefaultVersion": "v1",
+      "AttachmentCount": 1
+    },
+    {
+      "PolicyName": "CustomDeployPolicy",
+      "PolicyType": "Custom",
+      "Description": "Custom deploy policy — overly broad (includes RAM pass-through)",
+      "CreateDate": "2025-03-15T10:00:00Z",
+      "DefaultVersion": "v2",
+      "AttachmentCount": 1,
+      "PolicyDocument": {
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": ["ecs:*", "vpc:*", "slb:*"],
+            "Resource": "*"
+          },
+          {
+            "Effect": "Allow",
+            "Action": ["ram:PassRole", "ram:CreateRole"],
+            "Resource": "*"
+          }
+        ],
+        "Version": "1"
+      }
+    }
+  ]
+}

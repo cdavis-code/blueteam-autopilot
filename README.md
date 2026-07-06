@@ -9,9 +9,11 @@
 * SOC 2 CC6.8 compliant by design
 * Dual-mode: live production & offline demo
 * **Standalone Python agent** built on Qwen Cloud + ConnectOnion with function calling + thinking mode
-* 17 CLI scripts · 7 agent skills · 19 agent tools · zero credentials for demo
+* 37 agent tools · 5 specialist workflows · autonomous SOC daemon · zero credentials for demo
 
-🎬 **[Watch Demo Video](https://youtu.be/v0by8nknCQc)**
+> **[About the Project](submission/about.md)** — Inspiration, architecture decisions, and technical deep-dive.
+
+🎬 **[Watch Demo Video](https://youtu.be/IbpzVH3cYus)**
 
 [Getting Started ↓](#5-minute-getting-started-demo-mode) · [Real Mode Setup ↓](#real-mode-setup) · [Architecture ↓](#architecture)
 
@@ -41,13 +43,13 @@ cp .env.example .env
 python blueteam.py
 ```
 
-The agent uses 19 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
+The agent uses 37 registered tools (mapped to the bundled bash scripts) and enforces human-in-the-loop approval gates in code for all state-changing actions.
 
 #### Agent Features
 
 | Feature | Description |
 |---------|-------------|
-| **Function Calling** | 19 tools mapped to bash scripts with parallel tool call support and configurable max rounds (default: 20) |
+| **Function Calling** | 37 tools mapped to bash scripts with parallel tool call support and configurable max rounds (default: 20) |
 | **Thinking Mode** | Qwen reasoning mode for complex orchestration; internally streamed and aggregated for maximum quality. Toggle via `ENABLE_THINKING` env var (default: enabled) |
 | **Interactive TUI** | Full Textual-based terminal UI via ConnectOnion with status bar, thinking indicator, tool progress, and token/cost tracking |
 | **Human-in-the-Loop** | SOC 2 CC6.8.3-compliant approval gates via ConnectOnion plugin system — state-changing actions run a dry-run preview first, then prompt for y/N confirmation |
@@ -59,6 +61,9 @@ The agent uses 19 registered tools (mapped to the bundled bash scripts) and enfo
 | **Multi-turn Conversation** | Persistent conversation history across turns with ConnectOnion's built-in context management |
 | **Slash Commands** | `/help`, `/clear`, `/model`, `/mcp`, `/quit` with autocomplete in the TUI (`/mcp` shows per-server connection status and tool count) |
 | **Cron / Headless Mode** | Run non-interactively via `--prompt` flag or piped stdin. Ideal for cron jobs, CI pipelines, and automation. Output goes to stdout; errors to stderr with non-zero exit code |
+| **Multi-Agent Workflows** | 5 specialist workflows (incident-response, iam-forensic, threat-hunt, compliance-audit, continuous-monitor) with phase-scoped agents and restricted tool sets |
+| **Vector Similarity Search** | DashScope text-embedding-v3 embeddings with institutional memory — "Have we seen this before?" cross-incident pattern matching |
+| **Autonomous SOC Daemon** | `--daemon` flag for continuous monitoring — polls on interval, auto-triages alerts, escalates high-severity findings |
 
 **Dependencies:** `connectonion>=1.0.0` and `python-dotenv` — ConnectOnion pulls in `textual`, `openai`, and `rich` transitively.
 
@@ -87,6 +92,10 @@ Security teams using Alibaba Cloud face a constant flood of Security Center aler
 4. **Proposes** structured action plans for human approval
 5. **Reports** with NIST CSF and SOC 2 compliance mapping
 6. **Queries** live GRC data (CISO Assistant, Vanta) for compliance context during incident response
+7. **Hunts threats** proactively via multi-phase workflows with external correlation
+8. **Audits compliance** posture with control gap analysis and evidence collection
+9. **Monitors autonomously** as a daemon — scanning, triaging, and escalating in real time
+10. **Remembers** past incidents via vector embeddings for cross-incident similarity search
 
 All state-changing actions require **explicit human approval** — SOC 2 CC6.8.3 compliant by design.
 
@@ -136,6 +145,37 @@ python blueteam.py --prompt "Show events" > result.md
 - Errors and warnings go to **stderr** with non-zero exit code
 - No TUI, no banner — just the agent's response
 - State-changing tools (e.g., `execute_response_policy`) are auto-rejected in headless mode (no interactive approval possible)
+
+---
+
+## Autonomous SOC Daemon
+
+Run the agent as a continuous monitoring daemon that watches for threats 24/7:
+
+```bash
+# Start daemon with 60-second polling interval (default)
+python blueteam.py --daemon
+
+# Custom interval (30 seconds)
+python blueteam.py --daemon --interval 30
+
+# Short flags
+python blueteam.py -d -i 30
+```
+
+**What happens each tick:**
+1. **Scan** — Fetch new security events since the last check (last hour on first run)
+2. **Triage** — Classify by severity, check similarity against institutional memory
+3. **Escalate** — Store findings, update monitor state, print escalation summary
+
+**Console output:**
+- CRITICAL/HIGH escalations highlighted in red with full context
+- MEDIUM events logged but not escalated
+- LOW events counted only
+- "All clear" in green when no new events
+- Graceful shutdown on Ctrl+C with uptime summary
+
+**State persistence:** Monitor state (last check timestamp, tick count, escalation count) is stored in `data/blueteam.db` and survives restarts.
 
 ---
 
@@ -307,17 +347,27 @@ The `.mcp.example.json` includes presets for:
 ├── .env.example                       # Environment variable template
 ├── .mcp.example.json                  # MCP server config template (CISO Assistant, Vanta, etc.)
 │
-├── blueteam.py                        # Entry point: python blueteam.py (wires ConnectOnion Agent + TUI) or --prompt for cron
+├── blueteam.py                        # Entry point: TUI, --prompt (cron), --daemon (autonomous SOC)
 ├── requirements.txt                   # connectonion, python-dotenv
 │
 ├── connectonion_qwen/                 # Qwen Cloud integration for ConnectOnion
 │   ├── __init__.py                    # Package marker
 │   ├── qwen_llm.py                   # Custom LLM provider (QwenCloudLLM)
-│   ├── tools.py                       # 19 tool functions + bash script executor
+│   ├── tools.py                       # 37 tool functions + bash script executor
 │   ├── plugins.py                     # HITL approval + compliance logger plugins
-│   ├── system_prompt.py               # System prompt (condensed SKILL.md + BEHAVIORS.md)
+│   ├── system_prompt.py               # Auto-delegation system prompt (routes to workflows)
 │   ├── report_models.py               # Pydantic models for IR report generation
+│   ├── embeddings.py                  # Vector embeddings (DashScope text-embedding-v3)
+│   ├── memory.py                      # Persistent SQLite/libSQL database
 │   └── config.py                      # .env loader + typed configuration
+│
+├── workflows/                         # Multi-agent workflow engine
+│   ├── _engine/                       # Engine core (parser.py, runner.py, context.py)
+│   ├── incident-response/             # 5-phase reactive incident handling
+│   ├── iam-forensic/                  # 4-phase IAM security audit
+│   ├── threat-hunt/                   # 4-phase proactive threat hunting
+│   ├── compliance-audit/              # 4-phase compliance gap analysis
+│   └── continuous-monitor/            # 3-phase autonomous SOC monitoring
 │
 ├── assets/
 │   ├── banner.svg                     # Project banner
@@ -331,7 +381,7 @@ The `.mcp.example.json` includes presets for:
 │       └── slides/                    # Demo video script + screenshots
 │
 └── skills/
-    ├── blueteam-autopilot-core/       # Core agent: 5-behavior triage cycle
+    ├── blueteam-autopilot-core/       # Core agent: role, tools, guardrails
     │   ├── SKILL.md                   # Main prompt — role, tools, guardrails
     │   ├── BEHAVIORS.md               # Detailed workflow for each behavior
     │   ├── references/                # MCP tools, compliance, runbooks
@@ -417,10 +467,11 @@ The `.mcp.example.json` includes presets for:
 ┌──────────────────────────────────────────────┐
 │  ConnectOnion Agent + Chat TUI                │
 │  • QwenCloudLLM (custom LLM provider)         │
-│  • 17 function-based tools (auto-schema)       │
+│  • 37 function-based tools (auto-schema)       │
 │  • Thinking mode: internal stream aggregation  │
 │  • Plugin: HITL approval gates (SOC 2)         │
 │  • Plugin: Compliance audit logger             │
+│  • Auto-delegation → 5 specialist workflows    │
 └──────┬───────────────────────────────────────┘
        │
        ├─── tools.py ──▶ bash scripts ──┬─── real mode ──▶ Alibaba Cloud APIs
@@ -428,6 +479,16 @@ The `.mcp.example.json` includes presets for:
        │                                 │
        │                                 └─── demo mode ──▶ fixtures/*.json
        │                                                     (zero network)
+       │
+       ├─── workflows/ ──▶ 5 specialist workflows
+       │   ├── incident-response (5 phases)
+       │   ├── iam-forensic (4 phases)
+       │   ├── threat-hunt (4 phases)
+       │   ├── compliance-audit (4 phases)
+       │   └── continuous-monitor (3 phases, daemon-driven)
+       │
+       ├─── embeddings.py ──▶ DashScope text-embedding-v3
+       │   └── data/blueteam.db (SQLite: incident_embeddings + monitor_state)
        │
        ├─── GRC MCP ────▶ CISO Assistant / Vanta MCP servers
        │                     (live compliance data, fallback to synced docs)
@@ -459,7 +520,7 @@ Yes! Region is auto-discovered from your `aliyun` CLI configuration (`aliyun con
 
 ### How does the standalone agent work?
 
-The agent (`blueteam.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 19 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Slash commands, token tracking, and context management are provided by ConnectOnion's `Chat` TUI.
+The agent (`blueteam.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 37 tools are registered as plain Python functions (auto-schema from type hints), and two ConnectOnion plugins handle HITL approval gates and compliance audit logging. Complex investigations are auto-delegated to 5 specialist workflows (incident-response, iam-forensic, threat-hunt, compliance-audit, continuous-monitor), each running as a sequence of phase-scoped agents with restricted tool sets. Vector embeddings (DashScope text-embedding-v3) enable cross-incident similarity search. The `--daemon` flag enables autonomous SOC monitoring.
 
 ### How do I contribute or report issues?
 

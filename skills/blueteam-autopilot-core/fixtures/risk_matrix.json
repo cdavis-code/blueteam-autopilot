@@ -1,0 +1,91 @@
+{
+  "RequestId": "B8C9D0E1-F2A3-4567-BCDE-678901234567",
+  "ScanTimestamp": "2026-07-06T10:00:00Z",
+  "RiskMatrix": [
+    {
+      "EntityType": "role",
+      "EntityName": "CrossAccountAuditRole",
+      "RiskScore": 0.95,
+      "RiskCategory": "trust_misconfiguration",
+      "Severity": "CRITICAL",
+      "Findings": [
+        "Cross-account root trust without ExternalId",
+        "AdministratorAccess attached to cross-account role",
+        "MaxSessionDuration exceeds 3600s"
+      ],
+      "Recommendation": "Immediately restrict trust policy: add ExternalId condition, replace AdministratorAccess with ReadOnlyAccess, reduce session duration."
+    },
+    {
+      "EntityType": "role",
+      "EntityName": "LambdaExecutionRole",
+      "RiskScore": 0.78,
+      "RiskCategory": "over_privileged",
+      "Severity": "HIGH",
+      "Findings": [
+        "AdministratorAccess attached to Lambda execution role",
+        "No resource-level permissions scoping"
+      ],
+      "Recommendation": "Replace AdministratorAccess with a custom policy scoped to Lambda's actual resource needs."
+    },
+    {
+      "EntityType": "user",
+      "EntityName": "legacy-app",
+      "RiskScore": 0.82,
+      "RiskCategory": "stale_credential",
+      "Severity": "HIGH",
+      "Findings": [
+        "Access key age: 765 days (exceeds 90-day policy)",
+        "No login for 228 days",
+        "Account marked for decommission but still active"
+      ],
+      "Recommendation": "Disable access keys immediately. Delete user after confirming no active dependencies."
+    },
+    {
+      "EntityType": "user",
+      "EntityName": "intern-2025",
+      "RiskScore": 0.65,
+      "RiskCategory": "stale_credential",
+      "Severity": "MEDIUM",
+      "Findings": [
+        "Access key age: 370 days",
+        "No login for 279 days (internship ended)",
+        "Temporary account not decommissioned"
+      ],
+      "Recommendation": "Disable access keys and delete user. Temporary accounts should have auto-expiry."
+    },
+    {
+      "EntityType": "user",
+      "EntityName": "deploy-bot",
+      "RiskScore": 0.45,
+      "RiskCategory": "key_rotation",
+      "Severity": "MEDIUM",
+      "Findings": [
+        "Two active access keys (should use one + rotate)",
+        "Primary key age: 483 days"
+      ],
+      "Recommendation": "Rotate access keys. Implement automated key rotation schedule (90-day max)."
+    },
+    {
+      "EntityType": "policy",
+      "EntityName": "CustomDeployPolicy",
+      "RiskScore": 0.70,
+      "RiskCategory": "over_privileged",
+      "Severity": "HIGH",
+      "Findings": [
+        "Wildcard actions on ecs:*, vpc:*, slb:*",
+        "ram:PassRole on * — allows privilege escalation",
+        "ram:CreateRole on * — allows trust relationship creation"
+      ],
+      "Recommendation": "Remove ram:PassRole and ram:CreateRole. Scope actions to specific resources."
+    }
+  ],
+  "Summary": {
+    "TotalEntities": 15,
+    "EntitiesAtRisk": 6,
+    "Critical": 1,
+    "High": 3,
+    "Medium": 2,
+    "Low": 0,
+    "OverallRiskScore": 0.72
+  }
+}

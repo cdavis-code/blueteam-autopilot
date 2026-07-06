@@ -42,3 +42,6 @@ Thumbs.db
 # Skills lock
 skills-lock.json
 
+# Turso / Memory database
+data/
+

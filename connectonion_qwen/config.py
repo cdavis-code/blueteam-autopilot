@@ -38,11 +38,18 @@ except ValueError:
 MCP_CONFIG_PATH: str = os.getenv("MCP_CONFIG_PATH", ".mcp.json")
 
 # ---------------------------------------------------------------------------
+# Turso / Memory
+# ---------------------------------------------------------------------------
+TURSO_DATABASE_URL: str = os.getenv("TURSO_DATABASE_URL", "")
+DATA_DIR: Path = _PROJECT_ROOT / "data"
+
+# ---------------------------------------------------------------------------
 # Paths (relative to project root)
 # ---------------------------------------------------------------------------
 SCRIPTS_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-ops" / "scripts"
 FIXTURES_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-core" / "fixtures"
 KNOWLEDGE_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-knowledge"
+WORKFLOWS_DIR: Path = _PROJECT_ROOT / "workflows"
 
 
 def validate() -> list[str]:

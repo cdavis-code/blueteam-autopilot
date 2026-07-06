@@ -1,0 +1,45 @@
+{
+  "RequestId": "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+  "Users": [
+    {
+      "UserName": "admin-chris",
+      "DisplayName": "Chris Admin",
+      "UserId": "200000000000000001",
+      "CreateDate": "2025-01-15T08:30:00Z",
+      "Comments": "Primary admin account",
+      "LastLoginDate": "2026-07-05T14:22:00Z"
+    },
+    {
+      "UserName": "deploy-bot",
+      "DisplayName": "Deployment Bot",
+      "UserId": "200000000000000002",
+      "CreateDate": "2025-03-10T10:00:00Z",
+      "Comments": "CI/CD service account",
+      "LastLoginDate": "2026-07-06T02:15:00Z"
+    },
+    {
+      "UserName": "legacy-app",
+      "DisplayName": "Legacy Application",
+      "UserId": "200000000000000003",
+      "CreateDate": "2024-06-01T12:00:00Z",
+      "Comments": "Legacy app service account — scheduled for decommission",
+      "LastLoginDate": "2025-11-20T09:00:00Z"
+    },
+    {
+      "UserName": "intern-2025",
+      "DisplayName": "Intern Q3 2025",
+      "UserId": "200000000000000004",
+      "CreateDate": "2025-07-01T09:00:00Z",
+      "Comments": "Temporary intern account",
+      "LastLoginDate": "2025-09-30T17:00:00Z"
+    },
+    {
+      "UserName": "security-auditor",
+      "DisplayName": "Security Auditor",
+      "UserId": "200000000000000005",
+      "CreateDate": "2025-02-20T11:00:00Z",
+      "Comments": "Read-only security audit account",
+      "LastLoginDate": "2026-07-04T16:45:00Z"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "RequestId": "F6A7B8C9-D0E1-2345-FABC-456789012345",
+  "EntityType": "role",
+  "EntityName": "CrossAccountAuditRole",
+  "AttachedPolicies": [
+    {
+      "PolicyName": "AdministratorAccess",
+      "PolicyType": "System",
+      "Description": "Full access to all Alibaba Cloud resources",
+      "AttachDate": "2025-04-15T14:30:00Z"
+    },
+    {
+      "PolicyName": "AliyunECSFullAccess",
+      "PolicyType": "System",
+      "Description": "Full access to ECS",
+      "AttachDate": "2025-04-15T14:30:00Z"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "RequestId": "B2C3D4E5-F6A7-8901-BCDE-F12345678901",
+  "Roles": [
+    {
+      "RoleName": "AliyunECSImageImportDefaultRole",
+      "RoleId": "300000000000000001",
+      "Arn": "acs:ram::1234567890:role/aliyunecsimageimportdefaultrole",
+      "CreateDate": "2025-01-20T10:00:00Z",
+      "Description": "ECS image import role — assumed by ECS service",
+      "MaxSessionDuration": 3600,
+      "TrustPolicy": {
+        "Statement": [
+          {
+            "Action": "sts:AssumeRole",
+            "Effect": "Allow",
+            "Principal": {"Service": ["ecs.aliyuncs.com"]}
+          }
+        ],
+        "Version": "1"
+      }
+    },
+    {
+      "RoleName": "CrossAccountAuditRole",
+      "RoleId": "300000000000000002",
+      "Arn": "acs:ram::1234567890:role/crossaccountauditrole",
+      "CreateDate": "2025-04-15T14:30:00Z",
+      "Description": "Cross-account role for audit — OVERLY PERMISSIVE",
+      "MaxSessionDuration": 7200,
+      "TrustPolicy": {
+        "Statement": [
+          {
+            "Action": "sts:AssumeRole",
+            "Effect": "Allow",
+            "Principal": {"RAM": ["acs:ram::9876543210:root"]}
+          }
+        ],
+        "Version": "1"
+      }
+    },
+    {
+      "RoleName": "LambdaExecutionRole",
+      "RoleId": "300000000000000003",
+      "Arn": "acs:ram::1234567890:role/lambdaexecutionrole",
+      "CreateDate": "2025-06-01T09:00:00Z",
+      "Description": "Lambda execution — has AdministratorAccess attached",
+      "MaxSessionDuration": 3600,
+      "TrustPolicy": {
+        "Statement": [
+          {
+            "Action": "sts:AssumeRole",
+            "Effect": "Allow",
+            "Principal": {"Service": ["fc.aliyuncs.com"]}
+          }
+        ],
+        "Version": "1"
+      }
+    },
+    {
+      "RoleName": "ReadOnlyMonitoring",
+      "RoleId": "300000000000000004",
+      "Arn": "acs:ram::1234567890:role/readonlymonitoring",
+      "CreateDate": "2025-08-10T11:00:00Z",
+      "Description": "Read-only monitoring role — properly scoped",
+      "MaxSessionDuration": 3600,
+      "TrustPolicy": {
+        "Statement": [
+          {
+            "Action": "sts:AssumeRole",
+            "Effect": "Allow",
+            "Principal": {"Service": ["cms.aliyuncs.com"]}
+          }
+        ],
+        "Version": "1"
+      }
+    }
+  ]
+}

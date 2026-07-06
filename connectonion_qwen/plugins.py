@@ -18,7 +18,12 @@ from connectonion_qwen.config import SCRIPTS_DIR, SECURITY_CENTER_MODE
 logger = logging.getLogger(__name__)
 
 # Tools that require HITL approval before real execution
-_STATE_CHANGING_TOOLS = {"execute_response_policy"}
+_STATE_CHANGING_TOOLS = {
+    "execute_response_policy",
+    "detach_policy",
+    "rotate_access_key",
+    "delete_stale_user",
+}
 
 # Maximum tool output length before truncation
 _MAX_OUTPUT_LENGTH = 4000
@@ -32,6 +37,9 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
     """Execute a tool in dry-run mode and return the result."""
     script_map = {
         "execute_response_policy": "execute-response-policy.sh",
+        "detach_policy": "detach-policy.sh",
+        "rotate_access_key": "rotate-access-key.sh",
+        "delete_stale_user": "delete-stale-user.sh",
     }
     script = script_map.get(tool_name)
     if not script:
@@ -49,6 +57,15 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
         if event_id:
             args.append(event_id)
         # Explicitly do NOT add --real (this is the dry run)
+    elif tool_name == "detach_policy":
+        args.append(arguments.get("entity_type", ""))
+        args.append(arguments.get("entity_name", ""))
+        args.append(arguments.get("policy_name", ""))
+    elif tool_name == "rotate_access_key":
+        args.append(arguments.get("user_name", ""))
+        args.append(arguments.get("access_key_id", ""))
+    elif tool_name == "delete_stale_user":
+        args.append(arguments.get("user_name", ""))
 
     env = os.environ.copy()
     env["SECURITY_CENTER_MODE"] = SECURITY_CENTER_MODE

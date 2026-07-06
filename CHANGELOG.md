@@ -5,6 +5,46 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] — 2026-07-06
+
+### Added
+
+#### Multi-Agent Workflow Engine
+- **`workflows/_engine/`** — Declarative workflow orchestration engine (parser.py, runner.py, context.py). Parses WORKFLOW.md files with YAML frontmatter defining phases, creates scoped Agent instances per phase with restricted tool sets and phase-specific system prompts, and accumulates outputs via WorkflowContext.
+- **`workflows/incident-response/WORKFLOW.md`** — 5-phase reactive incident handling (discovery → deep_dive → recommendation → action → report). Migrated all 5+2 behaviors from the monolithic system prompt into declarative workflow phases.
+- **`workflows/iam-forensic/WORKFLOW.md`** — 4-phase IAM security audit (discovery → analysis → remediation → persist) with 13 IAM tools and credential risk scoring.
+- **`workflows/threat-hunt/WORKFLOW.md`** — 4-phase proactive threat hunting (collect → analyze → correlate → report) with external correlation and pattern analysis.
+- **`workflows/compliance-audit/WORKFLOW.md`** — 4-phase compliance gap analysis (inventory → map → evidence → report) with control mapping and evidence collection.
+- **`workflows/continuous-monitor/WORKFLOW.md`** — 3-phase autonomous SOC monitoring (scan → triage → escalate) driven by the daemon loop.
+- **Auto-delegation** — Main agent auto-delegates to workflows for investigations while handling quick single-tool queries directly.
+
+#### Vector Embeddings for Similarity Search
+- **`connectonion_qwen/embeddings.py`** — Universal incident embeddings using DashScope text-embedding-v3 (1024-dim in real mode, 64-dim deterministic hash fallback in demo mode). Cosine similarity search against all stored embeddings.
+- **`connectonion_qwen/memory.py`** — Persistent SQLite/libSQL database (`data/blueteam.db`) with `incident_embeddings` table for vector storage and `monitor_state` table for daemon state tracking.
+- **`search_similar_incidents`** tool — Query institutional memory for previously seen incidents similar to the current investigation. Returns top-k matches with similarity scores.
+- **`store_incident_memory`** tool — Store incident descriptions as embeddings for future similarity search. All 5 workflows auto-store findings.
+
+#### Autonomous SOC Daemon
+- **`--daemon` / `-d` CLI flag** — Run as continuous monitoring daemon. Polls on configurable interval, auto-triages new alerts, escalates high-severity findings.
+- **`--interval` / `-i` CLI flag** — Monitoring interval in seconds (default: 60). Daemon sleeps between ticks with graceful SIGINT/SIGTERM shutdown.
+- **`get_monitor_state`** / **`update_monitor_state`** tools — Track last check timestamp, tick count, and escalation count in the database.
+- **Rich console output** — CRITICAL/HIGH escalations highlighted in red, all-clear in green, with per-tick timestamps and shutdown summary.
+
+### Changed
+
+#### System Prompt Refactoring
+- **`connectonion_qwen/system_prompt.py`** — Slimmed from 188 lines to ~88 lines (53% reduction). Monolithic behavior definitions replaced with auto-delegation rules that route to the appropriate workflow. Identity, compliance context, and guardrails preserved.
+
+#### Tool Count
+- **37 tools** (up from 19): 13 IAM forensic tools, 2 workflow engine tools, 2 vector memory tools, 2 monitoring tools, plus original 18 security tools.
+
+#### Documentation
+- **`blueteam.py`** — Welcome banner version updated to v3.0.0
+- **`.env.example`** — Added Memory & Embeddings section and Autonomous SOC daemon section
+- **`submission/about.md`** — Updated with workflow engine, embeddings, daemon mode, and autonomous SOC capabilities
+
+---
+
 ## [2.2.1] — 2026-07-03
 
 ### Added

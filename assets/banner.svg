@@ -63,11 +63,11 @@
   <!-- Tagline -->
   <text x="210" y="172" font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
         font-size="20" fill="#94a3b8" letter-spacing="0.5">
-    AI-Powered SecOps Copilot for Alibaba Cloud
+    Autonomous SecOps Platform for Alibaba Cloud
   </text>
 
   <!-- Divider line -->
-  <line x1="210" y1="190" x2="620" y2="190" stroke="url(#accent)" stroke-width="2" opacity="0.4"/>
+  <line x1="210" y1="190" x2="700" y2="190" stroke="url(#accent)" stroke-width="2" opacity="0.4"/>
 
   <!-- Action pills -->
   <g font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="600">
@@ -77,21 +77,24 @@
     <!-- Investigate -->
     <rect x="302" y="206" width="110" height="30" rx="15" fill="#06b6d4" opacity="0.15"/>
     <text x="357" y="226" fill="#22d3ee" text-anchor="middle">Investigate</text>
-    <!-- Recommend -->
-    <rect x="424" y="206" width="116" height="30" rx="15" fill="#8b5cf6" opacity="0.15"/>
-    <text x="482" y="226" fill="#a78bfa" text-anchor="middle">Recommend</text>
+    <!-- Hunt -->
+    <rect x="424" y="206" width="76" height="30" rx="15" fill="#8b5cf6" opacity="0.15"/>
+    <text x="462" y="226" fill="#a78bfa" text-anchor="middle">Hunt</text>
+    <!-- Monitor -->
+    <rect x="512" y="206" width="96" height="30" rx="15" fill="#f59e0b" opacity="0.15"/>
+    <text x="560" y="226" fill="#fbbf24" text-anchor="middle">Monitor</text>
     <!-- Report -->
-    <rect x="552" y="206" width="86" height="30" rx="15" fill="#10b981" opacity="0.15"/>
-    <text x="595" y="226" fill="#34d399" text-anchor="middle">Report</text>
+    <rect x="620" y="206" width="86" height="30" rx="15" fill="#10b981" opacity="0.15"/>
+    <text x="663" y="226" fill="#34d399" text-anchor="middle">Report</text>
   </g>
 
   <!-- Right side stats -->
   <g font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" text-anchor="end">
-    <text x="1120" y="120" font-size="36" font-weight="700" fill="#3b82f6">19</text>
+    <text x="1120" y="120" font-size="36" font-weight="700" fill="#3b82f6">37</text>
     <text x="1120" y="142" font-size="13" fill="#64748b">Agent Tools</text>
 
-    <text x="1120" y="178" font-size="36" font-weight="700" fill="#06b6d4">7</text>
-    <text x="1120" y="200" font-size="13" fill="#64748b">Agent Skills</text>
+    <text x="1120" y="178" font-size="36" font-weight="700" fill="#06b6d4">5</text>
+    <text x="1120" y="200" font-size="13" fill="#64748b">Workflows</text>
 
     <text x="1120" y="236" font-size="36" font-weight="700" fill="#10b981">SOC 2</text>
     <text x="1120" y="258" font-size="13" fill="#64748b">CC6.8 Compliant</text>

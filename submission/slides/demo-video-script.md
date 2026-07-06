@@ -75,9 +75,6 @@
 **Narration:**
 > "Based on the investigation, the agent recommends the least-disruptive response — blocking the attacker IP via WAF response policy. Critically, it proposes the action but requires explicit human approval before execution. This is SOC 2 CC6.8.3 compliant by design."
 
-**Narration:**
-> "The agent defaults to dry-run simulation. No state change happens without human confirmation."
-
 ---
 
 ## Scene 8: Incident Response Report
@@ -95,11 +92,6 @@
 
 **Narration:**
 > "Blueteam also integrates with GRC tools like CISO Assistant for live compliance data. The sync pipeline discovers frameworks, validates controls, and maintains an audit trail."
-
-**Action:** Run:
-```bash
-GRC_MODE=demo bash skills/blueteam-autopilot-knowledge/scripts/grc-sync.sh --list
-```
 
 ---
 

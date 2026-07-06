@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Score risk matrix from IAM inventory
+# Usage: ./score-risk-matrix.sh
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$PWD/.env" ]; then
+  source "$PWD/.env" 2>/dev/null || true
+elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
+  source "$(dirname "$SCRIPT_DIR")/../../../.env" 2>/dev/null || true
+fi
+
+# ----- Demo mode -----
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
+  FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
+  FIXTURE_FILE="$FIXTURE_DIR/risk_matrix.json"
+  if [ -f "$FIXTURE_FILE" ]; then
+    cat "$FIXTURE_FILE"
+    exit 0
+  else
+    echo "{\"error\": \"Fixture not found: $FIXTURE_FILE\"}"
+    exit 1
+  fi
+fi
+# ----- End demo mode -----
+
+# Real mode: run analysis scripts and aggregate
+source "$SCRIPT_DIR/_discover-region.sh"
+echo '{"RiskMatrix": [], "Summary": {"note": "Run analyze-trust-relationships.sh and get-ram-credential-report.sh first, then aggregate."}}'

@@ -1,0 +1,50 @@
+{
+  "RequestId": "A7B8C9D0-E1F2-3456-ABCD-567890123456",
+  "TrustRelationships": [
+    {
+      "RoleName": "AliyunECSImageImportDefaultRole",
+      "TrustedEntity": "Service",
+      "TrustedPrincipal": "ecs.aliyuncs.com",
+      "RiskLevel": "LOW",
+      "Notes": "Standard service-linked role — expected trust"
+    },
+    {
+      "RoleName": "CrossAccountAuditRole",
+      "TrustedEntity": "Account",
+      "TrustedPrincipal": "acs:ram::9876543210:root",
+      "RiskLevel": "CRITICAL",
+      "Notes": "Cross-account root trust without ExternalId condition. Any user in account 9876543210 can assume this role with full admin privileges.",
+      "Recommendations": [
+        "Add ExternalId condition to trust policy",
+        "Replace AdministratorAccess with read-only audit policy",
+        "Reduce MaxSessionDuration to 3600s"
+      ]
+    },
+    {
+      "RoleName": "LambdaExecutionRole",
+      "TrustedEntity": "Service",
+      "TrustedPrincipal": "fc.aliyuncs.com",
+      "RiskLevel": "HIGH",
+      "Notes": "Service-linked trust is correct, but AdministratorAccess is excessive for Lambda execution.",
+      "Recommendations": [
+        "Replace AdministratorAccess with a custom least-privilege policy",
+        "Scope permissions to specific ECS/VPC resources the Lambda needs"
+      ]
+    },
+    {
+      "RoleName": "ReadOnlyMonitoring",
+      "TrustedEntity": "Service",
+      "TrustedPrincipal": "cms.aliyuncs.com",
+      "RiskLevel": "LOW",
+      "Notes": "Properly scoped read-only role — no issues found"
+    }
+  ],
+  "Summary": {
+    "TotalRoles": 4,
+    "CriticalRisks": 1,
+    "HighRisks": 1,
+    "LowRisks": 2,
+    "CrossAccountTrusts": 1,
+    "OverPrivilegedRoles": 2
+  }
+}

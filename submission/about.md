@@ -19,6 +19,10 @@ Alibaba Blueteam is a standalone AI agent that automates the full triage cycle:
 5. **Reports** with NIST CSF and SOC 2 compliance mapping, including blast radius, investigation timeline, and confidence ratings
 6. **Queries** live GRC data (CISO Assistant, Vanta, Alibaba Cloud) for compliance context during incident response
 7. **Discovers tools dynamically** from external MCP servers at startup, extending the agent's capabilities without code changes
+8. **Hunts threats proactively** via a 4-phase workflow (collect → analyze → correlate → report) with external correlation
+9. **Audits compliance posture** via a 4-phase workflow (inventory → map → evidence → report) with control gap analysis
+10. **Monitors autonomously** as a daemon — continuously scanning for new alerts, auto-triaging by severity, and escalating only high-severity findings
+11. **Remembers past incidents** — vector embeddings (DashScope text-embedding-v3) enable cross-incident similarity search ("Have we seen this before?")
 
 All state-changing actions require explicit human approval. SOC 2 CC6.8.3 compliant by design.
 
@@ -26,9 +30,35 @@ Works in two modes: `demo` (default, offline fixture data, only needs a Qwen Clo
 
 **Cron and automation ready.** The agent runs non-interactively via `--prompt` flag or piped stdin, making it suitable for scheduled security checks, CI/CD pipelines, and scripted workflows. Output goes to stdout for clean redirection; errors go to stderr with non-zero exit codes.
 
+**Autonomous SOC daemon.** Run `python blueteam.py --daemon --interval 60` to deploy the agent as a continuous monitoring daemon. It polls for new alerts on a configurable interval, auto-triages by severity, checks similarity against institutional memory, and escalates only CRITICAL/HIGH findings to the console. Graceful SIGINT/SIGTERM shutdown with uptime summary.
+
 ## How we built it
 
 A **standalone Python agent application** built on Qwen Cloud's OpenAI-compatible API and the **ConnectOnion** agent framework. The agent uses ConnectOnion's Agent class for tool orchestration, plugin lifecycle, and Textual TUI, with a custom `QwenCloudLLM` provider that preserves Qwen Cloud's thinking mode quality via internal streaming aggregation.
+
+### Multi-Agent Workflow Engine (`workflows/`)
+
+The v3.0 architecture introduces a declarative workflow engine that orchestrates specialist agents for complex investigations. Each workflow is defined as a WORKFLOW.md file with YAML frontmatter specifying phases, personas, and restricted tool sets per phase. The engine creates scoped Agent instances per phase with phase-specific system prompts.
+
+Five specialist workflows ship with the agent:
+
+| Workflow | Phases | Purpose |
+|----------|--------|--------|
+| `incident-response` | 5 | Reactive incident handling (discovery → deep_dive → recommendation → action → report) |
+| `iam-forensic` | 4 | IAM security audit with credential risk scoring (discovery → analysis → remediation → persist) |
+| `threat-hunt` | 4 | Proactive threat hunting with external correlation (collect → analyze → correlate → report) |
+| `compliance-audit` | 4 | Compliance gap analysis with evidence collection (inventory → map → evidence → report) |
+| `continuous-monitor` | 3 | Autonomous SOC monitoring driven by daemon loop (scan → triage → escalate) |
+
+The main agent auto-delegates to workflows for investigations while handling quick single-tool queries directly. The system prompt was slimmed from 188 lines to ~88 lines — detailed behavior instructions live in WORKFLOW.md phase instructions.
+
+### Vector Embeddings (`connectonion_qwen/embeddings.py`)
+
+Universal incident embeddings using DashScope text-embedding-v3 (1024-dim in real mode, 64-dim deterministic hash fallback in demo mode). All 5 workflows auto-store findings via `store_incident_memory`, building institutional memory. The `search_similar_incidents` tool enables cross-incident pattern matching — "Have we seen this before?" — with cosine similarity search against all stored embeddings in a local SQLite database (`data/blueteam.db`).
+
+### Autonomous SOC Daemon (`--daemon`)
+
+The agent runs as a continuous monitoring daemon: `python blueteam.py --daemon --interval 60`. Each tick executes the `continuous-monitor` workflow — scanning for new events since the last check, triaging by severity, checking similarity against past incidents, and escalating only CRITICAL/HIGH findings. Monitor state (last check timestamp, tick count, escalation count) persists in the database across restarts. Graceful SIGINT/SIGTERM shutdown with uptime summary.
 
 ### Agent Architecture (`blueteam.py` + `connectonion_qwen/`)
 
@@ -115,11 +145,15 @@ The existing skills become the tool implementation layer:
 
 **Built on Qwen Cloud + ConnectOnion.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, and structured output, delivered through the ConnectOnion framework's Agent class, plugin system, and Textual TUI. The agent isn't a wrapper around a chat API — it's a proper tool-orchestrating runtime with HITL plugins, compliance logging, and token tracking.
 
-**19 built-in tools + dynamic MCP tools.** The agent ships 19 registered tools across 5 categories (core, events, WAF, response, reporting), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
+**19 built-in tools + dynamic MCP tools.** The agent ships 37 registered tools across 8 categories (core, events, WAF, response, reporting, IAM forensics, vector memory, monitoring), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
 
 **Structured incident response reports.** The `generate_incident_report` tool aggregates data from 9 sources (event detail, alerts, assets, vulnerabilities, response policies, WAF instance, WAF events, NIST CSF controls, SOC 2 controls) into a single structured context package. Pydantic models enforce the schema: attack chain stages, blast radius, investigation timeline, confidence ratings, and a complete audit trail. Reports are suitable for export to ticket systems, compliance audits, or management review.
 
 **MCP server integration that scales.** The async bridge pattern — background event loop thread bridging sync ConnectOnion tools to async MCP SDK — means any MCP server can be plugged in via `.mcp.json`. Stdio and SSE transports, per-server timeouts, environment variable interpolation, and graceful degradation are all handled. Adding a new MCP server means adding three lines to the config.
+
+**Multi-agent workflow engine.** The v3.0 architecture introduces a declarative workflow engine with 5 specialist workflows — incident response, IAM forensics, threat hunting, compliance audit, and autonomous monitoring. Each workflow runs as a sequence of scoped agents with restricted tool sets, enabling complex multi-phase investigations that were impossible with a single flat agent loop.
+
+**Autonomous SOC daemon.** The `--daemon` flag transforms the agent from a reactive copilot into a proactive security monitor. It continuously polls for new alerts, auto-triages by severity, checks institutional memory for recurring patterns, and escalates only high-severity findings. This is the "autonomous SOC" vision realized — the agent runs as a daemon watching for threats 24/7.
 
 **SOC 2 compliance by design.** The "propose, don't execute" architecture means every state-changing action requires explicit human approval. This isn't a feature bolted on. It's the core design principle, and it made the architecture cleaner, not harder.
 
@@ -143,8 +177,10 @@ The existing skills become the tool implementation layer:
 
 **More Alibaba Cloud services.** The current skill set covers Security Center, WAF 3.0, SLS, VPC, and STS. The next wave adds Cloud Firewall, ActionTrail, and OSS security monitoring, each following the same MCP tool pattern established here.
 
-**Automated response execution.** Today the agent proposes actions and waits for human approval. The next step is a trusted-action registry: pre-approved responses (like blocking known-bad IPs from threat intel feeds) that execute automatically, with full audit trails.
+**Automated response execution.** Today the agent proposes actions and waits for human approval. The next step is a trusted-action registry: pre-approved responses (like blocking known-bad IPs from threat intel feeds) that execute automatically, with full audit trails. The daemon mode is the foundation for this — it already auto-triages and escalates; the next step is auto-responding for pre-approved actions.
 
-**Continuous compliance monitoring.** The current GRC integration maps incidents to compliance controls after the fact. The goal is real-time drift detection: the agent continuously compares your cloud posture against NIST CSF and SOC 2 requirements and flags gaps before they become incidents.
+**Continuous compliance monitoring.** The current GRC integration maps incidents to compliance controls after the fact. The goal is real-time drift detection: the agent continuously compares your cloud posture against NIST CSF and SOC 2 requirements and flags gaps before they become incidents. The compliance-audit workflow is the first step toward this vision.
 
 **Multi-cloud GRC correlation.** CISO Assistant and Vanta both support frameworks beyond what a single cloud provider covers. Extending the GRC sync pipeline to correlate controls across Alibaba Cloud, AWS, and Azure would give security teams a unified compliance view.
+
+**Embedding-powered analytics.** The vector embedding layer is the foundation for richer institutional analytics — trend detection, attack pattern clustering, mean-time-to-resolution tracking, and predictive alerting based on historical incident similarity.

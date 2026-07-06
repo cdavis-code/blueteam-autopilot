@@ -1,0 +1,24 @@
+{
+  "RequestId": "E5F6A7B8-C9D0-1234-EFAB-345678901234",
+  "RoleName": "CrossAccountAuditRole",
+  "TrustPolicy": {
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {"RAM": ["acs:ram::9876543210:root"]},
+        "Condition": {}
+      }
+    ],
+    "Version": "1"
+  },
+  "AttachedPolicies": [
+    {"PolicyName": "AdministratorAccess", "PolicyType": "System"},
+    {"PolicyName": "AliyunECSFullAccess", "PolicyType": "System"}
+  ],
+  "RiskNotes": [
+    "Cross-account trust with root principal — no external ID condition",
+    "AdministratorAccess attached to cross-account role",
+    "MaxSessionDuration is 7200s (2 hours) — exceeds recommended 3600s"
+  ]
+}
