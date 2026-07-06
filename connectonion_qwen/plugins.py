@@ -189,9 +189,18 @@ def compliance_logger(agent) -> None:
     # Truncate large tool outputs to prevent context bloat
     result = last_entry.get("result", "")
     if result and len(result) > _MAX_OUTPUT_LENGTH:
-        last_entry["result"] = (
+        result = (
             result[:_MAX_OUTPUT_LENGTH]
             + "\n...[truncated for context window management]"
+        )
+
+    # Wrap result in prompt-injection boundary delimiters so the LLM can
+    # distinguish external untrusted data from trusted instruction content.
+    if result is not None:
+        last_entry["result"] = (
+            "[TOOL OUTPUT START]\n"
+            + result
+            + "\n[TOOL OUTPUT END]"
         )
 
 
