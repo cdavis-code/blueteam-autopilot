@@ -5,6 +5,27 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] — 2026-07-06
+
+### Added
+
+#### End-to-End Testing Regime
+- **`tests/e2e/`** — Comprehensive real-mode testing suite covering all 5 workflows, cross-cutting features, and daemon mode.
+- **`deliver-attacks.sh`** — Sample attack delivery via curl (SQLi, XSS, LFI, command injection, scanner behavior, SSRF) targeting WAF-protected domains.
+- **`test-workflows.sh`** — Per-workflow validation for incident-response, iam-forensic, threat-hunt, compliance-audit, and continuous-monitor.
+- **`test-cross-cutting.sh`** — Embedding search, HITL gating, monitor persistence, DB schema validation, IAM drift detection.
+- **`test-daemon.sh`** — Daemon mode startup, attack detection, graceful shutdown verification.
+- **`run-all-tests.sh`** — Orchestrator with prerequisite validation and phase-based execution.
+
+### Fixed
+
+#### WAF Attack Delivery
+- **HTTP-level rule triggering** — Switched from HTTPS to HTTP to bypass SSL-level connection resets and generate actual WAF log events (HTTP 405 responses).
+- **Curl error handling** — Added graceful handling of connection resets (exit code 35) to correctly identify WAF blocking.
+- **Attack payload tuning** — Updated payloads to use standard signatures (UNION-based SQLi, script tag XSS, double-encoding LFI) that trigger WAF detection rules.
+
+---
+
 ## [3.0.0] — 2026-07-06
 
 ### Added

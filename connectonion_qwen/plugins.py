@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # Tools that require HITL approval before real execution
 _STATE_CHANGING_TOOLS = {
     "execute_response_policy",
+    "block_waf_ips",
     "detach_policy",
     "rotate_access_key",
     "delete_stale_user",
@@ -37,6 +38,7 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
     """Execute a tool in dry-run mode and return the result."""
     script_map = {
         "execute_response_policy": "execute-response-policy.sh",
+        "block_waf_ips": "block-waf-ips.sh",
         "detach_policy": "detach-policy.sh",
         "rotate_access_key": "rotate-access-key.sh",
         "delete_stale_user": "delete-stale-user.sh",
@@ -57,6 +59,9 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
         if event_id:
             args.append(event_id)
         # Explicitly do NOT add --real (this is the dry run)
+    elif tool_name == "block_waf_ips":
+        args.append(arguments.get("ips", ""))
+        args.append("--dry-run")
     elif tool_name == "detach_policy":
         args.append(arguments.get("entity_type", ""))
         args.append(arguments.get("entity_name", ""))
