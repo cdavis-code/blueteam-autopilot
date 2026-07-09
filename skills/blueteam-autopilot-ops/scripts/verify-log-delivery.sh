@@ -8,8 +8,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$PWD/.env" ]; then
   source "$PWD/.env" 2>/dev/null || true
-elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
-  source "$(dirname "$SCRIPT_DIR")/../../../.env" 2>/dev/null || true
+elif [ -f "${BLUETEAM_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")/..}/.env" ]; then
+  source "${BLUETEAM_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")/..}/.env" 2>/dev/null || true
 fi
 
 # ----- Demo mode: always returns verified -----

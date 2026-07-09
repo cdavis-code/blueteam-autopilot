@@ -133,7 +133,7 @@ test_continuous_monitor() {
 }
 
 # Main
-echo "BlueTeam Autopilot E2E — Workflow Tests"
+echo "BlueTeam E2E — Workflow Tests"
 echo "======================================="
 echo "Mode: ${SECURITY_CENTER_MODE:-demo}"
 echo ""

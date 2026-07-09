@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic Markdown report renderer for BlueTeam Autopilot.
+"""Deterministic Markdown report renderer for BlueTeam.
 
 Reads JSON input and template files, produces formatted Markdown output.
 Replaces Dart StringBuffer-based rendering from report_templates.dart.

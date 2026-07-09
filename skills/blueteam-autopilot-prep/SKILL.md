@@ -1,14 +1,14 @@
 ---
 name: blueteam-autopilot-prep
-description: Validate Alibaba Cloud environment readiness for BlueTeam Autopilot — checks credentials, services (Security Center, WAF, Agentic SOC, SLS), infrastructure, and permissions.
+description: Validate Alibaba Cloud environment readiness for BlueTeam — checks credentials, services (Security Center, WAF, Agentic SOC, SLS), infrastructure, and permissions.
 allowed-tools:
   - Bash
   - Read
 ---
 
-# BlueTeam Autopilot Environment Validator
+# BlueTeam Environment Validator
 
-Environment readiness skill for **BlueTeam Autopilot for Alibaba Cloud**. Guides users through validating their Alibaba Cloud environment — credentials, services, infrastructure, and permissions — before running the Autopilot solution.
+Environment readiness skill for **BlueTeam for Alibaba Cloud**. Guides users through validating their Alibaba Cloud environment — credentials, services, infrastructure, and permissions — before running the Autopilot solution.
 
 > **Mode restriction:** This skill requires `SECURITY_CENTER_MODE=real`.
 > In demo mode, skip to Stage 8 and report "Environment simulation active —
@@ -17,7 +17,7 @@ Environment readiness skill for **BlueTeam Autopilot for Alibaba Cloud**. Guides
 ## When to Use
 
 Invoke this skill when:
-- Setting up the BlueTeam Autopilot environment for the first time
+- Setting up the BlueTeam environment for the first time
 - Validating that Alibaba Cloud credentials and services are properly configured
 - Troubleshooting connectivity or permission issues with Security Center, WAF, Agentic SOC, or SLS
 - Preparing for a demo or hackathon presentation and need to confirm the environment is ready
@@ -40,7 +40,6 @@ Beyond the `aliyun` CLI (validated in Stage 1), ensure these tools are available
 
 | Tool | Verify | Purpose |
 |------|--------|---------|
-| Dart SDK ≥ 3.4 | `dart --version` | Run MCP server and CLI packages |
 | Python 3.10+ | `python3 --version` | Qwen-Agent integration |
 | `qwen-agent[mcp]` | `pip show qwen-agent` | AI agent loop validation |
 | `dig` (DNS utils) | `dig -v` | Verify WAF CNAME resolution |
@@ -48,7 +47,6 @@ Beyond the `aliyun` CLI (validated in Stage 1), ensure these tools are available
 
 **Optional but helpful:**
 - `pip show qwen-agent` - Confirm Qwen-Agent is installed for §8 testing
-- `dart --version` - Confirm Dart SDK for MCP server validation
 
 ## Validation Steps
 
@@ -62,6 +60,8 @@ Execute the following validation stages **in order**. The agent should **automat
 > 4. Report any issues requiring manual attention
 >
 > Only stages requiring console access (detection rules, manual verification) need user interaction.
+
+> **Region Handling:** Discover `ALIBABA_REGION` once in Stage 1 (via `aliyun configure get region`). The `run_command` tool automatically passes `.env` variables including `ALIBABA_REGION` to every command. Do NOT prefix commands with `export ALIBABA_REGION=...` — use the variable directly in the command body (e.g., `--region "$ALIBABA_REGION"`).
 
 ---
 
@@ -390,7 +390,7 @@ aliyun sls ListProject --region "$ALIBABA_REGION" 2>&1
 
 ### Stage 5: Infrastructure Validation
 
-Verify the specific infrastructure components required by the BlueTeam Autopilot solution.
+Verify the specific infrastructure components required by the BlueTeam solution.
 
 #### 5.1 WAF Instance and Protected Domains
 
@@ -688,7 +688,7 @@ Review the generated file and add any monitoring service IPs manually.
 **Expected Output (success):**
 ```
 ==========================================
-BlueTeam Autopilot Configuration Validator
+BlueTeam Configuration Validator
 ==========================================
 
 Checking for hardcoded regions...
@@ -805,7 +805,7 @@ After completing all validation and generation stages, produce a comprehensive r
 
 ```
 ═══════════════════════════════════════════════════════
-  BlueTeam Autopilot — Environment Readiness Report
+  BlueTeam — Environment Readiness Report
 ═══════════════════════════════════════════════════════
 
   Region:       <ALIBABA_REGION>
@@ -852,7 +852,7 @@ After completing all validation and generation stages, produce a comprehensive r
 
 **Next Steps Based on Result:**
 
-- **If READY:** Environment is fully configured. Proceed to use BlueTeam Autopilot skills for incident response.
+- **If READY:** Environment is fully configured. Proceed to use BlueTeam skills for incident response.
 - **If NEEDS ATTENTION:** Address listed issues, then re-run this skill to validate.
 
 ---
@@ -1147,7 +1147,7 @@ SECURITY_CENTER_MODE=real
 
 The agent will automatically execute all validation and generation stages:
 
-1. **Invoke this skill:** "Validate my BlueTeam Autopilot environment"
+1. **Invoke this skill:** "Validate my BlueTeam environment"
 2. **Agent runs Stages 1-6:** Validates credentials, services, permissions
 3. **Agent runs Stage 7:** Auto-generates trusted networks and validates configuration
 4. **Agent produces Stage 8:** Readiness report with any issues

@@ -1,6 +1,6 @@
 # Compliance Quick Reference
 
-Condensed compliance controls for BlueTeam Autopilot decision-making.
+Condensed compliance controls for BlueTeam decision-making.
 
 For full compliance documents, see [blueteam-autopilot-knowledge/documents/](../../blueteam-autopilot-knowledge/documents/).
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate BlueTeam Autopilot skills for hardcoded environment-specific values
+# Validate BlueTeam skills for hardcoded environment-specific values
 # Usage: ./validate-configuration.sh
 #
 # This script scans all skill files for:
@@ -24,7 +24,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 echo "=========================================="
-echo "BlueTeam Autopilot Configuration Validator"
+echo "BlueTeam Configuration Validator"
 echo "=========================================="
 echo ""
 

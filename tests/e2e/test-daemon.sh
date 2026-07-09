@@ -34,7 +34,7 @@ NC='\033[0m'
 PASS=0
 FAIL=0
 
-echo "BlueTeam Autopilot E2E — Daemon Mode Test"
+echo "BlueTeam E2E — Daemon Mode Test"
 echo "=========================================="
 echo "Mode: ${SECURITY_CENTER_MODE:-demo}"
 echo "Interval: 15 seconds"

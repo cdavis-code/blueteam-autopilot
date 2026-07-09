@@ -1,6 +1,6 @@
 # MCP Tools Reference
 
-Complete catalog of available MCP tools for BlueTeam Autopilot.
+Complete catalog of available MCP tools for BlueTeam.
 
 ---
 

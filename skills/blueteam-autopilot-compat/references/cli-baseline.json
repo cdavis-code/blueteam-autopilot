@@ -1,6 +1,6 @@
 {
   "meta": {
-    "description": "CLI command baseline for BlueTeam Autopilot compatibility validation",
+    "description": "CLI command baseline for BlueTeam compatibility validation",
     "cli_version_tested": "3.4.2",
     "last_validated": "2026-06-29",
     "notes": "Commands are grouped by product namespace. Each entry records the script that invokes it, required parameters, and expected response fields. Update this file after verifying compatibility with a new CLI version."

@@ -45,7 +45,7 @@ SECURITY_CENTER_MODE=real
 
 The project includes an 8-stage environment validator that discovers and verifies all Alibaba Cloud resources. Running this skill against a live environment produces:
 
-**BlueTeam Autopilot - Environment Readiness Report**
+**BlueTeam - Environment Readiness Report**
 
 | Item | Value |
 |------|-------|

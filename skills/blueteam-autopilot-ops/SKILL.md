@@ -9,7 +9,7 @@ allowed-tools:
   - Bash
 ---
 
-# BlueTeam Autopilot - Operations
+# BlueTeam - Operations
 
 Operational CLI workflows wrapping `aliyun` commands for Security Center, WAF, and SecOps knowledge.
 

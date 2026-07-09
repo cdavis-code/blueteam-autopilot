@@ -1,13 +1,74 @@
 """Agent configuration -- loads from .env and provides typed access."""
 
+import json
+import logging
 import os
+import subprocess
 from pathlib import Path
 
 from dotenv import load_dotenv
 
+logger = logging.getLogger(__name__)
+
 # Load .env from project root (connectonion_qwen/ is one level deep)
-_PROJECT_ROOT = Path(__file__).parent.parent
+# If BLUETEAM_PROJECT_ROOT is set (auto-sync), use that instead
+_PROJECT_ROOT = Path(os.environ.get("BLUETEAM_PROJECT_ROOT", Path(__file__).parent.parent))
 load_dotenv(_PROJECT_ROOT / ".env")
+
+
+# ---------------------------------------------------------------------------
+# Auto-discover Alibaba Cloud vars from CLI config when not in .env
+# ---------------------------------------------------------------------------
+
+def _discover_aliyun_env() -> None:
+    """Populate os.environ with Alibaba Cloud vars from aliyun configure.
+
+    Users who run `aliyun configure` instead of putting credentials in .env
+    need these vars forwarded to subprocesses so `run_command` can reference
+    $ALIBABA_REGION, $ALIBABA_ACCESS_KEY_ID, etc. in bash commands.
+    """
+    if os.getenv("ALIBABA_REGION") and os.getenv("ALIBABA_ACCESS_KEY_ID"):
+        return  # Already set — nothing to discover
+
+    # Discover region from aliyun configure
+    if not os.getenv("ALIBABA_REGION"):
+        try:
+            result = subprocess.run(
+                ["aliyun", "configure", "get", "region"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                region = result.stdout.strip()
+                os.environ["ALIBABA_REGION"] = region
+                logger.info(f"Discovered ALIBABA_REGION={region} from aliyun configure")
+        except Exception:
+            pass  # aliyun CLI may not be installed
+
+    # Discover credentials from ~/.aliyun/config.json
+    if not os.getenv("ALIBABA_ACCESS_KEY_ID"):
+        config_path = Path.home() / ".aliyun" / "config.json"
+        if config_path.exists():
+            try:
+                with open(config_path) as f:
+                    config = json.load(f)
+                current = config.get("current", "")
+                for profile in config.get("profiles", []):
+                    if profile.get("name") == current:
+                        key_id = profile.get("access_key_id", "")
+                        key_secret = profile.get("access_key_secret", "")
+                        if key_id:
+                            os.environ["ALIBABA_ACCESS_KEY_ID"] = key_id
+                            logger.info(f"Discovered ALIBABA_ACCESS_KEY_ID={key_id[:4]}****{key_id[-4:]}")
+                        if key_secret:
+                            os.environ["ALIBABA_ACCESS_KEY_SECRET"] = key_secret
+                            logger.info("Discovered ALIBABA_ACCESS_KEY_SECRET (masked)")
+                        if key_id or key_secret:
+                            break
+            except Exception:
+                pass  # Config file may be malformed
+
+
+_discover_aliyun_env()
 
 # ---------------------------------------------------------------------------
 # Qwen Cloud
@@ -28,9 +89,9 @@ SECURITY_CENTER_MODE: str = os.getenv("SECURITY_CENTER_MODE", "demo")
 ENABLE_THINKING: bool = os.getenv("ENABLE_THINKING", "true").lower() == "true"
 
 try:
-    MAX_TOOL_ROUNDS: int = int(os.getenv("MAX_TOOL_ROUNDS", "20"))
+    MAX_TOOL_ROUNDS: int = int(os.getenv("MAX_TOOL_ROUNDS", "50"))
 except ValueError:
-    MAX_TOOL_ROUNDS = 20
+    MAX_TOOL_ROUNDS = 50
 
 # ---------------------------------------------------------------------------
 # MCP
@@ -44,11 +105,49 @@ TURSO_DATABASE_URL: str = os.getenv("TURSO_DATABASE_URL", "")
 DATA_DIR: Path = _PROJECT_ROOT / "data"
 
 # ---------------------------------------------------------------------------
-# Paths (relative to project root)
+# Paths (skills-first discovery for pip install, git clone, npx skills, auto-sync)
 # ---------------------------------------------------------------------------
-SCRIPTS_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-ops" / "scripts"
-FIXTURES_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-core" / "fixtures"
-KNOWLEDGE_DIR: Path = _PROJECT_ROOT / "skills" / "blueteam-autopilot-knowledge"
+
+
+def _resolve_dir(subdir: str, fallback_skill: str = "") -> Path:
+    """Find a resource directory across install methods.
+
+    Search order:
+    1. BLUETEAM_PROJECT_ROOT env var (explicit override)
+    2. skills/<skill>/<subdir> relative to project root (local or synced)
+    3. ~/.blueteam/skills/<skill>/<subdir> (auto-synced location)
+    4. blueteam_data/<subdir> relative to this file (pip install fallback)
+    """
+    # 1. Env var override
+    env_root = os.environ.get("BLUETEAM_PROJECT_ROOT")
+    if env_root:
+        candidate = Path(env_root) / "skills" / fallback_skill / subdir
+        if candidate.is_dir():
+            return candidate
+
+    # 2. Local skills directory (git clone or npx skills add)
+    candidate = _PROJECT_ROOT / "skills" / fallback_skill / subdir
+    if candidate.is_dir():
+        return candidate
+
+    # 3. Auto-synced location (~/.blueteam/)
+    synced = Path.home() / ".blueteam" / "skills" / fallback_skill / subdir
+    if synced.is_dir():
+        return synced
+
+    # 4. Package-relative blueteam_data (pip install fallback with symlinks)
+    candidate = _PROJECT_ROOT / "blueteam_data" / subdir
+    if candidate.is_dir():
+        return candidate
+
+    # Return the local path even if missing — tools will report errors
+    return _PROJECT_ROOT / "skills" / fallback_skill / subdir
+
+
+SCRIPTS_DIR: Path = _resolve_dir("scripts", "blueteam-autopilot-ops")
+FIXTURES_DIR: Path = _resolve_dir("fixtures", "blueteam-autopilot-core")
+KNOWLEDGE_DIR: Path = _resolve_dir("knowledge", "blueteam-autopilot-knowledge")
+PREP_SCRIPTS_DIR: Path = _resolve_dir("scripts", "blueteam-autopilot-prep")
 WORKFLOWS_DIR: Path = _PROJECT_ROOT / "workflows"
 
 

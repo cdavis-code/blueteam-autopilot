@@ -17,7 +17,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo "=== BlueTeam Autopilot: Trusted Networks Generator ==="
+echo "=== BlueTeam: Trusted Networks Generator ==="
 echo ""
 
 # Verify aliyun CLI is available
@@ -66,7 +66,7 @@ cat > "${OUTPUT_FILE}" << 'EOF'
 ## Purpose
 
 This file contains the authoritative list of trusted internal networks for
-BlueTeam Autopilot incident correlation and response.
+BlueTeam incident correlation and response.
 
 ## Auto-Discovered Networks
 
@@ -254,11 +254,11 @@ Add any monitoring service IPs, on-premise networks, or partner networks here:
 ## Security Policy
 
 All networks listed in this file are considered **trusted internal networks**
-for the purposes of BlueTeam Autopilot incident correlation.
+for the purposes of BlueTeam incident correlation.
 
 ### Incident Correlation Rules
 
-When an attack is detected, BlueTeam Autopilot MUST check the source IP
+When an attack is detected, BlueTeam MUST check the source IP
 against this trusted network list:
 
 1. **External Source (not in this file):**
@@ -331,7 +331,7 @@ if [ -z "\${ACCOUNT_ID:-}" ] || [ "\${ACCOUNT_ID}" = "YOUR_ACCOUNT_ID" ]; then
   fi
 fi
 
-echo "=== BlueTeam Autopilot: Sample Attack Traffic ==="
+echo "=== BlueTeam: Sample Attack Traffic ==="
 echo ""
 echo "Target domain: \${TEST_DOMAIN}"
 echo "Region: \${ALIBABA_REGION}"

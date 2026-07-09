@@ -97,10 +97,8 @@ class QwenCloudLLM(LLM):
             logger.error(f"Qwen Cloud API error: {e}")
             raise ValueError("Qwen Cloud API error. Check your API key and model configuration.") from e
 
-        # Aggregate the streaming response
         content, reasoning_content, tool_calls_map, usage_data = self._aggregate_stream(stream)
 
-        # Build ToolCall list
         tool_calls = [
             ToolCall(
                 name=tc["name"],
@@ -110,7 +108,6 @@ class QwenCloudLLM(LLM):
             for tc in sorted(tool_calls_map.values(), key=lambda x: x["_idx"])
         ]
 
-        # Build usage
         usage = None
         if usage_data:
             input_tokens = usage_data.get("prompt_tokens", 0)
@@ -184,7 +181,6 @@ class QwenCloudLLM(LLM):
         usage_data = None
 
         for chunk in stream:
-            # Capture usage from final chunk
             if hasattr(chunk, "usage") and chunk.usage:
                 usage_data = {
                     "prompt_tokens": chunk.usage.prompt_tokens,
@@ -196,15 +192,12 @@ class QwenCloudLLM(LLM):
 
             delta = chunk.choices[0].delta
 
-            # Thinking mode reasoning content
             if hasattr(delta, "reasoning_content") and delta.reasoning_content:
                 reasoning_content += delta.reasoning_content
 
-            # Regular text content
             if hasattr(delta, "content") and delta.content:
                 content += delta.content
 
-            # Tool call deltas
             if hasattr(delta, "tool_calls") and delta.tool_calls:
                 for tc_chunk in delta.tool_calls:
                     idx = tc_chunk.index
@@ -227,7 +220,6 @@ class QwenCloudLLM(LLM):
                         if func.name:
                             tool_calls_map[idx]["name"] = func.name
 
-        # Parse arguments JSON strings to dicts
         for tc in tool_calls_map.values():
             try:
                 tc["arguments"] = json.loads(tc["arguments"]) if tc["arguments"] else {}

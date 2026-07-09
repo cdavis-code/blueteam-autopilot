@@ -1,4 +1,4 @@
-# BlueTeam Autopilot - Core Behaviors
+# BlueTeam - Core Behaviors
 
 Detailed workflow specifications for the 5 core agent behaviors. Each behavior
 defines a specific phase of the SecOps triage cycle.

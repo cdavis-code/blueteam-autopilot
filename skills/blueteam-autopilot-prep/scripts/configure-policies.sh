@@ -4,7 +4,7 @@ set -euo pipefail
 # =============================================================================
 # configure-policies.sh
 #
-# Interactive configuration wizard for BlueTeam Autopilot compliance policies.
+# Interactive configuration wizard for BlueTeam compliance policies.
 # Guides users through connecting their GRC tool (CISO Assistant) and selecting
 # which compliance frameworks to sync.
 #
@@ -24,7 +24,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 echo ""
-echo -e "${BOLD}=== BlueTeam Autopilot: Policy Configuration Wizard ===${NC}"
+echo -e "${BOLD}=== BlueTeam: Policy Configuration Wizard ===${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------

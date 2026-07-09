@@ -1,10 +1,10 @@
-"""BlueTeam Autopilot tools — 19 SecOps tools as plain Python functions.
+"""BlueTeam tools — SecOps tools as plain Python functions.
 
 Each function is auto-converted to an OpenAI-compatible tool schema by
 ConnectOnion's tool_factory using type hints and docstrings.
 
 Under the hood, each tool dispatches to a bash script in
-skills/blueteam-autopilot-ops/scripts/ via subprocess.
+blueteam_data/scripts/ via subprocess.
 """
 
 from __future__ import annotations
@@ -13,12 +13,17 @@ import ipaddress
 import json
 import logging
 import os
+import shlex
 import subprocess
 from pathlib import Path
 
-from connectonion_qwen.config import SCRIPTS_DIR, SECURITY_CENTER_MODE
+from connectonion_qwen.config import SCRIPTS_DIR, FIXTURES_DIR, KNOWLEDGE_DIR, SECURITY_CENTER_MODE
+from connectonion_qwen.config import _PROJECT_ROOT, PREP_SCRIPTS_DIR
 
 logger = logging.getLogger(__name__)
+
+_DEFAULT_TIMEOUT = 30
+_LONG_TIMEOUT = 60
 
 # Tools that require HITL approval before real execution (state-changing)
 STATE_CHANGING_TOOLS: set[str] = {
@@ -27,12 +32,30 @@ STATE_CHANGING_TOOLS: set[str] = {
     "detach_policy",
     "rotate_access_key",
     "delete_stale_user",
+    "execute_local_script",
+    "run_command",
 }
 
 
 # ---------------------------------------------------------------------------
 # Shared script executor
 # ---------------------------------------------------------------------------
+
+def _build_script_env() -> dict[str, str]:
+    """Build the environment dict for subprocess script execution."""
+    env = os.environ.copy()
+    env["SECURITY_CENTER_MODE"] = SECURITY_CENTER_MODE
+    env["AGENT_MODE"] = "1"
+    env["BLUETEAM_FIXTURES_DIR"] = str(FIXTURES_DIR)
+    env["BLUETEAM_KNOWLEDGE_DIR"] = str(KNOWLEDGE_DIR)
+    env["BLUETEAM_PROJECT_ROOT"] = str(_PROJECT_ROOT)
+    env["BLUETEAM_PREP_SCRIPTS_DIR"] = str(PREP_SCRIPTS_DIR)
+    # Pass Alibaba Cloud env vars so LLM doesn't need to re-export them in every command
+    for var in ("ALIBABA_REGION", "ALIBABA_ACCESS_KEY_ID", "ALIBABA_ACCESS_KEY_SECRET"):
+        if os.getenv(var):
+            env[var] = os.getenv(var, "")
+    return env
+
 
 def _run_script(script_name: str, args: list[str] | None = None) -> str:
     """Execute a bash script and return its stdout.
@@ -48,18 +71,14 @@ def _run_script(script_name: str, args: list[str] | None = None) -> str:
     if args:
         cmd.extend(args)
 
-    env = os.environ.copy()
-    env["SECURITY_CENTER_MODE"] = SECURITY_CENTER_MODE
-    env["AGENT_MODE"] = "1"  # Suppress human-readable headers
-
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=30,
-            env=env,
-            cwd=str(SCRIPTS_DIR.parent.parent.parent),  # project root
+            timeout=_DEFAULT_TIMEOUT,
+            env=_build_script_env(),
+            cwd=str(_PROJECT_ROOT),
         )
         output = result.stdout.strip()
         if result.returncode != 0:
@@ -71,7 +90,7 @@ def _run_script(script_name: str, args: list[str] | None = None) -> str:
         return output or json.dumps({"status": "ok", "message": "No output from script."})
 
     except subprocess.TimeoutExpired:
-        return json.dumps({"error": "Tool timed out after 30s."})
+        return json.dumps({"error": f"Tool timed out after {_DEFAULT_TIMEOUT}s."})
     except FileNotFoundError:
         return json.dumps({"error": "bash not found. Ensure bash is installed and in PATH."})
     except Exception as exc:
@@ -314,6 +333,129 @@ def verify_log_delivery() -> str:
 
 
 # ===========================================================================
+# Local Script Execution
+# ===========================================================================
+
+def execute_local_script(script_path: str, arguments: str = "") -> str:
+    """Execute a local bash script and return its output.
+
+    STATE-CHANGING — requires HITL approval before execution.
+    The script path must be an absolute path or relative to the project root.
+    The user will see the full command and must explicitly approve.
+
+    Args:
+        script_path: Absolute or project-relative path to the bash script.
+        arguments: Space-separated arguments to pass to the script (optional).
+
+    Returns:
+        The script's stdout as a string, or a JSON error object.
+    """
+    path = Path(script_path)
+    if not path.is_absolute():
+        path = _PROJECT_ROOT / path
+
+    if not path.exists():
+        return json.dumps({"error": f"Script not found: {path}"})
+
+    if not path.is_file():
+        return json.dumps({"error": f"Path is not a file: {path}"})
+
+    cmd: list[str] = ["bash", str(path)]
+    if arguments:
+        cmd.extend(shlex.split(arguments))
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=_LONG_TIMEOUT,
+            env=_build_script_env(),
+            cwd=str(_PROJECT_ROOT),
+        )
+        output = result.stdout.strip()
+        if result.returncode != 0:
+            stderr = result.stderr.strip()
+            return json.dumps({
+                "error": stderr or output or f"Script exited with code {result.returncode}",
+                "exit_code": result.returncode,
+            })
+        return output or json.dumps({"status": "ok", "message": "Script executed successfully (no output)."})
+
+    except subprocess.TimeoutExpired:
+        return json.dumps({"error": f"Script timed out after {_LONG_TIMEOUT}s."})
+    except FileNotFoundError:
+        return json.dumps({"error": "bash not found. Ensure bash is installed and in PATH."})
+    except Exception as exc:
+        logger.error(f"Local script execution failed ({script_path}): {exc}", exc_info=True)
+        return json.dumps({"error": "Script execution failed. Please retry."})
+
+
+def _resolve_skill_script(command: str) -> str:
+    """Resolve skill-relative script paths to absolute paths.
+
+    If command references ./scripts/... or scripts/..., search in skill directories.
+    Returns the original command if no resolution needed.
+    """
+    import re
+    match = re.match(r'^(\.\.?/)?scripts/(\S+)', command)
+    if not match:
+        return command
+
+    script_name = match.group(2)
+    search_dirs = [PREP_SCRIPTS_DIR, SCRIPTS_DIR]
+
+    for search_dir in search_dirs:
+        candidate = search_dir / script_name
+        if candidate.exists():
+            return command.replace(match.group(0), str(candidate))
+
+    return command
+
+
+def run_command(command: str) -> str:
+    """Execute an arbitrary bash command and return its output.
+
+    STATE-CHANGING — requires HITL approval before execution.
+    Use this for inline bash commands (e.g., "which aliyun", "aliyun sts GetCallerIdentity").
+    For script files, use execute_local_script instead.
+
+    Args:
+        command: The bash command to execute (e.g., "ls -la", "echo hello").
+
+    Returns:
+        The command's stdout as a string, or a JSON error object.
+    """
+    resolved_command = _resolve_skill_script(command)
+
+    try:
+        result = subprocess.run(
+            ["bash", "-c", resolved_command],
+            capture_output=True,
+            text=True,
+            timeout=_LONG_TIMEOUT,
+            env=_build_script_env(),
+            cwd=str(_PROJECT_ROOT),
+        )
+        output = result.stdout.strip()
+        if result.returncode != 0:
+            stderr = result.stderr.strip()
+            return json.dumps({
+                "error": stderr or output or f"Command exited with code {result.returncode}",
+                "exit_code": result.returncode,
+            })
+        return output or json.dumps({"status": "ok", "message": "Command executed successfully (no output)."})
+
+    except subprocess.TimeoutExpired:
+        return json.dumps({"error": f"Command timed out after {_LONG_TIMEOUT}s."})
+    except FileNotFoundError:
+        return json.dumps({"error": "bash not found. Ensure bash is installed and in PATH."})
+    except Exception as exc:
+        logger.error(f"Command execution failed: {exc}", exc_info=True)
+        return json.dumps({"error": "Command execution failed. Please retry."})
+
+
+# ===========================================================================
 # Report Generation
 # ===========================================================================
 
@@ -346,30 +488,30 @@ def generate_incident_report(event_id: str, additional_context: str = "") -> str
 
     # 1. Event detail — attack chain, CVEs, attacker IPs, geo-location
     event_detail = _run_script("get-event-detail.sh", [event_id])
-    context["sections"]["eventDetail"] = _safe_parse(event_detail)
+    context["sections"]["eventDetail"] = _try_parse_json(event_detail)
 
     # 2. Correlated alerts grouped by data source
     alerts = _run_script("list-alerts.sh", [event_id])
-    context["sections"]["alerts"] = _safe_parse(alerts)
+    context["sections"]["alerts"] = _try_parse_json(alerts)
 
     # 3. Current asset inventory with SOC 2 scope tags
     assets = _run_script("list-assets.sh")
-    context["sections"]["assets"] = _safe_parse(assets)
+    context["sections"]["assets"] = _try_parse_json(assets)
 
     # 4. Active vulnerabilities (filtered by severity if possible)
     vulnerabilities = _run_script("list-vulnerabilities.sh")
-    context["sections"]["vulnerabilities"] = _safe_parse(vulnerabilities)
+    context["sections"]["vulnerabilities"] = _try_parse_json(vulnerabilities)
 
     # 5. Available response policies for remediation recommendations
     policies = _run_script("list-response-policies.sh")
-    context["sections"]["responsePolicies"] = _safe_parse(policies)
+    context["sections"]["responsePolicies"] = _try_parse_json(policies)
 
     # 6. WAF context — instance info and recent attack logs
     waf_instance = _run_script("get-waf-instance.sh")
-    context["sections"]["wafInstance"] = _safe_parse(waf_instance)
+    context["sections"]["wafInstance"] = _try_parse_json(waf_instance)
 
     waf_events = _run_script("list-waf-events.sh")
-    context["sections"]["wafEvents"] = _safe_parse(waf_events)
+    context["sections"]["wafEvents"] = _try_parse_json(waf_events)
 
     # 7. Compliance controls — NIST CSF and SOC 2
     nist_controls = _run_script("get-knowledge.sh", ["compliance_nist"])
@@ -380,7 +522,7 @@ def generate_incident_report(event_id: str, additional_context: str = "") -> str
 
     # 8. Account context for edition and region info
     account_ctx = _run_script("get-account-context.sh")
-    context["sections"]["accountContext"] = _safe_parse(account_ctx)
+    context["sections"]["accountContext"] = _try_parse_json(account_ctx)
 
     # Compliance mapping reference (embedded for LLM convenience)
     context["complianceMapping"] = {
@@ -394,8 +536,8 @@ def generate_incident_report(event_id: str, additional_context: str = "") -> str
     return json.dumps(context, indent=2)
 
 
-def _safe_parse(raw: str) -> dict | list | str:
-    """Try to parse JSON; return raw string on failure."""
+def _try_parse_json(raw: str) -> dict | list | str:
+    """Parse JSON string; return raw string if not valid JSON."""
     try:
         return json.loads(raw)
     except (json.JSONDecodeError, TypeError):
@@ -869,4 +1011,7 @@ ALL_TOOLS: list = [
     # Autonomous Monitoring
     get_monitor_state,
     update_monitor_state,
+    # Local Script Execution
+    execute_local_script,
+    run_command,
 ]

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blueteam-autopilot"
+version = "3.1.0"
+description = "SecOps Agent powered by Qwen Cloud + ConnectOnion for multi-cloud security operations"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "connectonion>=1.0.0",
+    "mcp>=1.27,<2",
+    "python-dotenv>=1.0.0",
+    "libsql>=0.1.1",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+blueteam = "blueteam:main"
+
+[tool.setuptools]
+py-modules = ["blueteam"]
+packages = ["connectonion_qwen", "connectonion_qwen.providers", "connectonion_qwen.providers.aliyun", "connectonion_qwen.providers.aws", "workflows", "workflows._engine", "blueteam_data"]
+
+[tool.setuptools.package-data]
+"blueteam_data" = ["scripts/*.sh", "fixtures/*.json", "knowledge/*.md"]

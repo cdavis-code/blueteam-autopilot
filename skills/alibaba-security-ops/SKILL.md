@@ -30,11 +30,9 @@ if [ -f .env ]; then source .env; echo "✓ Loaded .env"; fi
 
 ---
 
-## Tool 1: list_security_events (Replaces Dart MCP tool)
+## Tool 1: list_security_events
 
 **Purpose:** List security events from Agentic SOC within a time window.
-
-**Dart Original:** Called `DescribeAlarmEventList` via SecurityCenterService, parsed `SuspEvents` array, returned typed `SecurityEvent` objects.
 
 **CLI Replacement:**
 
@@ -124,11 +122,9 @@ aliyun sas describe-susp-events \
 
 ---
 
-## Tool 2: get_security_event_detail (Replaces Dart MCP tool)
+## Tool 2: get_security_event_detail
 
 **Purpose:** Get full details of a security event including attack chain.
-
-**Dart Original:** Called `GetAttackEventDetail`, extracted `Data` object with attack chain, related alerts, attackers.
 
 **CLI Replacement:**
 
@@ -171,11 +167,9 @@ if vulns:
 
 ---
 
-## Tool 3: list_waf_security_events (Replaces Dart MCP tool)
+## Tool 3: list_waf_security_events
 
 **Purpose:** List WAF security event logs (attack traffic).
-
-**Dart Original:** Called `DescribeSecurityEventLogs` via WafService, parsed log entries into `WafSecurityEvent` objects.
 
 **CLI Replacement:**
 
@@ -326,7 +320,7 @@ except Exception as e:
 
 ## Workflow: Investigate Security Incident
 
-**End-to-end investigation replacing Dart backend orchestration:**
+**End-to-end investigation workflow:**
 
 ```bash
 #!/bin/bash
@@ -335,7 +329,7 @@ except Exception as e:
 
 TIME_RANGE=${1:-"lastHour"}
 
-echo "=== BlueTeam Autopilot: Incident Investigation ==="
+echo "=== BlueTeam: Incident Investigation ==="
 echo "Region: $ALIBABA_REGION"
 echo "Time Range: $TIME_RANGE"
 echo
@@ -388,29 +382,10 @@ echo "=== Investigation Complete ==="
 
 ---
 
-## Key Differences from Dart Implementation
-
-| Aspect | Dart MCP | CLI Skill |
-|--------|----------|-----------|
-| **Type Safety** | Typed models (`SecurityEvent`, `Alert`) | JSON parsing with Python scripts |
-| **Error Handling** | Typed exceptions | Exit codes + stderr parsing |
-| **Performance** | Persistent HTTP connections | New process per CLI call (~100ms overhead) |
-| **Pagination** | Automatic looping | Manual `--CurrentPage` iteration |
-| **Authentication** | Programmatic credentials | aliyun CLI profile |
-| **Offline Testing** | Dry-run mode | Requires real credentials |
-
----
-
 ## When to Use This Skill
 
 ✅ **Use when:**
 - Quick security event investigation during incidents
-- Validating environment setup before running full BlueTeam Autopilot
+- Validating environment setup before running full BlueTeam
 - Debugging API connectivity or permission issues
 - One-off queries without starting backend server
-
-❌ **Don't use when:**
-- Building production UI (use Dart backend + MCP server)
-- Need type-safe integrations (use Dart packages)
-- Offline/dry-run testing required (use Dart dry-run mode)
-- High-frequency API calls (CLI overhead adds up)

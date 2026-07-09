@@ -33,7 +33,7 @@ for arg in "$@"; do
   fi
 done
 
-echo "BlueTeam Autopilot E2E — Sample Attack Delivery"
+echo "BlueTeam E2E — Sample Attack Delivery"
 echo "================================================"
 echo "Target domain: $TEST_DOMAIN"
 echo "Attack vectors: 6 (SQLi, XSS, LFI, Command Injection, Scanner, SSRF)"

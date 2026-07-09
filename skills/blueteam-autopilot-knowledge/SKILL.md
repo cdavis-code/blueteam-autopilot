@@ -1,7 +1,7 @@
 ---
 name: blueteam-autopilot-knowledge
 description: >
-  On-demand knowledge base for BlueTeam Autopilot. Contains compliance
+  On-demand knowledge base for BlueTeam. Contains compliance
   controls, runbooks, policies, and infrastructure references. Use when
   needing detailed compliance citations or operational procedures.
 allowed-tools:
@@ -9,7 +9,7 @@ allowed-tools:
   - Read
 ---
 
-# BlueTeam Autopilot - Knowledge Base
+# BlueTeam - Knowledge Base
 
 > **Environment Independence:**
 > Knowledge documents contain example values marked with `{{VARIABLE}}` syntax or

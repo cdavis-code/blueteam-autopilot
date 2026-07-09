@@ -1,4 +1,4 @@
-# BlueTeam Autopilot — Agent Setup
+# BlueTeam — Agent Setup
 
 Standalone Python agent for Alibaba Cloud SecOps. Built on Qwen Cloud + ConnectOnion framework with 19 security tools and human-in-the-loop guardrails.
 
@@ -47,7 +47,7 @@ No build, no tests, no codegen. Just `python blueteam.py`.
 blueteam.py
 ├── ConnectOnion Agent + Textual TUI
 ├── QwenCloudLLM (custom provider, internal thinking-mode stream aggregation)
-├── 19 tools (connectonion_qwen/tools.py)
+├── 39 tools (connectonion_qwen/tools.py)
 │   └── Each tool → bash script in skills/blueteam-autopilot-ops/scripts/
 │       └── If SECURITY_CENTER_MODE=demo → read fixtures/*.json
 │       └── If SECURITY_CENTER_MODE=real → call `aliyun` CLI
@@ -72,7 +72,7 @@ blueteam.py
 | `QWEN_MODEL` | Qwen model name | `qwen3.7-plus` |
 | `ENABLE_THINKING` | Thinking mode for orchestration | `true` |
 | `SECURITY_CENTER_MODE` | `demo` or `real` | `demo` |
-| `MAX_TOOL_ROUNDS` | Agent iteration limit | `20` |
+| `MAX_TOOL_ROUNDS` | Agent iteration limit | `50` |
 | `ALIBABA_REGION` | Override region auto-discovery | None (auto from `aliyun configure`) |
 | `MCP_CONFIG_PATH` | Optional GRC MCP server config | `.mcp.json` |
 
@@ -85,12 +85,13 @@ Region is auto-discovered from `aliyun configure` output. Set `ALIBABA_REGION` t
 | Path | Purpose |
 |------|---------|
 | `blueteam.py` | Entry point — wires ConnectOnion Agent + TUI + plugins |
-| `connectonion_qwen/` | Custom Qwen provider, 19 tool functions, plugins, config |
-| `connectonion_qwen/tools.py` | 19 tools as plain Python functions (auto-schema from type hints) |
+| `connectonion_qwen/` | Custom Qwen provider, 39 tool functions, plugins, config |
+| `connectonion_qwen/tools.py` | 39 tools as plain Python functions (auto-schema from type hints) |
 | `connectonion_qwen/plugins.py` | HITL approval gate + compliance logger |
 | `connectonion_qwen/qwen_llm.py` | Custom LLM provider with thinking-mode internal streaming |
-| `skills/blueteam-autopilot-ops/scripts/` | 17 bash scripts called by tools (demo vs. real dispatch) |
-| `skills/blueteam-autopilot-core/fixtures/` | 15 demo fixture JSON files (default mode) |
+| `skills/blueteam-autopilot-ops/scripts/` | 31 bash scripts called by tools (demo vs. real dispatch) |
+| `skills/blueteam-autopilot-core/fixtures/` | 23 demo fixture JSON files (default mode) |
+| `skills/blueteam-autopilot-knowledge/knowledge/` | Compliance docs, runbooks (NIST CSF, SOC 2, etc.) |
 | `skills/blueteam-autopilot-core/SKILL.md` | Agent role, behavior workflow, compliance guardrails |
 | `skills/blueteam-autopilot-knowledge/` | Compliance docs, runbooks, GRC sync scripts |
 

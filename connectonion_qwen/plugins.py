@@ -1,21 +1,39 @@
-"""ConnectOnion plugins for BlueTeam Autopilot.
+"""ConnectOnion plugins for BlueTeam.
 
 Plugin 1: hitl_approval — SOC 2 CC6.8.3 human-in-the-loop gate
 Plugin 2: compliance_logger — audit trail + tool output truncation
+Plugin 3: tui_result_capture — pushes tool results to TUI ProgressLog
+
+All plugins share _get_last_tool_result() to avoid duplicate trace traversal.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import os
 import subprocess
+import threading
+from collections.abc import Callable
 from datetime import datetime, timezone
 
 from connectonion import before_each_tool, after_each_tool
-from connectonion_qwen.config import SCRIPTS_DIR, SECURITY_CENTER_MODE
+from connectonion_qwen.config import SCRIPTS_DIR, FIXTURES_DIR, KNOWLEDGE_DIR, SECURITY_CENTER_MODE
+from connectonion_qwen.config import _PROJECT_ROOT
+from connectonion_qwen.tools import _build_script_env, _DEFAULT_TIMEOUT
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# TUI progress widget reference — set by blueteam.py when running in TUI mode.
+# The after_each_tool handler uses this to push results to the ProgressLog.
+# ---------------------------------------------------------------------------
+_tui_app: object | None = None  # Textual App instance (for call_from_thread)
+
+
+def set_tui_app(app: object) -> None:
+    """Register the TUI app for progress log result capture."""
+    global _tui_app
+    _tui_app = app
 
 # Tools that require HITL approval before real execution
 _STATE_CHANGING_TOOLS = {
@@ -24,10 +42,51 @@ _STATE_CHANGING_TOOLS = {
     "detach_policy",
     "rotate_access_key",
     "delete_stale_user",
+    "execute_local_script",
 }
 
-# Maximum tool output length before truncation
 _MAX_OUTPUT_LENGTH = 4000
+_MAX_DRY_RUN_DISPLAY = 500
+
+# TUI-aware approval callback — set by blueteam.py when running in TUI mode.
+# Signature: (tool_name, arguments, dry_run_result) -> bool
+# When set, _request_approval uses this instead of terminal input().
+_tui_approval_callback: Callable | None = None
+
+
+def set_tui_approval_callback(callback: Callable | None) -> None:
+    """Register a TUI-aware approval callback (or None to use terminal input)."""
+    global _tui_approval_callback
+    _tui_approval_callback = callback
+
+
+# ---------------------------------------------------------------------------
+# Shared: extract the last tool_result trace entry once per handler
+# ---------------------------------------------------------------------------
+
+def _get_last_tool_result(agent) -> dict | None:
+    """Return the most recent tool_result trace entry, or None.
+
+    Both compliance_logger and capture_tool_result need the same
+    trace traversal logic. This helper eliminates the duplication.
+
+    Returns a dict with keys: entry, tool_name, result, status,
+    timing_ms, args — or None if no tool_result is found.
+    """
+    trace = agent.current_session.get("trace", [])
+    if not trace:
+        return None
+    last = trace[-1]
+    if last.get("type") != "tool_result":
+        return None
+    return {
+        "entry": last,
+        "tool_name": last.get("tool_name", last.get("name", "")),
+        "result": last.get("result", ""),
+        "status": last.get("status", "unknown"),
+        "timing_ms": last.get("timing_ms", 0),
+        "args": last.get("args", {}),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -36,6 +95,23 @@ _MAX_OUTPUT_LENGTH = 4000
 
 def _run_dry_run(tool_name: str, arguments: dict) -> str:
     """Execute a tool in dry-run mode and return the result."""
+    if tool_name == "execute_local_script":
+        script_path = arguments.get("script_path", "")
+        script_args = arguments.get("arguments", "")
+        return json.dumps({
+            "dry_run": True,
+            "command": f"bash {script_path} {script_args}".strip(),
+            "message": "This will execute the above command. Review the script path and arguments carefully.",
+        })
+
+    if tool_name == "run_command":
+        command = arguments.get("command", "")
+        return json.dumps({
+            "dry_run": True,
+            "command": f"bash -c '{command}'",
+            "message": "This will execute the above bash command. Review carefully before approving.",
+        })
+
     script_map = {
         "execute_response_policy": "execute-response-policy.sh",
         "block_waf_ips": "block-waf-ips.sh",
@@ -51,14 +127,12 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
     if not script_path.exists():
         return json.dumps({"error": f"Script not found: {script_path}"})
 
-    # Build args with dry-run (no --real flag)
     args: list[str] = []
     if tool_name == "execute_response_policy":
         args.append(arguments.get("policy_id", arguments.get("policyId", "")))
         event_id = arguments.get("event_id", arguments.get("eventId", ""))
         if event_id:
             args.append(event_id)
-        # Explicitly do NOT add --real (this is the dry run)
     elif tool_name == "block_waf_ips":
         args.append(arguments.get("ips", ""))
         args.append("--dry-run")
@@ -72,17 +146,14 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
     elif tool_name == "delete_stale_user":
         args.append(arguments.get("user_name", ""))
 
-    env = os.environ.copy()
-    env["SECURITY_CENTER_MODE"] = SECURITY_CENTER_MODE
-
     try:
         result = subprocess.run(
             ["bash", str(script_path)] + args,
             capture_output=True,
             text=True,
-            timeout=30,
-            env=env,
-            cwd=str(SCRIPTS_DIR.parent.parent.parent),
+            timeout=_DEFAULT_TIMEOUT,
+            env=_build_script_env(),
+            cwd=str(_PROJECT_ROOT),
         )
         return result.stdout.strip() or json.dumps({"status": "ok", "message": "Dry run complete."})
     except Exception as exc:
@@ -90,7 +161,14 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
 
 
 def _request_approval(tool_name: str, arguments: dict, dry_run_result: str) -> bool:
-    """Display action details and request human approval via terminal."""
+    """Display action details and request human approval.
+
+    Uses the TUI callback when available (TUI mode), otherwise falls
+    back to terminal input() (CLI/daemon mode).
+    """
+    if _tui_approval_callback is not None:
+        return _tui_approval_callback(tool_name, arguments, dry_run_result)
+
     separator = "=" * 64
     print()
     print(separator)
@@ -98,10 +176,9 @@ def _request_approval(tool_name: str, arguments: dict, dry_run_result: str) -> b
     print(separator)
     print(f"  Action:     {tool_name}")
     print(f"  Arguments:  {json.dumps(arguments, indent=4)}")
-    # Truncate dry-run for display
     display = dry_run_result.strip()
-    if len(display) > 500:
-        display = display[:497] + "..."
+    if len(display) > _MAX_DRY_RUN_DISPLAY:
+        display = display[:_MAX_DRY_RUN_DISPLAY - 3] + "..."
     print(f"  Dry-run:    {display}")
     print(separator)
 
@@ -138,10 +215,7 @@ def hitl_approval(agent) -> None:
 
     arguments = pending.get("arguments", {})
 
-    # Run dry-run first
     dry_result = _run_dry_run(tool_name, arguments)
-
-    # Request approval
     approved = _request_approval(tool_name, arguments, dry_result)
 
     if not approved:
@@ -165,29 +239,17 @@ def compliance_logger(agent) -> None:
     1. Logs the tool call with timestamp for audit trail
     2. Truncates tool outputs > 4000 chars to prevent context bloat
     """
-    # Find the most recent tool trace entry
-    trace = agent.current_session.get("trace", [])
-    if not trace:
+    info = _get_last_tool_result(agent)
+    if info is None:
         return
 
-    last_entry = trace[-1]
-    if last_entry.get("type") != "tool_result":
-        return
-
-    tool_name = last_entry.get("name", "unknown")
-    tool_args = last_entry.get("args", {})
-    status = last_entry.get("status", "unknown")
-    timing = last_entry.get("timing_ms", 0)
     timestamp = datetime.now(timezone.utc).isoformat()
-
-    # Log for audit trail
     logger.info(
-        f"[AUDIT] {timestamp} | {tool_name}({json.dumps(tool_args)}) "
-        f"| status={status} | {timing:.0f}ms"
+        f"[AUDIT] {timestamp} | {info['tool_name']}({json.dumps(info['args'])}) "
+        f"| status={info['status']} | {info['timing_ms']:.0f}ms"
     )
 
-    # Truncate large tool outputs to prevent context bloat
-    result = last_entry.get("result", "")
+    result = info['result']
     if result and len(result) > _MAX_OUTPUT_LENGTH:
         result = (
             result[:_MAX_OUTPUT_LENGTH]
@@ -197,11 +259,52 @@ def compliance_logger(agent) -> None:
     # Wrap result in prompt-injection boundary delimiters so the LLM can
     # distinguish external untrusted data from trusted instruction content.
     if result is not None:
-        last_entry["result"] = (
+        info['entry']["result"] = (
             "[TOOL OUTPUT START]\n"
             + result
             + "\n[TOOL OUTPUT END]"
         )
+
+
+# ---------------------------------------------------------------------------
+# Plugin 3: TUI Result Capture
+# ---------------------------------------------------------------------------
+
+@after_each_tool
+def capture_tool_result(agent) -> None:
+    """Push tool results to the TUI ProgressLog widget.
+
+    Runs in all modes but is a no-op when no TUI app is registered.
+    Must run BEFORE compliance_logger so it sees the raw (unwrapped) result.
+    """
+    if _tui_app is None:
+        return
+    widget = getattr(_tui_app, '_thinking_widget', None)
+    if widget is None or not hasattr(widget, 'set_result'):
+        return
+
+    info = _get_last_tool_result(agent)
+    if info is None:
+        return
+    result = info['result']
+    if not result:
+        return
+
+    # Truncate for display: use first non-empty line
+    lines = [l.strip() for l in result.splitlines() if l.strip()]
+    first_line = lines[0] if lines else result.strip()[:200]
+    if not first_line or len(first_line) < 2:
+        return
+    if len(first_line) > 200:
+        first_line = first_line[:200] + "..."
+
+    tool_name = info['tool_name']
+    if tool_name and first_line:
+        display = f"{tool_name}: {first_line}"
+    else:
+        display = tool_name or first_line
+    if display and display.strip():
+        _tui_app.call_from_thread(widget.set_result, display)
 
 
 # ---------------------------------------------------------------------------
@@ -210,3 +313,4 @@ def compliance_logger(agent) -> None:
 
 hitl_approval_plugin = [hitl_approval]
 compliance_logger_plugin = [compliance_logger]
+tui_result_capture_plugin = [capture_tool_result]

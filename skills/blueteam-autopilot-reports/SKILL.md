@@ -1,7 +1,7 @@
 ---
 name: blueteam-autopilot-reports
 description: >
-  Report generation workflows for BlueTeam Autopilot. Use when creating
+  Report generation workflows for BlueTeam. Use when creating
   incident reports, vulnerability triage summaries, action proposals,
   or runbook checklists from JSON data.
 allowed-tools:
@@ -9,7 +9,7 @@ allowed-tools:
   - Read
 ---
 
-# BlueTeam Autopilot - Reports
+# BlueTeam - Reports
 
 Deterministic Markdown report generation from structured JSON data.
 

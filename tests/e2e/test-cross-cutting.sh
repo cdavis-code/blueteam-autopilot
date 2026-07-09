@@ -240,7 +240,7 @@ test_database_schema() {
 }
 
 # Main
-echo "BlueTeam Autopilot E2E — Cross-Cutting Tests"
+echo "BlueTeam E2E — Cross-Cutting Tests"
 echo "============================================"
 echo "Mode: ${SECURITY_CENTER_MODE:-demo}"
 echo ""

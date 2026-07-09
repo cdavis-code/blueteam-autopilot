@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Policy manifest for BlueTeam Autopilot. Declares which compliance frameworks, runbooks, and policies are active, their source (manual / grc / auto-generated), and sync configuration.",
+  "description": "Policy manifest for BlueTeam. Declares which compliance frameworks, runbooks, and policies are active, their source (manual / grc / auto-generated), and sync configuration.",
   "policies": [
     {
       "id": "nist-csf",

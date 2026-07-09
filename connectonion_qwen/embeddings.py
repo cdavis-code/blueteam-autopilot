@@ -28,9 +28,9 @@ from connectonion_qwen.memory import _connect, init_db
 
 logger = logging.getLogger(__name__)
 
-# Embedding dimensions
 _REAL_DIMS = 1024  # DashScope text-embedding-v3
 _DEMO_DIMS = 64    # Hash-based fallback
+_API_TIMEOUT = 30
 
 
 def generate_embedding(text: str) -> list[float]:
@@ -74,7 +74,7 @@ def _dashscope_embedding(text: str) -> list[float]:
         method="POST",
     )
 
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    with urllib.request.urlopen(req, timeout=_API_TIMEOUT) as resp:
         data = json.loads(resp.read().decode("utf-8"))
 
     return data["data"][0]["embedding"]
@@ -87,22 +87,18 @@ def _demo_embedding(text: str) -> list[float]:
     Same text always produces the same embedding, enabling
     meaningful similarity comparisons in demo mode.
     """
-    # Generate enough bytes for 64 floats (4 bytes each)
     hash_bytes = b""
     seed = text.encode("utf-8")
     while len(hash_bytes) < _DEMO_DIMS * 4:
         seed = hashlib.sha256(seed).digest()
         hash_bytes += seed
 
-    # Convert bytes to floats in [-1, 1]
     floats = []
     for i in range(_DEMO_DIMS):
-        # Take 4 bytes, convert to int, normalize to [-1, 1]
         chunk = hash_bytes[i * 4 : (i + 1) * 4]
         val = int.from_bytes(chunk, "big")
         floats.append((val / (2**32 - 1)) * 2 - 1)
 
-    # L2-normalize
     norm = math.sqrt(sum(x * x for x in floats))
     if norm > 0:
         floats = [x / norm for x in floats]
@@ -189,7 +185,6 @@ def find_similar(description: str, top_k: int = 5) -> list[dict[str, Any]]:
         if not rows:
             return []
 
-        # Compute cosine similarity for each stored embedding
         results = []
         for row in rows:
             stored_embedding = json.loads(row["embedding"])
@@ -205,7 +200,6 @@ def find_similar(description: str, top_k: int = 5) -> list[dict[str, Any]]:
                 "metadata": json.loads(row["metadata"]) if row["metadata"] else None,
             })
 
-        # Sort by similarity descending, return top-k
         results.sort(key=lambda x: x["similarity"], reverse=True)
         return results[:top_k]
     finally:

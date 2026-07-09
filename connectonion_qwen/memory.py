@@ -18,7 +18,6 @@ from connectonion_qwen.config import DATA_DIR, TURSO_DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
-# Database path — embedded libSQL file
 _DB_PATH: Path | None = None
 
 
@@ -154,7 +153,6 @@ def store_snapshot(
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        # Compute risk summary
         risk_counts: dict[str, int] = {}
         for f in findings:
             cat = f.get("risk_category", "unknown")
@@ -174,7 +172,6 @@ def store_snapshot(
         )
         snapshot_id = cursor.lastrowid
 
-        # Insert findings
         for f in findings:
             conn.execute(
                 """INSERT INTO iam_findings
@@ -337,7 +334,6 @@ def log_remediation(
             ),
         )
 
-        # Update finding status
         conn.execute(
             "UPDATE iam_findings SET status = 'remediated', remediated_at = ? WHERE id = ?",
             (now, finding_id),

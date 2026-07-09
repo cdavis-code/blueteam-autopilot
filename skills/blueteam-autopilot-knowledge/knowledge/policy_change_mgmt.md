@@ -12,7 +12,7 @@ last_updated: "2026-06-14"
 
 ## 1. Scope and Purpose
 This policy governs all production security configuration changes executed through
-the BlueTeam Autopilot system or manually by the security operations team. It
+the BlueTeam system or manually by the security operations team. It
 ensures that every state-changing action — including firewall rule modifications,
 IP block/unblock operations, WAF policy updates, and host isolation commands — is
 subject to appropriate review and authorization before execution.
@@ -51,7 +51,7 @@ rollback plan before execution.
 ## 3. Approval Workflow
 
 ### 3.1 Pre-Execution Gate
-All state-changing actions proposed by BlueTeam Autopilot require **explicit
+All state-changing actions proposed by BlueTeam require **explicit
 human approval** before execution. The autonomous agent must:
 
 1. Present a structured action proposal including:

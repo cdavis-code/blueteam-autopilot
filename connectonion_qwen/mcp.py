@@ -213,7 +213,7 @@ def _make_tool_function(
 # ---------------------------------------------------------------------------
 
 _bridge: _AsyncBridge | None = None
-_cms: list[Any] = []  # async context managers to clean up
+_context_managers: list[Any] = []
 _sessions: list[Any] = []
 _mcp_tools: list[Callable] = []
 _server_status: dict[str, dict[str, Any]] = {}  # per-server connection status
@@ -226,7 +226,7 @@ def load_mcp_tools() -> list[Callable]:
     Unreachable servers are skipped with a warning printed to stderr.
     Safe to call multiple times — returns cached results on subsequent calls.
     """
-    global _bridge, _cms, _sessions, _mcp_tools
+    global _bridge, _context_managers, _sessions, _mcp_tools
 
     if _mcp_tools:
         return _mcp_tools  # Already loaded
@@ -253,7 +253,8 @@ def load_mcp_tools() -> list[Callable]:
             )
             return
 
-        DEFAULT_TIMEOUT = 10  # seconds per server
+        _MCP_SERVER_TIMEOUT = 10  # seconds per server
+        _SSE_TIMEOUT = 5
 
         for server_name, server_config in config.items():
             # Skip non-dict entries (e.g. stray top-level keys like "timeout")
@@ -285,13 +286,12 @@ def load_mcp_tools() -> list[Callable]:
 
             try:
                 transport_type = server_config.get("type", "stdio")
-                connect_timeout = server_config.get("timeout", DEFAULT_TIMEOUT)
-                cm = None  # async context manager
+                connect_timeout = server_config.get("timeout", _MCP_SERVER_TIMEOUT)
 
                 if transport_type == "sse":
                     url = server_config.get("url", "")
                     headers = server_config.get("headers", {})
-                    cm = sse_client(url=url, headers=headers or None, timeout=5)
+                    cm = sse_client(url=url, headers=headers or None, timeout=_SSE_TIMEOUT)
                 else:
                     command = server_config.get("command", "")
                     args = server_config.get("args", [])
@@ -307,7 +307,7 @@ def load_mcp_tools() -> list[Callable]:
 
                 # Enter context manager with timeout (keeps connection alive)
                 streams = await asyncio.wait_for(cm.__aenter__(), timeout=connect_timeout)
-                _cms.append(cm)
+                _context_managers.append(cm)
                 read, write = streams
 
                 # Create session and initialize. ClientSession must be entered
@@ -400,18 +400,17 @@ def get_mcp_status() -> dict[str, dict[str, Any]]:
 
 def shutdown_mcp() -> None:
     """Shut down all MCP sessions, close transports, stop the event loop."""
-    global _bridge, _cms, _sessions, _mcp_tools
+    global _bridge, _context_managers, _sessions, _mcp_tools
 
     if _bridge and _sessions:
-        # Exit sessions (cancels their receive loops) before closing the
-        # stdio transports that back them.
+        # Exit sessions before closing their underlying stdio transports.
         async def _cleanup() -> None:
             for session in reversed(_sessions):
                 try:
                     await session.__aexit__(None, None, None)
                 except Exception:
                     pass
-            for cm in reversed(_cms):
+            for cm in reversed(_context_managers):
                 try:
                     await cm.__aexit__(None, None, None)
                 except Exception:
@@ -426,6 +425,6 @@ def shutdown_mcp() -> None:
         _bridge.shutdown()
         _bridge = None
 
-    _cms.clear()
+    _context_managers.clear()
     _sessions.clear()
     _mcp_tools.clear()

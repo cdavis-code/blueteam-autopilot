@@ -1,1 +1,1 @@
-"""BlueTeam Autopilot — Qwen Cloud provider for ConnectOnion."""
+"""BlueTeam — Qwen Cloud provider for ConnectOnion."""

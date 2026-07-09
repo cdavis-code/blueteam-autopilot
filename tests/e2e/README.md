@@ -1,4 +1,4 @@
-# BlueTeam Autopilot — End-to-End Testing Guide
+# BlueTeam — End-to-End Testing Guide
 
 Comprehensive end-to-end testing regime for validating all 5 workflows against live Alibaba Cloud APIs in real mode.
 

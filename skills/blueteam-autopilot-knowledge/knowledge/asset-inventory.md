@@ -8,7 +8,7 @@ last_updated: "2026-06-14"
 
 # Asset Inventory
 
-Asset topology reference for BlueTeam Autopilot investigations.
+Asset topology reference for BlueTeam investigations.
 
 ---
 

@@ -1,14 +1,14 @@
 ---
 name: blueteam-autopilot-compat
-description: Validate aliyun CLI compatibility with BlueTeam Autopilot scripts — detects breaking changes in CLI commands, parameters, and response structures.
+description: Validate aliyun CLI compatibility with BlueTeam scripts — detects breaking changes in CLI commands, parameters, and response structures.
 allowed-tools:
   - Bash
   - Read
 ---
 
-# BlueTeam Autopilot CLI Compatibility Checker
+# BlueTeam CLI Compatibility Checker
 
-Compatibility validation skill for **BlueTeam Autopilot for Alibaba Cloud**. Detects when the installed `aliyun` CLI has changed in ways that could break the project's scripts, and provides remediation guidance.
+Compatibility validation skill for **BlueTeam for Alibaba Cloud**. Detects when the installed `aliyun` CLI has changed in ways that could break the project's scripts, and provides remediation guidance.
 
 ## When to Use
 

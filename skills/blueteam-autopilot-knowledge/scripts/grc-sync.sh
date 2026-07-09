@@ -4,7 +4,7 @@ set -euo pipefail
 # =============================================================================
 # grc-sync.sh
 #
-# Main GRC sync orchestration script for BlueTeam Autopilot.
+# Main GRC sync orchestration script for BlueTeam.
 # Fetches compliance frameworks from configured GRC providers and writes
 # them as knowledge documents.
 #

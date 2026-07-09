@@ -8,14 +8,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$PWD/.env" ]; then
   source "$PWD/.env" 2>/dev/null || true
-elif [ -f "$(dirname "$SCRIPT_DIR")/../../../.env" ]; then
-  source "$(dirname "$SCRIPT_DIR")/../../../.env" 2>/dev/null || true
+elif [ -f "${BLUETEAM_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")/..}/.env" ]; then
+  source "${BLUETEAM_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")/..}/.env" 2>/dev/null || true
 fi
 
 # ----- Demo mode: return fixture data -----
 MODE="${SECURITY_CENTER_MODE:-demo}"
 if [ "$MODE" = "demo" ]; then
-  FIXTURE_DIR="$(dirname "$SCRIPT_DIR")/../blueteam-autopilot-core/fixtures"
+  FIXTURE_DIR="${BLUETEAM_FIXTURES_DIR:-$SCRIPT_DIR/../fixtures}"
   FIXTURE_FILE="$FIXTURE_DIR/account_context.json"
   if [ -f "$FIXTURE_FILE" ]; then
     cat "$FIXTURE_FILE"

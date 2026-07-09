@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CLI Compatibility Checker for BlueTeam Autopilot
+# CLI Compatibility Checker for BlueTeam
 # Validates that the installed aliyun CLI is compatible with project scripts.
 #
 # Usage: ./check-compat.sh [--real]
@@ -39,7 +39,7 @@ WARN=0
 SKIP=0
 
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║   BlueTeam Autopilot — CLI Compatibility Checker        ║"
+echo "║   BlueTeam — CLI Compatibility Checker        ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -258,7 +258,7 @@ if [ $FAIL -gt 0 ]; then
 else
   echo -e "  ${GREEN}╔═══════════════════════════════════════════════════════╗${NC}"
   echo -e "  ${GREEN}║  ALL CHECKS PASSED                                   ║${NC}"
-  echo -e "  ${GREEN}║  CLI is compatible with BlueTeam Autopilot scripts.  ║${NC}"
+  echo -e "  ${GREEN}║  CLI is compatible with BlueTeam scripts.  ║${NC}"
   echo -e "  ${GREEN}╚═══════════════════════════════════════════════════════╝${NC}"
   exit 0
 fi

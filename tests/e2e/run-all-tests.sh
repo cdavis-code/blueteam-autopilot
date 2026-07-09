@@ -54,7 +54,7 @@ done
 
 echo -e "${CYAN}"
 echo "╔════════════════════════════════════════════════════════════╗"
-echo "║  BlueTeam Autopilot E2E Test Suite                        ║"
+echo "║  BlueTeam E2E Test Suite                        ║"
 echo "║  Comprehensive validation of all workflows and features   ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"

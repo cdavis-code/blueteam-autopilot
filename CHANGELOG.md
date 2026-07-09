@@ -5,6 +5,35 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] — 2026-07-08
+
+### Added
+
+#### Alibaba Cloud Env Var Auto-Discovery
+- **`_discover_aliyun_env()` in `config.py`** — Auto-discovers `ALIBABA_REGION`, `ALIBABA_ACCESS_KEY_ID`, and `ALIBABA_ACCESS_KEY_SECRET` from `aliyun configure` and `~/.aliyun/config.json` at module import time. Populates `os.environ` so `run_command` subprocesses inherit these values without requiring them in `.env`. Region auto-discovered via `aliyun configure get region`; credentials read from the current profile in `~/.aliyun/config.json`.
+
+#### TUI Progress Log Plugin
+- **`tui_result_capture_plugin`** — New ConnectOnion `after_each_tool` plugin that pushes tool results to the `ProgressLog` widget in the TUI. Uses module-level `_tui_app` reference set at TUI startup; gracefully no-ops in prompt/daemon modes.
+
+### Changed
+
+#### Plugin Architecture Refactor
+- **Inline handler → proper plugin** — Moved `_capture_tool_result` from a 34-line inline handler in `blueteam.py` (registered via private `agent._register_event()`) to a proper `@after_each_tool` plugin in `plugins.py`. Registers via standard `plugins=[...]` in `_create_agent()`. Removes private API dependency.
+- **Shared trace helper** — Consolidated duplicate trace traversal logic shared by `compliance_logger` and `capture_tool_result` into `_get_last_tool_result(agent)`. Eliminates ~26 lines of redundant code and enforces consistent field name usage (`tool_name` with `name` fallback).
+- **Plugin execution order** — `tui_result_capture` now runs BEFORE `compliance_logger` so the ProgressLog sees raw tool results (before `[TOOL OUTPUT START]`/`[TOOL OUTPUT END]` wrappers are applied for LLM context).
+- **Plugin count: 2 → 3** (hitl_approval, tui_result_capture, compliance_logger).
+
+#### TUI Rendering Fix
+- **MarkupError resolved** — Set `_render_markup = False` in `ProgressLog` widget to prevent Rich from parsing square brackets in tool results as markup tags. Was causing `MarkupError: Expected markup value` crashes during layout refresh.
+
+### Removed
+
+#### Dart SDK References
+- **`blueteam-autopilot-prep/SKILL.md`** — Removed Dart SDK ≥ 3.4 from prerequisite table and optional tool list (no Dart runtime exists in this project).
+- **`alibaba-security-ops/SKILL.md`** — Removed all Dart migration history: "Replaces Dart MCP tool" tags, Dart Original descriptions, Key Differences comparison table, and Don't-use-when section referencing Dart.
+
+---
+
 ## [3.0.1] — 2026-07-06
 
 ### Added
