@@ -90,7 +90,7 @@
 
   <!-- Right side stats -->
   <g font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" text-anchor="end">
-    <text x="1120" y="120" font-size="36" font-weight="700" fill="#3b82f6">37</text>
+    <text x="1120" y="120" font-size="36" font-weight="700" fill="#3b82f6">40</text>
     <text x="1120" y="142" font-size="13" fill="#64748b">Agent Tools</text>
 
     <text x="1120" y="178" font-size="36" font-weight="700" fill="#06b6d4">5</text>

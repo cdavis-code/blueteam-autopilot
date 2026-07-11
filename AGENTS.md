@@ -8,7 +8,7 @@ Standalone Python agent for Alibaba Cloud SecOps. Built on Qwen Cloud + ConnectO
 
 ```bash
 # Install deps and configure API key
-pip install -r requirements.txt
+pip install -e .
 cp .env.example .env
 # Edit .env: DASHSCOPE_API_KEY="sk-..."
 
@@ -34,8 +34,8 @@ Then run `aliyun configure` to set up credentials (stored in `~/.aliyun/config.j
 | Run agent | `python blueteam.py` |
 | Switch to real mode | Add `SECURITY_CENTER_MODE=real` to `.env` + run `aliyun configure` |
 | Configure aliyun CLI | `aliyun configure` (sets AccessKey ID, Secret, region) |
-| Verify setup (real mode) | `SECURITY_CENTER_MODE=real bash skills/blueteam-autopilot-ops/scripts/ping.sh` |
-| Test a single script | `bash skills/blueteam-autopilot-ops/scripts/list-events.sh` |
+| Verify setup (real mode) | `SECURITY_CENTER_MODE=real python skills/blueteam-autopilot-ops/scripts/ping.py` |
+| Test a single script | `python skills/blueteam-autopilot-ops/scripts/list_events.py` |
 
 No build, no tests, no codegen. Just `python blueteam.py`.
 
@@ -47,8 +47,8 @@ No build, no tests, no codegen. Just `python blueteam.py`.
 blueteam.py
 ├── ConnectOnion Agent + Textual TUI
 ├── QwenCloudLLM (custom provider, internal thinking-mode stream aggregation)
-├── 39 tools (connectonion_qwen/tools.py)
-│   └── Each tool → bash script in skills/blueteam-autopilot-ops/scripts/
+├── 40 tools (connectonion_qwen/tools.py)
+│   └── Each tool → Python script in skills/blueteam-autopilot-ops/scripts/
 │       └── If SECURITY_CENTER_MODE=demo → read fixtures/*.json
 │       └── If SECURITY_CENTER_MODE=real → call `aliyun` CLI
 └── 2 plugins (connectonion_qwen/plugins.py)
@@ -58,7 +58,7 @@ blueteam.py
 
 **Tools are plain Python functions with type hints.** ConnectOnion auto-generates OpenAI tool schemas from docstrings + type hints.
 
-**Bash scripts dispatch based on mode:** demo mode returns fixture JSON; real mode calls `aliyun sas ...`, `aliyun waf-openapi ...`, `aliyun sls ...`.
+**Python scripts dispatch based on mode:** demo mode returns fixture JSON; real mode calls `aliyun sas ...`, `aliyun waf-openapi ...`, `aliyun sls ...`. Scripts are cross-platform compatible (Windows/macOS/Linux).
 
 **HITL approval only fires for state-changing tools:** `execute_response_policy`, `block_waf_ips`. Runs dry-run preview first, then prompts for y/N. Execution happens only if user types "yes".
 
@@ -86,10 +86,10 @@ Region is auto-discovered from `aliyun configure` output. Set `ALIBABA_REGION` t
 |------|---------|
 | `blueteam.py` | Entry point — wires ConnectOnion Agent + TUI + plugins |
 | `connectonion_qwen/` | Custom Qwen provider, 39 tool functions, plugins, config |
-| `connectonion_qwen/tools.py` | 39 tools as plain Python functions (auto-schema from type hints) |
+| `connectonion_qwen/tools.py` | 40 tools as plain Python functions (auto-schema from type hints) |
 | `connectonion_qwen/plugins.py` | HITL approval gate + compliance logger |
 | `connectonion_qwen/qwen_llm.py` | Custom LLM provider with thinking-mode internal streaming |
-| `skills/blueteam-autopilot-ops/scripts/` | 31 bash scripts called by tools (demo vs. real dispatch) |
+| `skills/blueteam-autopilot-ops/scripts/` | 31 Python scripts called by tools (demo vs. real dispatch) |
 | `skills/blueteam-autopilot-core/fixtures/` | 23 demo fixture JSON files (default mode) |
 | `skills/blueteam-autopilot-knowledge/knowledge/` | Compliance docs, runbooks (NIST CSF, SOC 2, etc.) |
 | `skills/blueteam-autopilot-core/SKILL.md` | Agent role, behavior workflow, compliance guardrails |

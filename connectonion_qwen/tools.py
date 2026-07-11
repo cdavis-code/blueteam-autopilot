@@ -15,6 +15,7 @@ import logging
 import os
 import shlex
 import subprocess
+import sys
 from pathlib import Path
 
 from connectonion_qwen.config import SCRIPTS_DIR, FIXTURES_DIR, KNOWLEDGE_DIR, SECURITY_CENTER_MODE
@@ -34,6 +35,7 @@ STATE_CHANGING_TOOLS: set[str] = {
     "delete_stale_user",
     "execute_local_script",
     "run_command",
+    "write_file",
 }
 
 
@@ -58,16 +60,31 @@ def _build_script_env() -> dict[str, str]:
 
 
 def _run_script(script_name: str, args: list[str] | None = None) -> str:
-    """Execute a bash script and return its stdout.
+    """Execute a Python script and return its stdout.
 
     Returns the script's stdout as a string (JSON or plain text).
     On error, returns a JSON error object.
+
+    Scripts are now Python files (.py) for cross-platform compatibility.
+    Falls back to bash scripts (.sh) for backward compatibility.
     """
     script_path: Path = SCRIPTS_DIR / script_name
-    if not script_path.exists():
+
+    # Prefer .py over .sh for cross-platform compatibility
+    # Python files use underscores instead of hyphens
+    py_name = script_path.stem.replace('-', '_') + '.py'
+    py_path = SCRIPTS_DIR / py_name
+    sh_path = script_path
+
+    if py_path.exists():
+        script_path = py_path
+        cmd: list[str] = [sys.executable, str(script_path)]
+    elif sh_path.exists():
+        script_path = sh_path
+        cmd = ["bash", str(script_path)]
+    else:
         return json.dumps({"error": f"Script not found: {script_path}"})
 
-    cmd: list[str] = ["bash", str(script_path)]
     if args:
         cmd.extend(args)
 
@@ -92,7 +109,8 @@ def _run_script(script_name: str, args: list[str] | None = None) -> str:
     except subprocess.TimeoutExpired:
         return json.dumps({"error": f"Tool timed out after {_DEFAULT_TIMEOUT}s."})
     except FileNotFoundError:
-        return json.dumps({"error": "bash not found. Ensure bash is installed and in PATH."})
+        interpreter = "Python" if script_path.suffix == ".py" else "bash"
+        return json.dumps({"error": f"{interpreter} not found. Ensure it is installed and in PATH."})
     except Exception as exc:
         logger.error(f"Script execution failed ({script_name}): {exc}", exc_info=True)
         return json.dumps({"error": "Tool execution failed. Please retry."})
@@ -453,6 +471,41 @@ def run_command(command: str) -> str:
     except Exception as exc:
         logger.error(f"Command execution failed: {exc}", exc_info=True)
         return json.dumps({"error": "Command execution failed. Please retry."})
+
+
+def write_file(file_path: str, content: str) -> str:
+    """Write content to a file on disk.
+
+    STATE-CHANGING — requires HITL approval before execution.
+    Creates parent directories if they don't exist. Overwrites existing files.
+    Use this to save reports, notes, threat intel, or any text content.
+
+    Args:
+        file_path: Destination path (absolute or relative to project root).
+        content: The text content to write to the file.
+
+    Returns:
+        JSON with status and file path, or error object.
+    """
+    path = Path(file_path)
+    if not path.is_absolute():
+        path = _PROJECT_ROOT / path
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+        return json.dumps({
+            "status": "ok",
+            "file_path": str(path),
+            "bytes_written": len(content.encode("utf-8")),
+            "message": f"File written successfully: {path}",
+        })
+    except OSError as exc:
+        logger.error(f"File write failed ({path}): {exc}", exc_info=True)
+        return json.dumps({"error": f"Failed to write file: {exc}"})
+    except Exception as exc:
+        logger.error(f"File write failed ({path}): {exc}", exc_info=True)
+        return json.dumps({"error": "File write failed. Please retry."})
 
 
 # ===========================================================================
@@ -1014,4 +1067,6 @@ ALL_TOOLS: list = [
     # Local Script Execution
     execute_local_script,
     run_command,
+    # File Operations
+    write_file,
 ]

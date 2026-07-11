@@ -9,13 +9,15 @@
 * SOC 2 CC6.8 compliant by design
 * Dual-mode: live production & offline demo
 * **Standalone Python agent** built on Qwen Cloud + ConnectOnion with function calling + thinking mode
-* 39 agent tools · 5 specialist workflows · autonomous SOC daemon · zero credentials for demo
+* 40 agent tools · 5 specialist workflows · autonomous SOC daemon · zero credentials for demo
 
 > **[About the Project](submission/about.md)** — Inspiration, architecture decisions, and technical deep-dive.
 
+> **Primary use case:** Autonomous monitoring via `--daemon` mode for continuous security operations. The interactive TUI (default mode) is designed for ad-hoc investigation, testing, and development — not as a replacement for a full SOC dashboard.
+
 🎬 **[Watch Demo Video](https://youtu.be/IbpzVH3cYus)** · 📊 **[View Slides](https://docs.google.com/presentation/d/e/2PACX-1vSsBonXp9VJgpyn-bjStEx8Y80QvS4sAPU4RvIrPA15Jd3LJJkaxG4agW8KyfnVXNSqmAdXhUbrx7He/pub?start=false&loop=false&delayms=3000)**
 
-[🚀 Quick Start ↓](#-quick-start-demo-mode) · [What It Does ↓](#what-it-does) · [Architecture ↓](#architecture)
+[🚀 Quick Start ↓](#-quick-start-demo-mode) · [📖 Guided Walkthrough](quick-start.md) · [What It Does ↓](#what-it-does) · [Architecture ↓](#architecture)
 
 </div>
 
@@ -86,7 +88,7 @@ Demo mode reads from 23 bundled fixture files (`skills/blueteam-autopilot-core/f
 - WAF attack logs with top rules and attacker IPs
 - NIST CSF and SOC 2 compliance document mappings
 
-All 39 tools work in demo mode — threat hunting, IAM forensics, compliance audits, and incident response reports. The only difference: data comes from fixtures instead of live APIs.
+All 40 tools work in demo mode — threat hunting, IAM forensics, compliance audits, and incident response reports. The only difference: data comes from fixtures instead of live APIs.
 
 ### Also Available: AI IDE Skills
 
@@ -338,7 +340,7 @@ The `.mcp.example.json` includes presets for:
 ├── connectonion_qwen/                 # Qwen Cloud integration for ConnectOnion
 │   ├── __init__.py                    # Package marker
 │   ├── qwen_llm.py                   # Custom LLM provider (QwenCloudLLM)
-│   ├── tools.py                       # 39 tool functions + bash script executor
+│   ├── tools.py                       # 40 tool functions + Python script executor
 │   ├── plugins.py                     # 3 plugins: HITL approval, TUI result capture, compliance logger
 │   ├── system_prompt.py               # Auto-delegation system prompt (routes to workflows)
 │   ├── report_models.py               # Pydantic models for IR report generation
@@ -347,7 +349,7 @@ The `.mcp.example.json` includes presets for:
 │   ├── mcp.py                         # MCP client bridge for GRC/ticketing servers
 │   ├── config.py                      # .env loader + typed configuration + Alibaba env auto-discovery
 │   └── providers/                     # Multi-cloud provider components
-│       ├── aliyun/                    # Alibaba Cloud tools (37)
+│       ├── aliyun/                    # Alibaba Cloud tools (40)
 │       └── aws/                       # AWS tools (13)
 │
 ├── workflows/                         # Multi-agent workflow engine
@@ -361,7 +363,8 @@ The `.mcp.example.json` includes presets for:
 ├── assets/
 │   ├── banner.svg                     # Project banner
 │   ├── logo.png                       # Project logo
-│   ├── architecture-diagram.svg       # Architecture overview
+│   ├── blueteam-architecture.html     # Interactive architecture diagram (open in browser)
+│   ├── blueteam-architecture.png      # Architecture diagram (PNG export)
 │   └── submission/                    # Hackathon submission materials
 │       ├── about.md                   # Devpost submission content
 │       ├── medium-article.md          # Medium article draft
@@ -384,17 +387,17 @@ The `.mcp.example.json` includes presets for:
     │
     ├── blueteam-autopilot-ops/        # CLI operations
     │   ├── SKILL.md                   # Script catalog + CLI↔MCP matrix
-    │   └── scripts/                   # 31 bash scripts (demo vs. real dispatch)
+    │   └── scripts/                   # 31 Python scripts (demo vs. real dispatch, cross-platform)
     │
     ├── blueteam-autopilot-prep/       # Environment validator (real mode only)
     │   ├── SKILL.md                   # 8-stage validation procedure
-    │   └── scripts/                   # generate-trusted-networks.sh, etc.
+    │   └── scripts/                   # generate_trusted_networks.py, etc.
     │
     ├── blueteam-autopilot-knowledge/  # Compliance docs, runbooks & GRC sync
     │   ├── SKILL.md
     │   ├── documents/                 # NIST CSF, SOC 2, runbooks, trusted networks
     │   ├── grc-providers/             # GRC integration scripts (CISO Assistant)
-    │   ├── scripts/                   # fetch-knowledge.sh, grc-sync.sh
+    │   ├── scripts/                   # fetch_knowledge.py, grc_sync.py
     │   ├── knowledge/                 # Runtime knowledge docs (NIST CSF, SOC 2, etc.)
     │   └── policies.json              # Compliance policy definitions
     │
@@ -407,7 +410,7 @@ The `.mcp.example.json` includes presets for:
     ├── blueteam-autopilot-compat/     # CLI compatibility validation
     │   ├── SKILL.md                   # Compatibility checker documentation
     │   ├── references/                # CLI command baseline (cli-baseline.json)
-    │   └── scripts/                   # check-compat.sh (5-stage validator)
+    │   └── scripts/                   # check_compat.py (5-stage validator)
     │
     └── alibaba-security-ops/          # Standalone CLI skill (legacy/evolution)
         └── SKILL.md
@@ -418,7 +421,7 @@ The `.mcp.example.json` includes presets for:
 | Skill | Purpose |
 |-------|---------|
 | `blueteam-autopilot-core` | AI agent workflow — 5-behavior triage cycle with guardrails; GRC MCP live query (CISO Assistant, Vanta) |
-| `blueteam-autopilot-ops` | 31 CLI scripts wrapping `aliyun` commands (with demo dispatch) |
+| `blueteam-autopilot-ops` | 31 Python scripts wrapping `aliyun` commands (cross-platform, demo dispatch) |
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real-mode only) |
 | `blueteam-autopilot-knowledge` | Compliance controls, runbooks, GRC sync pipeline, trusted networks |
 | `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas + `generate_incident_report` tool |
@@ -429,7 +432,7 @@ The `.mcp.example.json` includes presets for:
 
 ## Architecture
 
-![Architecture Diagram](assets/architecture-diagram.svg)
+![Architecture Diagram](assets/blueteam-architecture.png)
 
 <details>
 <summary>Text-based architecture (fallback)</summary>
@@ -445,7 +448,7 @@ The `.mcp.example.json` includes presets for:
 ┌──────────────────────────────────────────────┐
 │  ConnectOnion Agent + Chat TUI                │
 │  • QwenCloudLLM (custom LLM provider)         │
-│  • 39 function-based tools (auto-schema)       │
+│  • 40 function-based tools (auto-schema)       │
 │  • Thinking mode: internal stream aggregation  │
 │  • Plugin: HITL approval gates (SOC 2)         │
 │  • Plugin: TUI result capture                  │
@@ -453,7 +456,7 @@ The `.mcp.example.json` includes presets for:
 │  • Auto-delegation → 5 specialist workflows    │
 └──────┬───────────────────────────────────────┘
        │
-       ├─── tools.py ──▶ bash scripts ──┬─── real mode ──▶ Alibaba Cloud APIs
+       ├─── tools.py ──▶ Python scripts ──┬─── real mode ──▶ Alibaba Cloud APIs
        │                                 │                   (SAS, WAF, SLS)
        │                                 │
        │                                 └─── demo mode ──▶ fixtures/*.json
@@ -513,7 +516,7 @@ Yes! Region is auto-discovered from your `aliyun` CLI configuration (`aliyun con
 
 ### How does the standalone agent work?
 
-The agent (`blueteam.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 39 tools are registered as plain Python functions (auto-schema from type hints), and three ConnectOnion plugins handle HITL approval gates, TUI result capture, and compliance audit logging. Complex investigations are auto-delegated to 5 specialist workflows (incident-response, iam-forensic, threat-hunt, compliance-audit, continuous-monitor), each running as a sequence of phase-scoped agents with restricted tool sets. Vector embeddings (DashScope text-embedding-v3) enable cross-incident similarity search. The `--daemon` flag enables autonomous SOC monitoring.
+The agent (`blueteam.py`) uses the **ConnectOnion** framework to provide a full agent runtime with Textual TUI. A custom `QwenCloudLLM` provider connects to Qwen Cloud's OpenAI-compatible API, using internal streaming aggregation to preserve thinking mode quality. 40 tools are registered as plain Python functions (auto-schema from type hints), and three ConnectOnion plugins handle HITL approval gates, TUI result capture, and compliance audit logging. Complex investigations are auto-delegated to 5 specialist workflows (incident-response, iam-forensic, threat-hunt, compliance-audit, continuous-monitor), each running as a sequence of phase-scoped agents with restricted tool sets. Vector embeddings (DashScope text-embedding-v3) enable cross-incident similarity search. The `--daemon` flag enables autonomous SOC monitoring.
 
 ### How do I contribute or report issues?
 

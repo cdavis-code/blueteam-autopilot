@@ -46,6 +46,7 @@ _STATE_CHANGING_TOOLS = {
     "delete_stale_user",
     "execute_local_script",
     "run_command",
+    "write_file",
 }
 
 _MAX_OUTPUT_LENGTH = 4000
@@ -128,6 +129,18 @@ def _run_dry_run(tool_name: str, arguments: dict) -> str:
             "dry_run": True,
             "command": f"bash -c '{command}'",
             "message": "This will execute the above bash command. Review carefully before approving.",
+        })
+
+    if tool_name == "write_file":
+        file_path = arguments.get("file_path", "")
+        content = arguments.get("content", "")
+        preview = content[:200] + "..." if len(content) > 200 else content
+        return json.dumps({
+            "dry_run": True,
+            "file_path": file_path,
+            "content_preview": preview,
+            "bytes_to_write": len(content.encode("utf-8")),
+            "message": "This will write the above content to the file. Review the path and content carefully.",
         })
 
     script_map = {

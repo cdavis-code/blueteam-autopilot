@@ -743,7 +743,7 @@ def main() -> None:
     # Build welcome message
     thinking_label = "on" if ENABLE_THINKING else "off"
     welcome = (
-        f"**BlueTeam v3.0.4** — SecOps Agent\n\n"
+        f"**BlueTeam v3.1.0** — SecOps Agent\n\n"
         f"Model: `{QWEN_MODEL}` | "
         f"Thinking: `{thinking_label}` | "
         f"Mode: `{SECURITY_CENTER_MODE}`\n\n"

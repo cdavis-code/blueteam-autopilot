@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>blueteam-autopilot</id>
+    <version>3.0.5</version>
+    <title>BlueTeam Autopilot</title>
+    <authors>Chris Davis</authors>
+    <owners>cdavis-code</owners>
+    <licenseUrl>https://github.com/cdavis-code/blueteam-autopilot/blob/main/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/cdavis-code/blueteam-autopilot</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/cdavis-code/blueteam-autopilot/main/assets/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <packageSourceUrl>https://github.com/cdavis-code/blueteam-autopilot</packageSourceUrl>
+    <projectSourceUrl>https://github.com/cdavis-code/blueteam-autopilot</projectSourceUrl>
+    <docsUrl>https://github.com/cdavis-code/blueteam-autopilot/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/cdavis-code/blueteam-autopilot/issues</bugTrackerUrl>
+    <tags>security secops alibaba-cloud blueteam automation agent ai</tags>
+    <summary>SecOps Agent powered by Qwen Cloud + ConnectOnion for multi-cloud security operations</summary>
+    <description>BlueTeam Autopilot is a standalone Python agent for Alibaba Cloud SecOps. Built on Qwen Cloud + ConnectOnion framework with 39 security tools and human-in-the-loop guardrails.
+
+Features:
+- Interactive TUI with Textual
+- 39 security tools (events, vulnerabilities, WAF, IAM forensics)
+- 5 specialist workflows (incident response, threat hunt, compliance audit, etc.)
+- Human-in-the-loop approval for state-changing actions
+- Demo mode with fixture data (no cloud credentials needed)
+- Real mode with Alibaba Cloud CLI integration</description>
+    <releaseNotes>See https://github.com/cdavis-code/blueteam-autopilot/blob/main/CHANGELOG.md</releaseNotes>
+    <dependencies>
+      <dependency id="python3" version="3.10.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

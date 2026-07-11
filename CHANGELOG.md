@@ -5,6 +5,51 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] — 2026-07-11
+
+### Changed
+
+#### Bash-to-Python Script Migration (Cross-Platform)
+- **All 31 ops scripts converted from bash to Python** — `skills/blueteam-autopilot-ops/scripts/` now contains only `.py` files. Enables Windows compatibility without requiring bash/Git Bash.
+- **All 3 prep scripts converted** — `validate_configuration.py`, `generate_trusted_networks.py`, `configure_policies.py` replace their `.sh` predecessors.
+- **Shared infrastructure** — `_helpers.py` replaces `_discover-region.sh` and `_rewrite-timestamps.sh` with Python functions (`discover_region()`, `rewrite_timestamps()`, `load_fixture()`).
+- **`_base.py`** — New `BaseScript` class with demo/real mode dispatch, `run_aliyun()` subprocess wrapper, and lazy region discovery. `DryRunMixin` provides `--real` flag handling for state-changing scripts.
+- **`tools.py` dispatcher update** — `_run_script()` now prefers `.py` files over `.sh`, using `sys.executable` for cross-platform Python invocation. Converts hyphen-based script names to underscore-based Python filenames automatically.
+- **`aliyun` CLI calls unchanged** — Python scripts invoke `aliyun` CLI via `subprocess.run()` (same as bash). The `aliyun` CLI is a Go binary available on all platforms, so no API call changes were needed.
+
+### Removed
+
+- **All 33 bash scripts** — `.sh` files deleted from `skills/blueteam-autopilot-ops/scripts/` (31 files) and `skills/blueteam-autopilot-prep/scripts/` (3 files) after Python equivalents were verified.
+- **`requirements.txt`** — Removed in favor of `pyproject.toml` (PEP 621). Install via `pip install -e .`
+
+### Documentation
+
+- **AGENTS.md** — Updated install instructions (`pip install -e .`), script references (`.sh` → `.py`), tool count (39 → 40), and architecture description (bash → Python scripts).
+- **README.md** — Updated directory tree, skill summary, and architecture diagram references.
+
+---
+
+## [3.0.5] — 2026-07-11
+
+### Added
+
+#### File Writing Tool
+- **`write_file` tool (40th tool)** — New tool in `tools.py` that writes text content to a file on disk. Accepts `file_path` (absolute or project-relative) and `content` parameters. Creates parent directories automatically. Returns JSON with status, file path, and bytes written.
+- **HITL approval for `write_file`** — Added to `_STATE_CHANGING_TOOLS` in both `tools.py` and `plugins.py`. Dry-run preview shows file path, content preview (first 200 chars), and byte count before requiring operator approval.
+- **Tool count: 39 → 40** — `write_file` added to `ALL_TOOLS` list.
+
+### Changed
+
+#### Documentation — TUI vs. Daemon Positioning
+- **README.md** — Added positioning note clarifying that the primary use case is autonomous monitoring via `--daemon` mode. The interactive TUI is designed for ad-hoc investigation, testing, and development — not as a replacement for a full SOC dashboard.
+- **about.md** — Reframed "What it does" section to lead with the daemon-as-primary-deployment message. Added `write_file` as item 12 in the capability list. Updated tool count from 39 → 40 and categories from 8 → 9 (added "file operations").
+- **README.md demo mode FAQ** — Clarified that demo mode requires a Qwen Cloud API key (not fully offline).
+
+#### Debug Logging Cleanup
+- Removed temporary `[HITL]` and `[TUI_APPROVE]` debug logging from `plugins.py` and `blueteam.py` that was added during `write_file` HITL integration testing.
+
+---
+
 ## [3.0.4] — 2026-07-11
 
 ### Added

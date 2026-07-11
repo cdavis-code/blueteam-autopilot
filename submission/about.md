@@ -10,7 +10,7 @@ When Alibaba Cloud launched Agentic SOC, it solved the alert surfacing problem. 
 
 Security teams using Alibaba Cloud face a constant flood of Security Center alerts, WAF logs, and vulnerability reports. Manually triaging every event takes hours. Real attacks go uninvestigated in the meantime.
 
-Alibaba Blueteam is a standalone AI agent that automates the full triage cycle:
+Alibaba Blueteam is a standalone AI agent that automates the full triage cycle. While the interactive TUI is great for development and ad-hoc investigations, the primary production deployment is the autonomous SOC daemon (`--daemon`), which continuously monitors, triages, and escalates without human intervention.
 
 1. **Discovers** security events from Agentic SOC and WAF
 2. **Investigates** each incident with deep-dive analysis (attack chain, CVEs, attacker IPs)
@@ -23,6 +23,7 @@ Alibaba Blueteam is a standalone AI agent that automates the full triage cycle:
 9. **Audits compliance posture** via a 4-phase workflow (inventory → map → evidence → report) with control gap analysis
 10. **Monitors autonomously** as a daemon — continuously scanning for new alerts, auto-triaging by severity, and escalating only high-severity findings
 11. **Remembers past incidents** — vector embeddings (DashScope text-embedding-v3) enable cross-incident similarity search ("Have we seen this before?")
+12. **Writes files to disk** — save threat reports, investigation notes, and any text content via the `write_file` tool (with HITL approval)
 
 All state-changing actions require explicit human approval. SOC 2 CC6.8.3 compliant by design.
 
@@ -69,7 +70,7 @@ The agent runtime uses ConnectOnion's `Agent` class with a custom LLM provider. 
 
 The agent processing flow:
 
-1. `QwenCloudLLM` sends messages + 39 built-in tool definitions to Qwen Cloud (with internal `stream=True`), plus any dynamically discovered MCP tools
+1. `QwenCloudLLM` sends messages + 40 built-in tool definitions to Qwen Cloud (with internal `stream=True`), plus any dynamically discovered MCP tools
 2. Stream is aggregated internally — reasoning content, tool call arguments, and text deltas are collected into a single `LLMResponse`
 3. ConnectOnion's `tool_executor` dispatches tool calls to plain Python functions
 4. Results feed back as tool messages; loop repeats until final answer
@@ -80,7 +81,7 @@ Key Qwen Cloud API features used:
 
 | Feature | Qwen Cloud API | Usage in Agent |
 |---------|----------------|----------------|
-| **Function calling** | `tools` parameter with auto-generated schemas | All 39 built-in tools + dynamic MCP tools as plain Python functions (type hints → JSON schema) |
+| **Function calling** | `tools` parameter with auto-generated schemas | All 40 built-in tools + dynamic MCP tools as plain Python functions (type hints → JSON schema) |
 | **Thinking mode** | `extra_body={"enable_thinking": true}` | Complex multi-step tool orchestration reasoning |
 | **Parallel tool calls** | `parallel_tool_calls=True` | Independent queries (e.g., assets + events simultaneously) |
 | **Streaming** | `stream=True` (internal aggregation) | Preserves thinking mode quality; aggregated before returning to ConnectOnion |
@@ -157,7 +158,7 @@ The existing skills become the tool implementation layer:
 
 **Built on Qwen Cloud + ConnectOnion.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, and structured output, delivered through the ConnectOnion framework's Agent class, plugin system, and Textual TUI. The agent isn't a wrapper around a chat API — it's a proper tool-orchestrating runtime with HITL plugins, compliance logging, and token tracking.
 
-**39 built-in tools + dynamic MCP tools.** The agent ships 39 registered tools across 8 categories (core, events, WAF, response, reporting, IAM forensics, vector memory, monitoring), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
+**40 built-in tools + dynamic MCP tools.** The agent ships 40 registered tools across 9 categories (core, events, WAF, response, reporting, IAM forensics, vector memory, monitoring, file operations), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
 
 **Structured incident response reports.** The `generate_incident_report` tool aggregates data from 9 sources (event detail, alerts, assets, vulnerabilities, response policies, WAF instance, WAF events, NIST CSF controls, SOC 2 controls) into a single structured context package. Pydantic models enforce the schema: attack chain stages, blast radius, investigation timeline, confidence ratings, and a complete audit trail. Reports are suitable for export to ticket systems, compliance audits, or management review.
 
