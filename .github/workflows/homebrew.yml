@@ -63,19 +63,6 @@ jobs:
           echo "Updated formula:"
           head -10 "$FORMULA"
 
-      - name: Register as Homebrew tap
-        run: |
-          # Symlink the checked-out repo so brew sees it as a tap
-          TAP_DIR="$(brew --repository)/Library/Taps/cdavis-code/homebrew-blueteam"
-          mkdir -p "$(dirname "$TAP_DIR")"
-          ln -s "$(pwd)/homebrew-blueteam" "$TAP_DIR"
-
-      - name: Update Python resource hashes
-        run: |
-          brew update-python-resources cdavis-code/blueteam/blueteam-autopilot
-          echo "Updated Python resources:"
-          grep -A 2 "resource " homebrew-blueteam/Formula/blueteam-autopilot.rb | head -20
-
       - name: Commit and push to homebrew-blueteam
         run: |
           cd homebrew-blueteam
