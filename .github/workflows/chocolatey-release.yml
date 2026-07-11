@@ -89,11 +89,16 @@ jobs:
           cd pkg/chocolatey
           $nupkg = Get-ChildItem -Filter "*.nupkg" | Select-Object -First 1
           
-          # Register API key
-          choco apiKey add --name="chocolatey" --source="https://push.chocolatey.org/" --api-key="$env:CHOCO_API_KEY"
+          if (-not $nupkg) {
+            throw "No .nupkg file found in pkg/chocolatey"
+          }
           
-          # Push package
-          choco push $nupkg.FullName --source="https://push.chocolatey.org/"
+          # Push package with API key
+          choco push $nupkg.FullName --source="https://push.chocolatey.org/" --api-key="$env:CHOCO_API_KEY"
+          
+          if ($LASTEXITCODE -ne 0) {
+            throw "choco push failed with exit code $LASTEXITCODE"
+          }
           
           Write-Host "Pushed $($nupkg.Name) to Chocolatey Community Repository" -ForegroundColor Green
       
