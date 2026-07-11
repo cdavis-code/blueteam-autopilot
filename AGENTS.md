@@ -111,10 +111,10 @@ Region is auto-discovered from `aliyun configure` output. Set `ALIBABA_REGION` t
 
 ```bash
 # Demo mode (default)
-bash skills/blueteam-autopilot-ops/scripts/list-events.sh
+python skills/blueteam-autopilot-ops/scripts/list_events.py
 
 # Real mode
-SECURITY_CENTER_MODE=real bash skills/blueteam-autopilot-ops/scripts/list-events.sh
+SECURITY_CENTER_MODE=real python skills/blueteam-autopilot-ops/scripts/list_events.py
 ```
 
 Scripts source `.env` automatically from project root.
@@ -123,7 +123,7 @@ Scripts source `.env` automatically from project root.
 
 1. Verify credentials: `aliyun configure list`
 2. Test CLI: `aliyun sas describe-version-config`
-3. Check region auto-discovery: scripts call `skills/blueteam-autopilot-ops/scripts/_discover-region.sh`
+3. Check region auto-discovery: scripts call `_helpers.py:discover_region()`
 4. If scripts timeout: may need Security Center Enterprise edition (code 4) or Ultimate (5) for Agentic SOC features
 
 ### State-changing actions
@@ -162,10 +162,9 @@ To add a new state-changing tool, append to `_STATE_CHANGING_TOOLS` in `plugins.
 | `blueteam-autopilot-core` | Agent role, behavior workflow, compliance controls | Yes (system_prompt.py references it) |
 | `blueteam-autopilot-ops` | 17 bash scripts wrapping `aliyun` CLI | Yes (tools.py calls scripts) |
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real mode only) | No (manual pre-flight checks) |
-| `blueteam-autopilot-knowledge` | Compliance docs, runbooks, GRC sync | Yes (tools call get-knowledge.sh) |
+| `blueteam-autopilot-knowledge` | Compliance docs, runbooks, GRC sync | Yes (tools call get_knowledge.py) |
 | `blueteam-autopilot-reports` | Incident report templates + render script | Yes (generate_incident_report tool) |
 | `blueteam-autopilot-compat` | CLI compatibility validation | No (dev/test utility) |
-| `alibaba-security-ops` | Legacy CLI skill (project evolution) | No |
 
 ---
 

@@ -57,28 +57,28 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 | # | MCP Tool | CLI Script | Demo Fixture | Alibaba API | Category |
 |---|----------|------------|-------------|-------------|----------|
-| 1 | `ping` | `ping.sh` | `../blueteam-autopilot-core/fixtures/ping.json` | `aliyun version` + credential check | Health |
-| 2 | `get_account_context` | `get-account-context.sh` | `../blueteam-autopilot-core/fixtures/account_context.json` | `sas describe-version-config` | Context |
-| 3 | `list_security_events` | `list-events.sh` | `../blueteam-autopilot-core/fixtures/events_recent.json` | `sas describe-susp-events` | Events |
-| 4 | `get_security_event_detail` | `get-event-detail.sh` | `../blueteam-autopilot-core/fixtures/event_detail.json` | `sas describe-susp-event-detail` | Events |
-| 5 | `list_alerts_for_event` | `list-alerts.sh` | `../blueteam-autopilot-core/fixtures/alerts.json` | `sas describe-susp-event-detail` (extract AlertList) | Events |
-| 6 | `list_vulnerabilities` | `list-vulnerabilities.sh` | `../blueteam-autopilot-core/fixtures/vulnerabilities.json` | `sas describe-vul-list` | Vulnerabilities |
-| 7 | `get_vulnerability_detail` | `get-vulnerability-detail.sh` | `../blueteam-autopilot-core/fixtures/vulnerability_detail.json` | `sas describe-vul-details` | Vulnerabilities |
-| 8 | `list_response_policies` | `list-response-policies.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` | `cloud-siem ListAutomateResponseConfigs` | Response |
-| 9 | `execute_response_policy` | `execute-response-policy.sh` | `../blueteam-autopilot-core/fixtures/response_policies.json` (simulated) | `cloud-siem UpdateAutomateResponseConfigStatus` | Response |
-| 10 | `get_waf_instance_info` | `get-waf-instance.sh` | `../blueteam-autopilot-core/fixtures/waf_instance.json` | `waf-openapi describe-instance` | WAF |
-| 11 | `list_waf_security_events` | `list-waf-events.sh` | `../blueteam-autopilot-core/fixtures/waf_events.json` | `sls GetLogs` (WAF logstore) | WAF |
-| 12 | `list_waf_top_rules` | `list-waf-top-rules.sh` | `../blueteam-autopilot-core/fixtures/waf_top_rules.json` | `waf-openapi describe-rule-hits-top-rule-id` | WAF |
-| 13 | `list_waf_top_ips` | `list-waf-top-ips.sh` | `../blueteam-autopilot-core/fixtures/waf_top_ips.json` | `waf-openapi describe-rule-hits-top-client-ip` | WAF |
-| 14 | `list_assets` | `list-assets.sh` | `../blueteam-autopilot-core/fixtures/assets.json` | `sas describe-cloud-center-instances` | Assets |
-| 15 | `list_knowledge_documents` | `list-knowledge.sh` | `../blueteam-autopilot-core/fixtures/knowledge_list.json` | Local file discovery (no API) | Knowledge |
-| 16 | `get_knowledge_document` | `get-knowledge.sh` | No fixture needed — reads local markdown files | Local file read (no API) | Knowledge |
+| 1 | `ping` | `ping.py` | `../blueteam-autopilot-core/fixtures/ping.json` | `aliyun version` + credential check | Health |
+| 2 | `get_account_context` | `get_account_context.py` | `../blueteam-autopilot-core/fixtures/account_context.json` | `sas describe-version-config` | Context |
+| 3 | `list_security_events` | `list_events.py` | `../blueteam-autopilot-core/fixtures/events_recent.json` | `sas describe-susp-events` | Events |
+| 4 | `get_security_event_detail` | `get_event_detail.py` | `../blueteam-autopilot-core/fixtures/event_detail.json` | `sas describe-susp-event-detail` | Events |
+| 5 | `list_alerts_for_event` | `list_alerts.py` | `../blueteam-autopilot-core/fixtures/alerts.json` | `sas describe-susp-event-detail` (extract AlertList) | Events |
+| 6 | `list_vulnerabilities` | `list_vulnerabilities.py` | `../blueteam-autopilot-core/fixtures/vulnerabilities.json` | `sas describe-vul-list` | Vulnerabilities |
+| 7 | `get_vulnerability_detail` | `get_vulnerability_detail.py` | `../blueteam-autopilot-core/fixtures/vulnerability_detail.json` | `sas describe-vul-details` | Vulnerabilities |
+| 8 | `list_response_policies` | `list_response_policies.py` | `../blueteam-autopilot-core/fixtures/response_policies.json` | `cloud-siem ListAutomateResponseConfigs` | Response |
+| 9 | `execute_response_policy` | `execute_response_policy.py` | `../blueteam-autopilot-core/fixtures/response_policies.json` (simulated) | `cloud-siem UpdateAutomateResponseConfigStatus` | Response |
+| 10 | `get_waf_instance_info` | `get_waf_instance.py` | `../blueteam-autopilot-core/fixtures/waf_instance.json` | `waf-openapi describe-instance` | WAF |
+| 11 | `list_waf_security_events` | `list_waf_events.py` | `../blueteam-autopilot-core/fixtures/waf_events.json` | `sls GetLogs` (WAF logstore) | WAF |
+| 12 | `list_waf_top_rules` | `list_waf_top_rules.py` | `../blueteam-autopilot-core/fixtures/waf_top_rules.json` | `waf-openapi describe-rule-hits-top-rule-id` | WAF |
+| 13 | `list_waf_top_ips` | `list_waf_top_ips.py` | `../blueteam-autopilot-core/fixtures/waf_top_ips.json` | `waf-openapi describe-rule-hits-top-client-ip` | WAF |
+| 14 | `list_assets` | `list_assets.py` | `../blueteam-autopilot-core/fixtures/assets.json` | `sas describe-cloud-center-instances` | Assets |
+| 15 | `list_knowledge_documents` | `list_knowledge.py` | `../blueteam-autopilot-core/fixtures/knowledge_list.json` | Local file discovery (no API) | Knowledge |
+| 16 | `get_knowledge_document` | `get_knowledge.py` | No fixture needed — reads local markdown files | Local file read (no API) | Knowledge |
 
 **Utility script** (not an MCP tool but used by behaviors):
 
 | Script | Purpose | Alibaba API |
 |--------|---------|-------------|
-| `verify-log-delivery.sh` | Verify SLS log delivery | `sls GetProject`, `sls ListLogStores`, `sls GetLogs` |
+| `verify_log_delivery.py` | Verify SLS log delivery | `sls GetProject`, `sls ListLogStores`, `sls GetLogs` |
 
 ---
 
@@ -88,23 +88,23 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `ping.sh` | Health check — CLI, credentials, region, API connectivity | `./ping.sh` |
-| `get-account-context.sh` | Region, Security Center edition, Agentic SOC status | `./get-account-context.sh` |
+| `ping.py` | Health check — CLI, credentials, region, API connectivity | `./ping.py` |
+| `get_account_context.py` | Region, Security Center edition, Agentic SOC status | `./get_account_context.py` |
 
 ### Security Events
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list-events.sh` | List Security Center events | `./list-events.sh [time_range] [severity]` |
-| `get-event-detail.sh` | Event deep-dive with attack chain | `./get-event-detail.sh <event_id>` |
-| `list-alerts.sh` | Alerts grouped by source (WAF, CWPP, etc.) | `./list-alerts.sh <event_id>` |
+| `list_events.py` | List Security Center events | `./list_events.py [time_range] [severity]` |
+| `get_event_detail.py` | Event deep-dive with attack chain | `./get_event_detail.py <event_id>` |
+| `list_alerts.py` | Alerts grouped by source (WAF, CWPP, etc.) | `./list_alerts.py <event_id>` |
 
 ### Vulnerabilities
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list-vulnerabilities.sh` | List detected vulnerabilities | `./list-vulnerabilities.sh [severity] [asset_id] [vul_type] [page]` |
-| `get-vulnerability-detail.sh` | Deep vuln info: CVE, description, fix | `./get-vulnerability-detail.sh <vul_id>` |
+| `list_vulnerabilities.py` | List detected vulnerabilities | `./list_vulnerabilities.py [severity] [asset_id] [vul_type] [page]` |
+| `get_vulnerability_detail.py` | Deep vuln info: CVE, description, fix | `./get_vulnerability_detail.py <vul_id>` |
 
 ### Response Policies
 
@@ -112,31 +112,31 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list-response-policies.sh` | List Agentic SOC response policies | `./list-response-policies.sh [scope]` |
-| `execute-response-policy.sh` | Enable policy (dry-run by default) | `./execute-response-policy.sh <policy_id> [event_id] [--real]` |
+| `list_response_policies.py` | List Agentic SOC response policies | `./list_response_policies.py [scope]` |
+| `execute_response_policy.py` | Enable policy (dry-run by default) | `./execute_response_policy.py <policy_id> [event_id] [--real]` |
 
 ### WAF (Web Application Firewall)
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `get-waf-instance.sh` | Discover WAF instance in region | `./get-waf-instance.sh` |
-| `list-waf-events.sh` | WAF attack logs from SLS | `./list-waf-events.sh [time_range] [attack_type]` |
-| `list-waf-top-rules.sh` | Top 10 most triggered WAF rules | `./list-waf-top-rules.sh [time_range]` |
-| `list-waf-top-ips.sh` | Top 10 attacker IPs by hit count | `./list-waf-top-ips.sh [time_range]` |
-| `verify-log-delivery.sh` | Verify SLS log delivery | `./verify-log-delivery.sh` |
+| `get_waf_instance.py` | Discover WAF instance in region | `./get_waf_instance.py` |
+| `list_waf_events.py` | WAF attack logs from SLS | `./list_waf_events.py [time_range] [attack_type]` |
+| `list_waf_top_rules.py` | Top 10 most triggered WAF rules | `./list_waf_top_rules.py [time_range]` |
+| `list_waf_top_ips.py` | Top 10 attacker IPs by hit count | `./list_waf_top_ips.py [time_range]` |
+| `verify_log_delivery.py` | Verify SLS log delivery | `./verify_log_delivery.py` |
 
 ### Assets
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list-assets.sh` | List cloud assets (ECS) in Security Center | `./list-assets.sh [criteria] [page]` |
+| `list_assets.py` | List cloud assets (ECS) in Security Center | `./list_assets.py [criteria] [page]` |
 
 ### Knowledge
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list-knowledge.sh` | List all available knowledge documents | `./list-knowledge.sh` |
-| `get-knowledge.sh` | Fetch a specific knowledge document | `./get-knowledge.sh <document_type>` |
+| `list_knowledge.py` | List all available knowledge documents | `./list_knowledge.py` |
+| `get_knowledge.py` | Fetch a specific knowledge document | `./get_knowledge.py <document_type>` |
 
 ---
 
@@ -227,17 +227,17 @@ All scripts pipe output through `python3 -m json.tool` or inline Python for form
 
 These scripts are called from [blueteam-autopilot-core](../blueteam-autopilot-core/) behaviors:
 
-- **Behavior 1 (Discovery):** `list-events.sh`, `list-assets.sh`
-- **Behavior 2 (Deep-Dive):** `get-event-detail.sh`, `list-alerts.sh`
-- **Behavior 3 (Recommendation):** `list-vulnerabilities.sh`, `list-response-policies.sh`
-- **Behavior 4 (Action Proposal):** `execute-response-policy.sh`, `list-waf-top-ips.sh`
-- **Behavior 5 (Reporting):** `list-waf-events.sh`, `list-waf-top-rules.sh`, `get-knowledge.sh`
+- **Behavior 1 (Discovery):** `list_events.py`, `list_assets.py`
+- **Behavior 2 (Deep-Dive):** `get_event_detail.py`, `list_alerts.py`
+- **Behavior 3 (Recommendation):** `list_vulnerabilities.py`, `list_response_policies.py`
+- **Behavior 4 (Action Proposal):** `execute_response_policy.py`, `list_waf_top_ips.py`
+- **Behavior 5 (Reporting):** `list_waf_events.py`, `list_waf_top_rules.py`, `get_knowledge.py`
 
 Alternatively, use MCP tools directly if available:
-- `list_security_events` instead of `list-events.sh`
-- `get_security_event_detail` instead of `get-event-detail.sh`
-- `list_assets` instead of `list-assets.sh`
-- `get_knowledge_document` instead of `get-knowledge.sh`
+- `list_security_events` instead of `list_events.py`
+- `get_security_event_detail` instead of `get_event_detail.py`
+- `list_assets` instead of `list_assets.py`
+- `get_knowledge_document` instead of `get_knowledge.py`
 
 ---
 
@@ -247,7 +247,7 @@ Alternatively, use MCP tools directly if available:
 
 1. Verify time range is correct (events may be outside window)
 2. Check Security Center edition supports event listing
-3. Try broader time range: `./list-events.sh last24Hours`
+3. Try broader time range: `./list_events.py last24Hours`
 
 ### API Returns 403
 
@@ -257,12 +257,12 @@ Alternatively, use MCP tools directly if available:
 
 ### WAF Events Not Found
 
-1. Verify WAF instance exists: `./get-waf-instance.sh`
-2. Check log delivery is enabled: `./verify-log-delivery.sh`
+1. Verify WAF instance exists: `./get_waf_instance.py`
+2. Check log delivery is enabled: `./verify_log_delivery.py`
 3. Ensure WAF logs are flowing to SLS
 
 ### Knowledge Documents Not Found
 
-1. Run `./list-knowledge.sh` to see search paths
+1. Run `./list_knowledge.py` to see search paths
 2. Set `KNOWLEDGE_DIR` to override: `export KNOWLEDGE_DIR=/path/to/knowledge`
 3. Check that document filenames match the registry (e.g., `compliance_nist.md`)

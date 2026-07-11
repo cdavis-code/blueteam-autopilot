@@ -5,6 +5,44 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] — 2026-07-11
+
+### Added
+
+#### Homebrew Distribution
+- **Homebrew tap** — `brew tap cdavis-code/blueteam && brew install blueteam-autopilot` for macOS/Linux installation
+- **`homebrew/Formula/blueteam-autopilot.rb`** — Homebrew formula with `virtualenv_install_with_resources` for all dependencies
+- **`.github/workflows/homebrew.yml`** — GitHub Actions workflow to auto-update formula SHA256 hashes on release publish
+- **Multi-location .env loading** — `config.py` now searches for `.env` in priority order: (1) current working directory, (2) `~/.blueteam/`, (3) project root
+
+#### Python 3.10+ Validation
+- **Prep skill Stage 1** — Added Python version check (Check 1b) to validate Python 3.10+ is installed before proceeding with environment setup
+
+### Changed
+
+#### GRC Provider Architecture Migration
+- **Bash to Python class-based architecture** — GRC providers migrated from shell scripts sourcing `_template.sh` to Python classes inheriting from `BaseGRCProvider` ABC
+- **`grc-providers/_base.py`** — New `BaseGRCProvider` abstract base class with `connect()`, `list_frameworks()`, `get_framework()` contract methods and dynamic provider loading via `get_provider()`
+- **`grc-providers/ciso_assistant.py`** — `CisoAssistantProvider` subclass using `urllib.request` for HTTP calls (replacing `curl`)
+
+#### Remaining Bash Scripts Migration
+- **7 additional bash scripts converted to Python** — Completing the bash-to-Python migration:
+  - `fetch-knowledge.sh` → `fetch_knowledge.py`
+  - `grc-sync.sh` → `grc_sync.py`
+  - `grc-webhook.sh` → `grc_webhook.py`
+  - `test-grc-integration.sh` → `test_grc_integration.py`
+  - `ciso-assistant.sh` → `ciso_assistant.py` (GRC provider)
+  - `_template.sh` → `_base.py` (GRC provider base)
+  - `check-compat.sh` → `check_compat.py`
+- **All documentation updated** — All `.sh` references converted to `.py` across 10+ SKILL.md files, BEHAVIORS.md, fixtures README, and reference documents
+
+### Removed
+
+- **7 bash scripts** — `.sh` files deleted from `skills/blueteam-autopilot-knowledge/scripts/` (4 files), `skills/blueteam-autopilot-knowledge/grc-providers/` (2 files), and `skills/blueteam-autopilot-compat/scripts/` (1 file)
+- **`alibaba-security-ops` skill** — Legacy CLI skill removed (7 → 6 skills). Historical references preserved in CHANGELOG.md and submission docs
+
+---
+
 ## [3.1.0] — 2026-07-11
 
 ### Changed

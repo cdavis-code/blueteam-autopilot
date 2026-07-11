@@ -149,7 +149,7 @@ The `--auto-approve` CLI flag explicitly enables auto-approval for development/t
 
 ### 3.1 GRC Document Review Gate
 
-**File:** `skills/blueteam-autopilot-knowledge/scripts/grc-sync.sh` (lines 426–449)
+**File:** `skills/blueteam-autopilot-knowledge/scripts/grc_sync.py` (human review gate)
 
 GRC sync requires human review before writing server responses to knowledge documents:
 
@@ -161,7 +161,7 @@ This prevents a compromised or MITM'd GRC server from injecting malicious conten
 
 ### 3.2 RCE Prevention in Validation
 
-**File:** `skills/blueteam-autopilot-knowledge/scripts/grc-sync.sh` — `validate_controls()` (lines 129–146)
+**File:** `skills/blueteam-autopilot-knowledge/scripts/grc_sync.py` — `validate_controls()`
 
 Untrusted content from GRC servers is passed to Python via stdin (`sys.stdin.read()`) rather than interpolated into shell commands or Python string literals. This prevents triple-quote injection attacks that could achieve remote code execution.
 
@@ -232,7 +232,7 @@ All tools except the seven state-changing tools listed in Section 2.1 are read-o
 | Auto-approval scope | CLI flag `--auto-approve` / `--no-auto-approve` | Yes — CLI flag |
 | Output truncation limit | `connectonion_qwen/plugins.py` `_MAX_OUTPUT_LENGTH` | Yes — constant (4000) |
 | System prompt guardrails | `connectonion_qwen/system_prompt.py` | Yes — edit prompt text |
-| GRC review gate | `skills/blueteam-autopilot-knowledge/scripts/grc-sync.sh` | Hardcoded (supply chain boundary) |
+| GRC review gate | `skills/blueteam-autopilot-knowledge/scripts/grc_sync.py` | Hardcoded (supply chain boundary) |
 
 ---
 

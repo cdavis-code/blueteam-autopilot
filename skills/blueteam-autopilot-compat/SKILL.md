@@ -61,7 +61,7 @@ The baseline (`references/cli-baseline.json`) covers **26 CLI commands** across 
 ### Demo Mode (default)
 
 ```bash
-./scripts/check-compat.sh
+python ./scripts/check_compat.py
 ```
 
 Verifies command existence and parameter acceptance without making any API calls.
@@ -69,7 +69,7 @@ Verifies command existence and parameter acceptance without making any API calls
 ### Real Mode (live API tests)
 
 ```bash
-SECURITY_CENTER_MODE=real ./scripts/check-compat.sh --real
+SECURITY_CENTER_MODE=real python ./scripts/check_compat.py --real
 ```
 
 Adds live API smoke tests that verify response structures contain expected fields.
@@ -92,7 +92,7 @@ This is informational. The CLI may still be compatible — run the check to conf
 
 ```
 ✗ describe-susp-events — command not recognized
-  Affected: list-events.sh
+  Affected: list_events.py
 ```
 
 The CLI no longer recognizes this command. Possible causes:
@@ -110,7 +110,7 @@ The CLI no longer recognizes this command. Possible causes:
 
 ```
 ⚠ describe-susp-events — params not found in help: --time-range
-  Affected: list-events.sh
+  Affected: list_events.py
 ```
 
 The command exists but a parameter is no longer recognized. Possible causes:

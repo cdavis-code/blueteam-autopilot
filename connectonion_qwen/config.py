@@ -10,10 +10,24 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-# Load .env from project root (connectonion_qwen/ is one level deep)
-# If BLUETEAM_PROJECT_ROOT is set (auto-sync), use that instead
+# Load .env with priority order:
+# 1. Current working directory (where blueteam is executed from)
+# 2. ~/.blueteam/.env (Homebrew/pip install location)
+# 3. Project root (development/git clone location)
+_cwd_env = Path.cwd() / ".env"
+_home_env = Path.home() / ".blueteam" / ".env"
 _PROJECT_ROOT = Path(os.environ.get("BLUETEAM_PROJECT_ROOT", Path(__file__).parent.parent))
-load_dotenv(_PROJECT_ROOT / ".env")
+_project_env = _PROJECT_ROOT / ".env"
+
+if _cwd_env.exists():
+    load_dotenv(_cwd_env)
+    logger.info(f"Loaded .env from current directory: {_cwd_env}")
+elif _home_env.exists():
+    load_dotenv(_home_env)
+    logger.info(f"Loaded .env from home directory: {_home_env}")
+else:
+    load_dotenv(_project_env)
+    logger.info(f"Loaded .env from project root: {_project_env}")
 
 
 # ---------------------------------------------------------------------------

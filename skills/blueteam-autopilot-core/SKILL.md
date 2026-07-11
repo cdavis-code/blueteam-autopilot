@@ -76,9 +76,9 @@ regardless of initial severity scoring.
 - **SOC 2:** CC6.1 (Boundary Protection), CC6.8 (Unauthorized Activity Triage)
 
 > **GRC Sync:** Compliance controls above may be sourced from a GRC tool (e.g., CISO Assistant Community)
-> via the knowledge skill's `grc-sync.sh` mechanism. When GRC sync is enabled, the controls in
+> via the knowledge skill's `grc_sync.py` mechanism. When GRC sync is enabled, the controls in
 > [blueteam-autopilot-knowledge](../blueteam-autopilot-knowledge/) are the authoritative source.
-> Run `./scripts/grc-sync.sh --list` from the knowledge skill to check sync status.
+> Run `python ./scripts/grc_sync.py --list` from the knowledge skill to check sync status.
 
 > **GRC MCP Live Query:** When CISO Assistant or Vanta MCP servers are configured, the agent can
 > query live GRC data directly during incident response — checking control status, framework

@@ -23,7 +23,7 @@ You are performing the **incident discovery** phase of a SecOps triage cycle.
 3. Call `list_security_events` with the appropriate time range shortcut and
    severity filter.
    
-   **Alternative (CLI):** Run `../blueteam-autopilot-ops/scripts/list-events.sh [time_range] [severity]`
+   **Alternative (CLI):** Run `python ../blueteam-autopilot-ops/scripts/list_events.py [time_range] [severity]`
 
 4. Sort results by severity (CRITICAL > HIGH > MEDIUM > LOW).
 5. Cross-reference affected assets against the live asset list from step 2.
@@ -65,7 +65,7 @@ event.
 1. Call `get_security_event_detail` with the event ID.
    Extract: attack chain, source product, attacker IPs, related alerts, CVEs.
    
-   **Alternative (CLI):** Run `../blueteam-autopilot-ops/scripts/get-event-detail.sh <event_id>`
+   **Alternative (CLI):** Run `python ../blueteam-autopilot-ops/scripts/get_event_detail.py <event_id>`
 
 2. Call `list_alerts_for_event` to get underlying alerts grouped by data
    source (WAF, CWPP, Cloud Firewall, etc.).

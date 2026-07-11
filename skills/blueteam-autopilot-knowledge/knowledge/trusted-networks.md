@@ -1,7 +1,7 @@
 # Trusted Networks
 
 > **CRITICAL:** This file is auto-generated. Do NOT edit manually.
-> Run `skills/blueteam-autopilot-prep/scripts/generate-trusted-networks.sh` to regenerate.
+> Run `python skills/blueteam-autopilot-prep/scripts/generate_trusted_networks.py` to regenerate.
 
 ## Purpose
 

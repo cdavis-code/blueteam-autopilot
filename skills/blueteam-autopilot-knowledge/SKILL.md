@@ -44,8 +44,8 @@ For routine triage, use the condensed context in [blueteam-autopilot-core](../bl
 
 | Document | Type | Source | Purpose | Fetch Command |
 |----------|------|--------|---------|---------------|
-| `nist-csf.md` | Compliance | GRC | NIST Cybersecurity Framework (PR.PT-4, DE.AE-2, RS.RP-1) | `fetch-knowledge.sh nist-csf` |
-| `soc2-cc6.md` | Compliance | GRC | SOC 2 Type II CC6 controls (CC6.1, CC6.8) | `fetch-knowledge.sh soc2-cc6` |
+| `nist-csf.md` | Compliance | GRC | NIST Cybersecurity Framework (PR.PT-4, DE.AE-2, RS.RP-1) | `fetch_knowledge.py nist-csf` |
+| `soc2-cc6.md` | Compliance | GRC | SOC 2 Type II CC6 controls (CC6.1, CC6.8) | `fetch_knowledge.py soc2-cc6` |
 
 **When to Reference:**
 - **NIST CSF:** Justifying detection/correlation requirements (DE.AE-2), response planning (RS.RP-1)
@@ -57,7 +57,7 @@ For routine triage, use the condensed context in [blueteam-autopilot-core](../bl
 
 | Document | Type | Source | Purpose | Fetch Command |
 |----------|------|--------|---------|---------------|
-| `runbook-waf-triage.md` | Runbook | Manual | WAF perimeter threat triage (RUN-SEC-042) | `fetch-knowledge.sh runbook-waf-triage` |
+| `runbook-waf-triage.md` | Runbook | Manual | WAF perimeter threat triage (RUN-SEC-042) | `fetch_knowledge.py runbook-waf-triage` |
 
 **When to Reference:**
 - During incident response following standardized procedures
@@ -70,7 +70,7 @@ For routine triage, use the condensed context in [blueteam-autopilot-core](../bl
 
 | Document | Type | Source | Purpose | Fetch Command |
 |----------|------|--------|---------|---------------|
-| `trusted-networks.md` | Policy | Auto-generated | Corporate VPN + monitoring IP whitelist | `fetch-knowledge.sh trusted-networks` |
+| `trusted-networks.md` | Policy | Auto-generated | Corporate VPN + monitoring IP whitelist | `fetch_knowledge.py trusted-networks` |
 
 **When to Reference:**
 - Cross-referencing attacker IPs before proposing blocks
@@ -83,7 +83,7 @@ For routine triage, use the condensed context in [blueteam-autopilot-core](../bl
 
 | Document | Type | Source | Purpose | Fetch Command |
 |----------|------|--------|---------|---------------|
-| `asset-inventory.md` | Infrastructure | Dynamic | Asset topology reference (discovered via `list_assets`) | `fetch-knowledge.sh asset-inventory` |
+| `asset-inventory.md` | Infrastructure | Dynamic | Asset topology reference (discovered via `list_assets`) | `fetch_knowledge.py asset-inventory` |
 
 **When to Reference:**
 - Understanding asset relationships during deep-dive
@@ -94,19 +94,19 @@ For routine triage, use the condensed context in [blueteam-autopilot-core](../bl
 
 ## Fetch Script
 
-**Location:** `scripts/fetch-knowledge.sh`
+**Location:** `scripts/fetch_knowledge.py`
 
 **Usage:**
 ```bash
 # Fetch specific document
-./scripts/fetch-knowledge.sh nist-csf
-./scripts/fetch-knowledge.sh soc2-cc6
-./scripts/fetch-knowledge.sh runbook-waf-triage
-./scripts/fetch-knowledge.sh trusted-networks
-./scripts/fetch-knowledge.sh asset-inventory
+./scripts/fetch_knowledge.py nist-csf
+./scripts/fetch_knowledge.py soc2-cc6
+./scripts/fetch_knowledge.py runbook-waf-triage
+./scripts/fetch_knowledge.py trusted-networks
+./scripts/fetch_knowledge.py asset-inventory
 
 # List available documents
-./scripts/fetch-knowledge.sh
+./scripts/fetch_knowledge.py
 ```
 
 **Output:** Document content to stdout (Markdown format)
@@ -121,42 +121,42 @@ GRC-sourced compliance documents (NIST CSF, SOC2) can be synchronized from your 
 
 ### Sync Commands
 
-**Location:** `scripts/grc-sync.sh`
+**Location:** `scripts/grc_sync.py`
 
 ```bash
 # List all policies and their sync status
-./scripts/grc-sync.sh --list
+./scripts/grc_sync.py --list
 
 # Preview what would be synced (no writes)
-./scripts/grc-sync.sh --dry-run
+./scripts/grc_sync.py --dry-run
 
 # Sync all GRC-enabled policies
-./scripts/grc-sync.sh
+./scripts/grc_sync.py
 
 # Sync a specific policy only
-./scripts/grc-sync.sh nist-csf
-./scripts/grc-sync.sh soc2-cc6
+./scripts/grc_sync.py nist-csf
+./scripts/grc_sync.py soc2-cc6
 
 # Test with demo mode (no live GRC instance needed)
-GRC_MODE=demo ./scripts/grc-sync.sh --dry-run
-GRC_MODE=demo ./scripts/grc-sync.sh nist-csf
+GRC_MODE=demo ./scripts/grc_sync.py --dry-run
+GRC_MODE=demo ./scripts/grc_sync.py nist-csf
 ```
 
 ### Webhook Receiver
 
-**Location:** `scripts/grc-webhook.sh`
+**Location:** `scripts/grc_webhook.py`
 
 ```bash
 # Trigger sync for a specific framework update
-echo '{"event":"framework_update","library":"NIST CSF v2.0"}' | ./scripts/grc-webhook.sh
+echo '{"event":"framework_update","library":"NIST CSF v2.0"}' | python ./scripts/grc_webhook.py
 
 # Trigger full sync of all GRC policies
-./scripts/grc-webhook.sh --request-body '{"event":"sync_all"}'
+./scripts/grc_webhook.py --request-body '{"event":"sync_all"}'
 ```
 
 ### Source-Priority Resolution
 
-`fetch-knowledge.sh` implements a priority chain for document resolution:
+`fetch_knowledge.py` implements a priority chain for document resolution:
 
 1. **GRC-synced version** (`documents/grc-synced/<doc>.md`) — used when `source=grc` and sync has been performed
 2. **Bundled default** (`documents/<doc>.md`) — fallback when GRC is enabled but not yet synced
@@ -164,7 +164,7 @@ echo '{"event":"framework_update","library":"NIST CSF v2.0"}' | ./scripts/grc-we
 
 ### Policy Configuration
 
-**Location:** `../blueteam-autopilot-prep/scripts/configure-policies.sh`
+**Location:** `../blueteam-autopilot-prep/scripts/configure_policies.py`
 
 Interactive wizard for configuring GRC provider connections and policy sync settings. Updates `policies.json` — the single source of truth for all policy declarations.
 
@@ -195,11 +195,11 @@ User asks about IP/address?
 
 GRC sync needed?
 ├─ Compliance document out of date?
-│  └─ Run: grc-sync.sh <policy_id>
+│  └─ Run: grc_sync.py <policy_id>
 ├─ New GRC framework available?
-│  └─ Run: configure-policies.sh (wizard)
+│  └─ Run: configure_policies.py (wizard)
 └─ Verify sync status?
-   └─ Run: grc-sync.sh --list
+   └─ Run: grc_sync.py --list
 ```
 
 ---
@@ -227,17 +227,17 @@ get_knowledge_document(type="trusted_networks")
 
 ### Plugin Pattern
 
-GRC integration uses a provider plugin pattern under `grc-providers/`. Each provider is a standalone shell script that implements three contract functions:
+GRC integration uses a provider plugin pattern under `grc-providers/`. Each provider is a Python class that inherits from `BaseGRCProvider` and implements three contract methods:
 
-| Function | Purpose | Returns |
-|----------|---------|---------|
-| `grc_connect()` | Authenticate and validate connectivity | 0 on success, 1 on failure |
-| `grc_list_frameworks()` | List available compliance frameworks | JSON array to stdout |
-| `grc_get_framework(id)` | Export framework controls as Markdown | Markdown to stdout |
+| Method | Purpose | Returns |
+|--------|---------|---------|
+| `connect()` | Authenticate and validate connectivity | True on success, False on failure |
+| `list_frameworks()` | List available compliance frameworks | List of framework dicts |
+| `get_framework(id)` | Export framework controls as Markdown | Markdown string |
 
 ### Provider Contract
 
-All providers source `grc-providers/_template.sh` and override the three contract functions. The template defines standard environment variables:
+All providers inherit from `grc-providers/_base.py` `BaseGRCProvider` ABC. The base class defines the provider contract and standard configuration:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -249,23 +249,23 @@ All providers source `grc-providers/_template.sh` and override the three contrac
 
 ### CISO Assistant Community Provider
 
-**File:** `grc-providers/ciso-assistant.sh`
+**File:** `grc-providers/ciso_assistant.py`
 
 Implements the provider contract against [CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community):
 
 | API Endpoint | Used By | Method |
 |-------------|---------|--------|
-| `/api/iam/login/` | `grc_connect()` | POST |
-| `/api/stored-libraries/` | `grc_list_frameworks()` | GET |
-| `/api/requirement-nodes/?library=<id>` | `grc_get_framework()` | GET |
+| `/api/iam/login/` | `connect()` | POST |
+| `/api/stored-libraries/` | `list_frameworks()` | GET |
+| `/api/requirement-nodes/?library=<id>` | `get_framework()` | GET |
 
 Auth: `POST /api/iam/login/` with `{"email":"...","password":"..."}` → `Authorization: Token <token>` header.
 
 ### Adding a New Provider
 
-1. Copy `grc-providers/_template.sh` to `grc-providers/<provider>.sh`
-2. Implement `grc_connect()`, `grc_list_frameworks()`, `grc_get_framework()`
-3. Add demo mode fixture data in `grc_get_framework()` for offline testing
+1. Create `grc-providers/<provider>.py` inheriting from `BaseGRCProvider`
+2. Implement `connect()`, `list_frameworks()`, `get_framework(id)`
+3. Add demo mode fixture data in `get_framework()` for offline testing
 4. Register the provider in `policies.json` under `grc_providers`
 5. Assign policies to the provider via their `grc.provider` field
 
@@ -293,7 +293,7 @@ To update a knowledge document:
 
 1. Edit the source file in `secops/` directory
 2. Copy to `documents/` directory (or use symlink)
-3. Test with `fetch-knowledge.sh <type>`
+3. Test with `fetch_knowledge.py <type>`
 4. Verify compliance citations are still accurate
 
 ### GRC-Sourced Documents
@@ -301,11 +301,11 @@ To update a knowledge document:
 For GRC-sourced compliance documents (NIST CSF, SOC2):
 
 1. Update the framework in your GRC tool (CISO Assistant Community)
-2. Run `grc-sync.sh <policy_id>` to pull the latest version
+2. Run `grc_sync.py <policy_id>` to pull the latest version
 3. The sync script automatically:
    - Archives the previous version to `documents/archive/`
    - Writes the new version to `documents/grc-synced/`
    - Appends an entry to `sync-log.jsonl`
-4. Verify with `grc-sync.sh --list`
+4. Verify with `grc_sync.py --list`
 
 **Important:** Changes to compliance controls should be reviewed by security team before deployment.

@@ -12,20 +12,20 @@ To switch to real mode with live APIs, create a `.env` file with `SECURITY_CENTE
 
 | Fixture File | Tool / Script | What It Simulates |
 |---|---|---|
-| `ping.json` | `ping` / `ping.sh` | Health check — returns region + mode |
-| `account_context.json` | `get_account_context` / `get-account-context.sh` | Security Center edition + Agentic SOC status |
-| `events_recent.json` | `list_security_events` / `list-events.sh` | 6 recent security events (all severities) |
-| `event_detail.json` | `get_security_event_detail` / `get-event-detail.sh` | Full attack chain, CVEs, attacker IPs |
-| `alerts.json` | `list_alerts_for_event` / `list-alerts.sh` | WAF + CWPP alerts for an event |
-| `vulnerabilities.json` | `list_vulnerabilities` / `list-vulnerabilities.sh` | 5 CVEs across all severities |
-| `vulnerability_detail.json` | `get_vulnerability_detail` / `get-vulnerability-detail.sh` | Deep-dive on a single CVE with fix |
-| `response_policies.json` | `list_response_policies` / `list-response-policies.sh` | 5 response policies (block, isolate, fix, notify) |
-| `assets.json` | `list_assets` / `list-assets.sh` | 5 ECS instances with SOC 2 scope tags |
-| `waf_instance.json` | `get_waf_instance_info` / `get-waf-instance.sh` | WAF 3.0 instance metadata |
-| `waf_events.json` | `list_waf_security_events` / `list-waf-events.sh` | 5 WAF attack events (SQLi, XSS, LFI, scanner) |
-| `waf_top_rules.json` | `list_waf_top_rules` / `list-waf-top-rules.sh` | Top 10 triggered WAF rules |
-| `waf_top_ips.json` | `list_waf_top_ips` / `list-waf-top-ips.sh` | Top 10 attacker IPs with geo |
-| `knowledge_list.json` | `list_knowledge_documents` / `list-knowledge.sh` | 6 knowledge document types |
+| `ping.json` | `ping` / `ping.py` | Health check — returns region + mode |
+| `account_context.json` | `get_account_context` / `get_account_context.py` | Security Center edition + Agentic SOC status |
+| `events_recent.json` | `list_security_events` / `list_events.py` | 6 recent security events (all severities) |
+| `event_detail.json` | `get_security_event_detail` / `get_event_detail.py` | Full attack chain, CVEs, attacker IPs |
+| `alerts.json` | `list_alerts_for_event` / `list_alerts.py` | WAF + CWPP alerts for an event |
+| `vulnerabilities.json` | `list_vulnerabilities` / `list_vulnerabilities.py` | 5 CVEs across all severities |
+| `vulnerability_detail.json` | `get_vulnerability_detail` / `get_vulnerability_detail.py` | Deep-dive on a single CVE with fix |
+| `response_policies.json` | `list_response_policies` / `list_response_policies.py` | 5 response policies (block, isolate, fix, notify) |
+| `assets.json` | `list_assets` / `list_assets.py` | 5 ECS instances with SOC 2 scope tags |
+| `waf_instance.json` | `get_waf_instance_info` / `get_waf_instance.py` | WAF 3.0 instance metadata |
+| `waf_events.json` | `list_waf_security_events` / `list_waf_events.py` | 5 WAF attack events (SQLi, XSS, LFI, scanner) |
+| `waf_top_rules.json` | `list_waf_top_rules` / `list_waf_top_rules.py` | Top 10 triggered WAF rules |
+| `waf_top_ips.json` | `list_waf_top_ips` / `list_waf_top_ips.py` | Top 10 attacker IPs with geo |
+| `knowledge_list.json` | `list_knowledge_documents` / `list_knowledge.py` | 6 knowledge document types |
 
 ## Capturing New Fixtures (Real Mode Only)
 

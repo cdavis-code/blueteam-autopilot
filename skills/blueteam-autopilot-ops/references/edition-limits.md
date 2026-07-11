@@ -94,7 +94,7 @@ WAF tools work independently of Security Center edition:
 aliyun waf-openapi describe-instance --region "$ALIBABA_REGION"
 
 # Query WAF logs via SLS
-../blueteam-autopilot-ops/scripts/list-waf-events.sh lastHour
+../blueteam-autopilot-ops/scripts/list_waf_events.py lastHour
 ```
 
 #### Workaround 3: Upgrade to Enterprise
@@ -169,7 +169,7 @@ If you're currently on Basic/Advanced and need Agentic SOC features:
 
 1. **Immediate:** Use SLS direct queries for WAF logs
    ```bash
-   ../blueteam-autopilot-ops/scripts/list-waf-events.sh lastHour
+   ../blueteam-autopilot-ops/scripts/list_waf_events.py lastHour
    ```
 
 2. **Short-term:** Upgrade to Enterprise edition

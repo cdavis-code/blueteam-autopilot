@@ -88,7 +88,7 @@ Call first in Incident Discovery (Behavior 1) to establish region and mode aware
 Primary event discovery tool. Sort results by severity (CRITICAL > HIGH > MEDIUM > LOW).
 Cross-reference affectedAssets against live asset list from list_assets.
 
-CLI Alternative: ../blueteam-autopilot-ops/scripts/list-events.sh [time_range] [severity]
+CLI Alternative: ../blueteam-autopilot-ops/scripts/list_events.py [time_range] [severity]
 ```
 
 ---
@@ -122,7 +122,7 @@ CLI Alternative: ../blueteam-autopilot-ops/scripts/list-events.sh [time_range] [
 Call in Incident Deep-Dive (Behavior 2) for each selected event.
 Extract attack chain stages, source IPs, exploit vectors.
 
-CLI Alternative: ../blueteam-autopilot-ops/scripts/get-event-detail.sh <event_id>
+CLI Alternative: ../blueteam-autopilot-ops/scripts/get_event_detail.py <event_id>
 ```
 
 ---
@@ -287,7 +287,7 @@ Required for list_waf_security_events and other WAF tools.
 Call to correlate WAF logs with Security Center events.
 Use same timeRange as list_security_events for coherent window.
 
-CLI Alternative: ../blueteam-autopilot-ops/scripts/list-waf-events.sh [time_range] [attack_type]
+CLI Alternative: ../blueteam-autopilot-ops/scripts/list_waf_events.py [time_range] [attack_type]
 ```
 
 ---
@@ -390,7 +390,7 @@ Available types:
 - trusted_networks: Corporate VPN + monitoring IPs
 - asset_inventory: Asset topology reference
 
-CLI Alternative: ../blueteam-autopilot-knowledge/scripts/fetch-knowledge.sh <type>
+CLI Alternative: ../blueteam-autopilot-knowledge/scripts/fetch_knowledge.py <type>
 ```
 
 ---
@@ -417,9 +417,9 @@ Agent needs compliance data?
 ├─ Full document text for reporting?
 │  └─ Use get_knowledge_document (synced local copy)
 ├─ MCP unavailable?
-│  └─ Fallback: get_knowledge_document + grc-sync.sh --list
+│  └─ Fallback: get_knowledge_document + grc_sync.py --list
 └─ Bulk framework export needed?
-   └─ Run: grc-sync.sh <policy_id> (batch pipeline)
+   └─ Run: grc_sync.py <policy_id> (batch pipeline)
 ```
 
 ---
@@ -460,9 +460,9 @@ uv --directory /path/to/ciso-assistant-community/cli run ca_mcp.py
 | Evidence collection | Review controls not yet implemented, evidence status |
 
 **Integration with existing pipeline:**
-This MCP server wraps the same REST API used by `grc-providers/ciso-assistant.sh`.
+This MCP server wraps the same REST API used by `grc-providers/ciso_assistant.py`.
 Use the MCP server for interactive queries during incident response; use
-`grc-sync.sh` for scheduled batch export of full framework documents.
+`grc_sync.py` for scheduled batch export of full framework documents.
 
 **Configuration in policies.json:**
 ```json
@@ -529,7 +529,7 @@ During incident response:
 
 Offline fallback:
 - Use get_knowledge_document(type="compliance_soc2") for synced local copy
-- Run grc-sync.sh --list to check last sync timestamp
+- Run grc_sync.py --list to check last sync timestamp
 ```
 
 **Claude Code plugin (optional):**

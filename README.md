@@ -52,6 +52,23 @@ Get BlueTeam running in under 2 minutes with **zero Alibaba Cloud setup**. Demo 
 
 ### Install & Run
 
+**Option A: Homebrew (macOS/Linux)**
+
+```bash
+# 1. Add the tap and install
+brew tap cdavis-code/blueteam
+brew install blueteam-autopilot
+
+# 2. Set your Qwen Cloud API key
+mkdir -p ~/.blueteam 
+echo 'DASHSCOPE_API_KEY="sk-..."' > .env
+
+# 3. Run the agent (skills auto-download on first run)
+blueteam
+```
+
+**Option B: pip**
+
 ```bash
 # 1. Install the package
 pip install blueteam-autopilot
@@ -202,8 +219,9 @@ The `aliyun` CLI stores credentials in `~/.aliyun/config.json`. The agent's scri
 | `ALIBABA_REGION` | Optional override (auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 
 ```bash
-# 1. Install the package
+# 1. Install the package (choose one)
 pip install blueteam-autopilot
+# OR: brew tap cdavis-code/blueteam && brew install blueteam-autopilot
 
 # 2. Configure Qwen Cloud API key and real mode
 mkdir -p ~/.blueteam && cd ~/.blueteam
@@ -335,7 +353,6 @@ The `.mcp.example.json` includes presets for:
 ├── .mcp.example.json                  # MCP server config template (CISO Assistant, Vanta, etc.)
 │
 ├── blueteam.py                        # Entry point: TUI, --prompt (cron), --daemon (autonomous SOC)
-├── requirements.txt                   # connectonion, python-dotenv
 │
 ├── connectonion_qwen/                 # Qwen Cloud integration for ConnectOnion
 │   ├── __init__.py                    # Package marker
@@ -362,15 +379,18 @@ The `.mcp.example.json` includes presets for:
 │
 ├── assets/
 │   ├── banner.svg                     # Project banner
+│   ├── banner.png                     # Project banner (PNG)
 │   ├── logo.png                       # Project logo
 │   ├── blueteam-architecture.html     # Interactive architecture diagram (open in browser)
 │   ├── blueteam-architecture.png      # Architecture diagram (PNG export)
-│   └── submission/                    # Hackathon submission materials
-│       ├── about.md                   # Devpost submission content
-│       ├── medium-article.md          # Medium article draft
-│       ├── proof-of-deployment.md     # Alibaba Cloud deployment evidence
-│       ├── console-*.png              # Alibaba Cloud console screenshots
-│       └── slides/                    # Demo video script + screenshots
+│   └── architecture-diagram.pdf       # Architecture diagram (PDF)
+│
+├── submission/                        # Hackathon submission materials
+│   ├── about.md                       # Devpost submission content
+│   ├── medium-article.md              # Medium article draft
+│   ├── proof-of-deployment.md         # Alibaba Cloud deployment evidence
+│   ├── console-*.png                  # Alibaba Cloud console screenshots
+│   └── slides/                        # Demo video script + screenshots
 │
 ├── blueteam_data/                     # Thin Python package (symlinks to skills/)
 │   ├── __init__.py
@@ -396,8 +416,8 @@ The `.mcp.example.json` includes presets for:
     ├── blueteam-autopilot-knowledge/  # Compliance docs, runbooks & GRC sync
     │   ├── SKILL.md
     │   ├── documents/                 # NIST CSF, SOC 2, runbooks, trusted networks
-    │   ├── grc-providers/             # GRC integration scripts (CISO Assistant)
-    │   ├── scripts/                   # fetch_knowledge.py, grc_sync.py
+    │   ├── grc-providers/             # GRC provider plugins (Python class-based, CISO Assistant)
+    │   ├── scripts/                   # fetch_knowledge.py, grc_sync.py, grc_webhook.py
     │   ├── knowledge/                 # Runtime knowledge docs (NIST CSF, SOC 2, etc.)
     │   └── policies.json              # Compliance policy definitions
     │
@@ -407,13 +427,10 @@ The `.mcp.example.json` includes presets for:
     │   ├── schemas/                   # JSON schemas for structured reports
     │   └── scripts/                   # render-report.py
     │
-    ├── blueteam-autopilot-compat/     # CLI compatibility validation
-    │   ├── SKILL.md                   # Compatibility checker documentation
-    │   ├── references/                # CLI command baseline (cli-baseline.json)
-    │   └── scripts/                   # check_compat.py (5-stage validator)
-    │
-    └── alibaba-security-ops/          # Standalone CLI skill (legacy/evolution)
-        └── SKILL.md
+    └── blueteam-autopilot-compat/     # CLI compatibility validation
+        ├── SKILL.md                   # Compatibility checker documentation
+        ├── references/                # CLI command baseline (cli-baseline.json)
+        └── scripts/                   # check_compat.py (5-stage validator)
 ```
 
 ### Skill Summary
@@ -426,7 +443,6 @@ The `.mcp.example.json` includes presets for:
 | `blueteam-autopilot-knowledge` | Compliance controls, runbooks, GRC sync pipeline, trusted networks |
 | `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas + `generate_incident_report` tool |
 | `blueteam-autopilot-compat` | CLI compatibility validation — detects breaking changes in `aliyun` CLI commands, parameters, and response structures |
-| `alibaba-security-ops` | Standalone CLI skill — project evolution reference |
 
 ---
 

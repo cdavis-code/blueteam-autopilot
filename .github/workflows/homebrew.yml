@@ -1,0 +1,74 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g., v3.1.0)'
+        required: true
+        type: string
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout homebrew-blueteam repo
+        uses: actions/checkout@v4
+        with:
+          repository: cdavis-code/homebrew-blueteam
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-blueteam
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download release tarball and compute SHA256
+        id: sha256
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          URL="https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/${TAG}.tar.gz"
+          echo "Downloading: $URL"
+          curl -sL "$URL" -o /tmp/release.tar.gz
+          SHA=$(shasum -a 256 /tmp/release.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+          echo "SHA256: $SHA"
+
+      - name: Update formula with new SHA256
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          SHA="${{ steps.sha256.outputs.sha256 }}"
+          FORMULA="homebrew-blueteam/Formula/blueteam-autopilot.rb"
+          
+          # Update the URL and SHA256 in the formula
+          sed -i "s|url \"https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/.*\"|url \"https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/${TAG}.tar.gz\"|" "$FORMULA"
+          sed -i "s|sha256 \"\".*|sha256 \"${SHA}\"|" "$FORMULA"
+          
+          echo "Updated formula:"
+          head -10 "$FORMULA"
+
+      - name: Commit and push to homebrew-blueteam
+        run: |
+          cd homebrew-blueteam
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/blueteam-autopilot.rb
+          
+          # Only commit if there are changes
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            TAG="${{ steps.tag.outputs.tag }}"
+            git commit -m "Update blueteam-autopilot to ${TAG}"
+            git push
+            echo "Pushed update for ${TAG}"
+          fi

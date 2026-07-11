@@ -65,9 +65,9 @@ Execute the following validation stages **in order**. The agent should **automat
 
 ---
 
-### Stage 1: Prerequisites — aliyun CLI Installation
+### Stage 1: Prerequisites — CLI & Python Installation
 
-**Check:** Verify the `aliyun` CLI tool is installed and accessible.
+**Check 1a:** Verify the `aliyun` CLI tool is installed and accessible.
 
 ```bash
 which aliyun && aliyun version
@@ -109,6 +109,23 @@ aliyun configure set \
   --access-key-secret "$ALIBABA_ACCESS_KEY_SECRET" \
   --region "$ALIBABA_REGION"
 ```
+
+**Check 1b:** Verify Python 3.10+ is installed.
+
+```bash
+python3 --version
+```
+
+**Expected:** Output showing Python 3.10 or higher (e.g., `Python 3.12.4`).
+
+**If missing or version < 3.10:**
+
+| Error | Cause | Remedy |
+|-------|-------|--------|
+| `python3: command not found` | Python not installed | macOS: `brew install python3` / Linux: `sudo apt install python3` / Windows: `winget install Python.Python.3.12` |
+| `Python 3.9.x` (or lower) | Incompatible version | Install Python 3.10+: `brew install python@3.12` (macOS) or download from [python.org](https://www.python.org/downloads/) |
+
+> **Why 3.10+?** BlueTeam uses Python 3.10 union syntax (`X | Y`) in type hints and requires `connectonion>=1.0.0` which depends on Python 3.10+.
 
 ---
 
@@ -361,7 +378,7 @@ export TEST_DOMAIN="ecs.yourdomain.com"
 dig +short CNAME $TEST_DOMAIN
 ```
 
-> **Note:** Domain info is persisted in `trusted-networks.md` and `sample-attack-traffic.sh` by the generation script (Stage 7). No `.env` modification is needed — `.env` remains credentials-only.
+> **Note:** Domain info is persisted in `trusted-networks.md` and `sample_attack_traffic.py` by the generation script (Stage 7). No `.env` modification is needed — `.env` remains credentials-only.
 
 **Expected:** Should return a CNAME ending in `*.aliyunwaf*.com` (e.g., `ecs.yourdomain.com.waf.alikunlun.com`).
 
@@ -634,7 +651,7 @@ After confirming the environment is properly configured, **automatically generat
 # Run generation script (requires ALIBABA_REGION to be set)
 # Script is located in the prep skill's scripts/ directory and outputs
 # to blueteam-autopilot-knowledge/documents/trusted-networks.md
-./scripts/generate-trusted-networks.sh
+./scripts/generate_trusted_networks.py
 ```
 
 **Expected Output:**
@@ -682,7 +699,7 @@ Review the generated file and add any monitoring service IPs manually.
 
 ```bash
 # Run validation script
-./scripts/validate-configuration.sh
+./scripts/validate_configuration.py
 ```
 
 **Expected Output (success):**
@@ -721,7 +738,7 @@ The script will identify specific files and lines containing hardcoded values:
 ✗ Validation failed
 Please remediate the issues listed above.
 
-Run './scripts/generate-trusted-networks.sh' to auto-generate trusted networks
+Run './scripts/generate_trusted_networks.py' to auto-generate trusted networks
 from your Alibaba Cloud configuration.
 ```
 
@@ -730,7 +747,7 @@ from your Alibaba Cloud configuration.
 | Failure | Cause | Fix |
 |---------|-------|-----|
 | Hardcoded region `ap-southeast-1` | Example values not marked | Replace with `{{ALIBABA_REGION}}` or mark as example |
-| Hardcoded IPs in non-example files | Manual edits to skill files | Run `generate-trusted-networks.sh` to regenerate |
+| Hardcoded IPs in non-example files | Manual edits to skill files | Run `generate_trusted_networks.py` to regenerate |
 | Missing example markers | Incomplete migration | Add "EXAMPLE" markers per ENVIRONMENT_INDEPENDENCE.md |
 
 #### 7.3 Update Asset Inventory (Optional)
@@ -743,7 +760,7 @@ from your Alibaba Cloud configuration.
 aliyun ecs DescribeInstances --region "$ALIBABA_REGION" --output json > /tmp/ecs-instances.json
 
 # Generate asset-inventory.md from discovered instances
-# (See scripts/generate-asset-inventory.sh if available)
+# (See scripts/generate_trusted_networks.py if available)
 ```
 
 **Note:** Asset inventory is typically discovered dynamically via `list_assets` MCP tool at runtime. Pre-generating the document is optional and for reference purposes only.
@@ -754,7 +771,7 @@ aliyun ecs DescribeInstances --region "$ALIBABA_REGION" --output json > /tmp/ecs
 
 ```bash
 # Run GRC policy configuration wizard
-./scripts/configure-policies.sh
+./scripts/configure_policies.py
 ```
 
 **What this does:**
@@ -779,14 +796,14 @@ aliyun ecs DescribeInstances --region "$ALIBABA_REGION" --output json > /tmp/ecs
 - If GRC policies were configured for sync, run initial sync:
   ```bash
   cd ../blueteam-autopilot-knowledge/scripts
-  ./grc-sync.sh
+  python grc_sync.py
   ```
-- If using demo mode for testing, set `GRC_MODE=demo` before running `configure-policies.sh`
+- If using demo mode for testing, set `GRC_MODE=demo` before running `configure_policies.py`
 - For CISO Assistant Community, ensure the instance is running and accessible at the configured URL
 
 **GRC Provider Architecture:**
 
-The GRC integration uses a provider plugin pattern. See `../blueteam-autopilot-knowledge/grc-providers/_template.sh` for the provider contract. The CISO Assistant Community provider (`ciso-assistant.sh`) implements:
+The GRC integration uses a provider plugin pattern. See `../blueteam-autopilot-knowledge/grc-providers/_base.py` for the provider contract. The CISO Assistant Community provider (`ciso_assistant.py`) implements:
 - `grc_connect()` — Authenticates via `POST /api/iam/login/`
 - `grc_list_frameworks()` — Lists stored libraries via `GET /api/stored-libraries/`
 - `grc_get_framework(id)` — Exports controls via `GET /api/requirement-nodes/`
@@ -872,19 +889,19 @@ The GRC integration uses a provider plugin pattern under `blueteam-autopilot-kno
 blueteam-autopilot-knowledge/
 ├── policies.json              # Policy manifest — single source of truth
 ├── grc-providers/
-│   ├── _template.sh            # Provider contract (3 functions)
-│   └── ciso-assistant.sh       # CISO Assistant Community provider
+│   ├── _base.py              # Provider contract (BaseGRCProvider ABC)
+│   └── ciso_assistant.py     # CISO Assistant Community provider
 ├── scripts/
-│   ├── grc-sync.sh             # Sync orchestration (supports --list, --dry-run)
-│   ├── grc-webhook.sh          # Event-driven webhook receiver
-│   └── fetch-knowledge.sh      # Source-priority document resolution
+│   ├── grc_sync.py           # Sync orchestration (supports --list, --dry-run)
+│   ├── grc_webhook.py        # Event-driven webhook receiver
+│   └── fetch_knowledge.py    # Source-priority document resolution
 ├── documents/
 │   ├── grc-synced/             # GRC-synced document cache
 │   └── archive/                # Pre-sync backups (ISO-timestamped)
 └── sync-log.jsonl              # Append-only JSONL sync audit log
 ```
 
-Each GRC provider implements three contract functions defined in `_template.sh`:
+Each GRC provider subclasses `BaseGRCProvider` in `_base.py`:
 - `grc_connect()` — Authenticate and validate connectivity, returns 0/1
 - `grc_list_frameworks()` — List available compliance frameworks, outputs JSON array
 - `grc_get_framework(framework_id)` — Export a framework's controls as Markdown to stdout
@@ -893,7 +910,7 @@ Each GRC provider implements three contract functions defined in `_template.sh`:
 
 | Provider Script | GRC Tool | Framework Count | Status |
 |----------------|----------|-----------------|--------|
-| `ciso-assistant.sh` | [CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community) | 150+ built-in | ✅ Ready |
+| `ciso_assistant.py` | [CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community) | 150+ built-in | ✅ Ready |
 
 **CISO Assistant Community API endpoints used:**
 - `POST /api/iam/login/` — Token-based authentication
@@ -902,32 +919,32 @@ Each GRC provider implements three contract functions defined in `_template.sh`:
 
 #### 9.3 Source-Priority Resolution
 
-When `fetch-knowledge.sh` is called for a document, the resolution chain is:
+When `fetch_knowledge.py` is called for a document, the resolution chain is:
 
 1. **GRC-synced version** (`documents/grc-synced/<doc>.md`) — used if `source=grc` in `policies.json` and sync has been performed
 2. **Bundled default** (`documents/<doc>.md`) — fallback when GRC is enabled but document hasn't been synced yet
-3. **Warning** — logged to stderr if GRC is enabled but document hasn't been synced, with instructions to run `grc-sync.sh`
+3. **Warning** — logged to stderr if GRC is enabled but document hasn't been synced, with instructions to run `grc_sync.py`
 
 #### 9.4 Sync Commands
 
 ```bash
 # List all policies and their sync status
 cd ../blueteam-autopilot-knowledge/scripts
-./grc-sync.sh --list
+python grc_sync.py --list
 
 # Preview what would be synced (no writes to disk)
-./grc-sync.sh --dry-run
+python grc_sync.py --dry-run
 
 # Sync all GRC-enabled policies
-./grc-sync.sh
+python grc_sync.py
 
 # Sync a specific policy only
-./grc-sync.sh nist-csf
-./grc-sync.sh soc2-cc6
+python grc_sync.py nist-csf
+python grc_sync.py soc2-cc6
 
 # Test with demo mode (no live GRC instance needed)
-GRC_MODE=demo ./grc-sync.sh --dry-run
-GRC_MODE=demo ./grc-sync.sh nist-csf
+GRC_MODE=demo python grc_sync.py --dry-run
+GRC_MODE=demo python grc_sync.py nist-csf
 ```
 
 #### 9.5 Demo Mode
@@ -936,10 +953,10 @@ For offline testing without a live GRC instance, set `GRC_MODE=demo`. Demo mode 
 
 ```bash
 # Demo: List available frameworks (fixture data)
-GRC_MODE=demo ../grc-providers/ciso-assistant.sh grc_list_frameworks
+GRC_MODE=demo python -c "from grc_providers.ciso_assistant import CisoAssistantProvider; import os; os.environ['GRC_MODE']='demo'; p=CisoAssistantProvider(); import json; print(json.dumps(p.list_frameworks(), indent=2))"
 
 # Demo: Export NIST CSF controls
-GRC_MODE=demo ../grc-providers/ciso-assistant.sh grc_get_framework "nist-csf"
+GRC_MODE=demo python -c "from grc_providers.ciso_assistant import CisoAssistantProvider; import os; os.environ['GRC_MODE']='demo'; p=CisoAssistantProvider(); print(p.get_framework('demo-nist-csf-v2'))"
 ```
 
 #### 9.6 Readiness Check for GRC
@@ -948,7 +965,7 @@ After completing GRC configuration, verify with:
 
 ```bash
 cd ../blueteam-autopilot-knowledge/scripts
-./grc-sync.sh --list
+python grc_sync.py --list
 ```
 
 **Expected output:** Each GRC-enabled policy shows sync status, last sync timestamp, and document version.
@@ -962,9 +979,9 @@ Add the following row to the Stage 8 readiness report when GRC is configured:
 ```
 
 **Integration Points:**
-- `configure-policies.sh` (prep skill) — Interactive GRC setup wizard
-- `grc-sync.sh` (knowledge skill) — Sync orchestration
-- `grc-webhook.sh` (knowledge skill) — Event-driven sync trigger
+- `configure_policies.py` (prep skill) — Interactive GRC setup wizard
+- `grc_sync.py` (knowledge skill) — Sync orchestration
+- `grc_webhook.py` (knowledge skill) — Event-driven sync trigger
 - `policies.json` (knowledge skill) — Policy manifest and provider config
 
 ---
@@ -1173,8 +1190,8 @@ If you prefer manual control, follow the validation stages in order:
 
 3. **Agent generates configuration (Stage 7):**
    ```bash
-   ./scripts/generate-trusted-networks.sh
-   ./scripts/validate-configuration.sh
+   ./scripts/generate_trusted_networks.py
+   ./scripts/validate_configuration.py
    ```
 
 4. **Review readiness report (Stage 8)**
