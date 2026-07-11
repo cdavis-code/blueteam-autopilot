@@ -22,7 +22,10 @@ blueteam = "blueteam:main"
 
 [tool.setuptools]
 py-modules = ["blueteam"]
-packages = ["connectonion_qwen", "connectonion_qwen.providers", "connectonion_qwen.providers.aliyun", "connectonion_qwen.providers.aws", "workflows", "workflows._engine", "blueteam_data"]
+
+[tool.setuptools.packages.find]
+include = ["connectonion_qwen*", "workflows*", "blueteam_data*"]
+exclude = ["tests*", "__pycache__*"]
 
 [tool.setuptools.package-data]
 "blueteam_data" = ["scripts/*.py", "fixtures/*.json", "knowledge/*.md"]
