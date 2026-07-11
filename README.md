@@ -521,7 +521,7 @@ Open an issue or PR on the repository. Fixture capture instructions are in the b
 
 ### What's the minimum Security Center edition needed?
 
-- **Demo mode:** None — works offline
+- **Demo mode:** None — only requires Qwen Cloud API key for LLM
 - **Real mode (read-only):** Any edition, but Advanced+ recommended
 - **Real mode (full Agentic SOC):** Enterprise (4) or Ultimate (5)
 
