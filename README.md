@@ -21,6 +21,24 @@
 
 ---
 
+## Table of Contents
+
+- [🚀 Quick Start (Demo Mode)](#-quick-start-demo-mode)
+- [What It Does](#what-it-does)
+- [Two Modes at a Glance](#two-modes-at-a-glance)
+- [CLI Options](#cli-options)
+- [Real Mode Setup](#real-mode-setup)
+- [Cron / Automation](#cron--automation)
+- [Autonomous SOC Daemon](#autonomous-soc-daemon)
+- [Optional: MCP Server Integration](#optional-mcp-server-integration)
+- [What's Inside](#whats-inside)
+- [Architecture](#architecture)
+- [Security](#security)
+- [FAQ](#faq)
+- [License](#license)
+
+---
+
 ## 🚀 Quick Start (Demo Mode)
 
 Get BlueTeam running in under 2 minutes with **zero Alibaba Cloud setup**. Demo mode uses bundled fixture data — realistic security events, attack chains, and WAF logs with no cloud account needed.
@@ -121,6 +139,20 @@ SECURITY_CENTER_MODE=real          # Switch to live APIs
 
 ---
 
+## CLI Options
+
+| Flag | Description |
+|------|-------------|
+| *(none)* | Launch interactive TUI (default) |
+| `--prompt` `-p` | Run non-interactively with a prompt (cron/automation mode). Output to stdout, errors to stderr |
+| `--daemon` `-d` | Run as autonomous SOC daemon for continuous monitoring |
+| `--interval` `-i` | Daemon polling interval in seconds (default: 60) |
+| `--auto-approve <tools>` | Comma-delimited list of state-changing tools to auto-approve (no HITL). Use `none` to require HITL for all. Default: `execute_local_script`. Run `--help` for the full list |
+
+**Default mode (no flags):** Full Textual TUI with interactive chat, slash commands, progress log, and tool tracking. By default, only `execute_local_script` is auto-approved — all other state-changing tools (e.g. `execute_response_policy`, `block_waf_ips`) still require HITL confirmation via the approval modal.
+
+---
+
 ## Real Mode Setup
 
 For production use with live Alibaba Cloud data:
@@ -179,11 +211,13 @@ echo 'SECURITY_CENTER_MODE=real' >> .env
 # 3. Configure aliyun CLI (if not already done)
 aliyun configure
 
-# 4. Verify your configuration
-SECURITY_CENTER_MODE=real bash ~/.blueteam/skills/blueteam-autopilot-ops/scripts/ping.sh
-
-# 5. Run the agent (skills auto-download on first run)
+# 4. Run the agent 
 blueteam
+
+# 5. Validate environment with the prep skill (skills auto-download on first run)
+# > /blueteam-autopilot-prep
+
+# 6. Start uing the agent 
 # > Show me HIGH severity events from the last hour
 # > Deep-dive into event evt-xxx-yyy
 ```
@@ -291,6 +325,7 @@ The `.mcp.example.json` includes presets for:
 ```
 .
 ├── README.md                          # This file
+├── SECURITY.md                        # Security controls reference
 ├── BUGS.md                            # Known issues and security findings
 ├── LICENSE                            # MIT License
 ├── CHANGELOG.md                       # Version history
@@ -441,6 +476,20 @@ The `.mcp.example.json` includes presets for:
 ```
 
 </details>
+
+---
+
+## Security
+
+BlueTeam implements defense-in-depth security controls to protect against prompt injection, unauthorized actions, and supply chain attacks:
+
+- **Prompt injection prevention** — Three-layer defense: boundary markers (`[TOOL OUTPUT START/END]`), configurable pattern-based input filtering (15 detection patterns across critical/high/medium severities), and system prompt guardrails that instruct the LLM to treat all tool output as untrusted data
+- **Human-in-the-loop enforcement** — Seven state-changing tools require explicit operator approval via dry-run preview + y/N confirmation (SOC 2 CC6.8.3). Workflow phases declare `requires-hitl: true` to enforce the gate on sub-agents
+- **Audit trail** — Every tool execution is logged with UTC timestamp, arguments, status, and timing. Injection detections are audited with full match context
+- **Supply chain protection** — GRC document sync requires human review (diff + confirmation) before writing server responses to knowledge documents
+- **Credential protection** — Secrets are never exposed in tool output; credential exfil patterns are detected and redacted
+
+See [SECURITY.md](SECURITY.md) for the full security control reference, threat model, and compliance mapping.
 
 ---
 

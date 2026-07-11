@@ -1,0 +1,98 @@
+{
+  "_comment": "Prompt injection detection patterns for BlueTeam compliance logger.",
+  "_comment2": "Severity: critical = reject content entirely, high = redact matched line, medium = log only.",
+  "_version": "1.0",
+
+  "patterns": [
+    {
+      "id": "role-hijack-ignore",
+      "severity": "critical",
+      "description": "Direct instruction override via ignore",
+      "regex": "(?i)ignore\\s+(all\\s+)?(previous|prior|above)\\s+(instructions|prompts|rules|directives)"
+    },
+    {
+      "id": "role-hijack-stop",
+      "severity": "critical",
+      "description": "Hard stop + new instruction injection",
+      "regex": "(?i)\\bSTOP\\b\\.?\\s*(new\\s+)?instruction\\s+from"
+    },
+    {
+      "id": "role-hijack-you-are",
+      "severity": "critical",
+      "description": "Role reassignment attempt",
+      "regex": "(?i)you\\s+are\\s+now\\s+(a|an|the)\\b"
+    },
+    {
+      "id": "system-prompt-inject",
+      "severity": "critical",
+      "description": "Fake system prompt injection",
+      "regex": "(?i)(new\\s+)?system\\s*prompt\\s*:"
+    },
+    {
+      "id": "role-override",
+      "severity": "critical",
+      "description": "Explicit role override command",
+      "regex": "(?i)\\boverride\\s+(previous\\s+)?(role|instructions|system|prompt)\\b"
+    },
+    {
+      "id": "auto-execution-claim",
+      "severity": "high",
+      "description": "Claimed authorization for auto-execution",
+      "regex": "(?i)auto[\\s-]?execution\\s+mode"
+    },
+    {
+      "id": "pre-authorized-claim",
+      "severity": "high",
+      "description": "Claimed pre-authorization by authority figure",
+      "regex": "(?i)pre[\\s-]?authorized\\s+by\\b"
+    },
+    {
+      "id": "ciso-impersonation",
+      "severity": "high",
+      "description": "Impersonation of security authority",
+      "regex": "(?i)\\b(CISO|CSO|security\\s+team|admin)\\s+(has\\s+)?authorized\\b"
+    },
+    {
+      "id": "sandbox-escape",
+      "severity": "critical",
+      "description": "Attempt to break output boundary markers",
+      "regex": "\\[TOOL\\s+OUTPUT\\s+(START|END)\\]"
+    },
+    {
+      "id": "xml-inject",
+      "severity": "high",
+      "description": "Fake XML tag injection to mimic system markers",
+      "regex": "(?i)<\\s*/?\\s*(system|assistant|user|instruction)s?\\s*>"
+    },
+    {
+      "id": "nevermind-reset",
+      "severity": "high",
+      "description": "Conversation reset via nevermind/forget",
+      "regex": "(?i)\\bnevermind\\b.*\\b(forget|ignore|reset|clear)\\b"
+    },
+    {
+      "id": "execute-without-approval",
+      "severity": "high",
+      "description": "Instruction to bypass HITL approval",
+      "regex": "(?i)(execute|run|apply)\\s+.*(without|skip|bypass)\\s+(approval|confirmation|human)"
+    },
+    {
+      "id": "credential-exfil",
+      "severity": "high",
+      "description": "Request to expose secrets or credentials",
+      "regex": "(?i)(show|print|output|reveal|display)\\s+(me\\s+)?(the\\s+)?(access\\s+key|secret|password|token|credential)"
+    },
+    {
+      "id": "data-exfil-command",
+      "severity": "medium",
+      "description": "Instruction to exfiltrate data via command",
+      "regex": "(?i)(curl|wget|nc|netcat)\\s+.*(-d|--data|--post)\\s+"
+    },
+    {
+      "id": "base64-payload",
+      "severity": "medium",
+      "description": "Base64-encoded payload (potential obfuscated injection)",
+      "regex": "(?i)(decode|base64|eval)\\s*\\(\\s*['\"][A-Za-z0-9+/=]{20,}"
+    }
+  ]
+}

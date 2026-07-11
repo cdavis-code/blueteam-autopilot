@@ -109,8 +109,9 @@ def _run_phase(
     - Tool set restricted to the phase's declared tools
     - A focused prompt asking the phase to produce its declared output
     """
-    # Build scoped tool list
+    # Build scoped tool list and resolve plugins
     from connectonion_qwen.tools import ALL_TOOLS
+    from connectonion_qwen.plugins import hitl_approval_plugin
 
     tool_map = {t.__name__: t for t in ALL_TOOLS}
     scoped_tools = []
@@ -121,6 +122,9 @@ def _run_phase(
             logger.warning(
                 f"Phase '{phase.id}' references unknown tool '{tool_name}' — skipping."
             )
+
+    # Wire HITL approval plugin into phases that declare requires_hitl
+    phase_plugins = list(hitl_approval_plugin) if phase.requires_hitl else []
 
     # Build phase-specific system prompt
     system_prompt = _build_phase_prompt(definition, phase, context)
@@ -140,7 +144,7 @@ def _run_phase(
         tools=scoped_tools,
         system_prompt=system_prompt,
         max_iterations=_MAX_PHASE_ITERATIONS,
-        plugins=[],  # No plugins in sub-phases (compliance logged by runner)
+        plugins=phase_plugins,  # HITL gate enforced when phase requires it
         quiet=True,
     )
 

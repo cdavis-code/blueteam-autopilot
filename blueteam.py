@@ -110,6 +110,7 @@ from connectonion_qwen.plugins import (
     compliance_logger_plugin,
     tui_result_capture_plugin,
     set_tui_approval_callback,
+    set_auto_approved_tools,
     set_tui_app,
 )
 from connectonion_qwen.system_prompt import SYSTEM_PROMPT
@@ -536,9 +537,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Monitoring interval in seconds for daemon mode (default: 60)",
     )
     parser.add_argument(
-        "--approve",
-        action="store_true",
-        help="Auto-approve all state-changing actions (skip HITL approval modal)",
+        "--auto-approve",
+        type=str,
+        default="execute_local_script",
+        help="Comma-delimited list of state-changing tools to auto-approve. "
+        f"Available: {', '.join(sorted(STATE_CHANGING_TOOLS))}. "
+        "Use 'none' to require HITL for all. Default: execute_local_script",
     )
     return parser
 
@@ -690,6 +694,16 @@ def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
 
+    # Configure auto-approve tools (affects headless/daemon and TUI paths)
+    auto_approved: set[str] = set()
+    auto_approve_raw = args.auto_approve or ""
+    if auto_approve_raw.lower() != "none":
+        for tool in auto_approve_raw.split(","):
+            tool = tool.strip()
+            if tool in STATE_CHANGING_TOOLS:
+                auto_approved.add(tool)
+    set_auto_approved_tools(auto_approved)
+
     # Daemon mode: autonomous SOC continuous monitoring
     if args.daemon:
         _run_daemon(args.interval)
@@ -729,7 +743,7 @@ def main() -> None:
     # Build welcome message
     thinking_label = "on" if ENABLE_THINKING else "off"
     welcome = (
-        f"**BlueTeam v3.0.1** — SecOps Agent\n\n"
+        f"**BlueTeam v3.0.4** — SecOps Agent\n\n"
         f"Model: `{QWEN_MODEL}` | "
         f"Thinking: `{thinking_label}` | "
         f"Mode: `{SECURITY_CENTER_MODE}`\n\n"
@@ -777,13 +791,10 @@ def main() -> None:
     chat.command("/workflow", _cmd_workflow)
     chat.command("/skills", _cmd_skills)
 
-    # Wire up TUI-aware HITL approval
+    # Wire up TUI-aware HITL approval (auto-approve scoping handled by plugins)
     global _chat_instance
     _chat_instance = chat
-    if args.approve:
-        set_tui_approval_callback(lambda *_: True)
-    else:
-        set_tui_approval_callback(_tui_approve)
+    set_tui_approval_callback(_tui_approve)
 
     # Register the TUI app for progress log result capture (Plugin 3 in plugins.py)
     set_tui_app(chat)

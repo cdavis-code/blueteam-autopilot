@@ -127,7 +127,7 @@ check_instance_ids() {
   # Search for Alibaba Cloud resource ID patterns (require word boundary before prefix to avoid substring matches)
   IDS=$(grep -r --include="*.md" \
     -n \
-    -P '(?<![a-z0-9])(i-[a-z0-9]{2,}|sg-[a-z0-9]{2,}|vpc-[a-z0-9]{2,}|waf-[a-z0-9]{2,}|rds-[a-z0-9]{2,})' \
+    -P '(?<![a-z0-9])(i-[a-z0-9]{6,}|sg-[a-z0-9]{6,}|vpc-[a-z0-9]{6,}|waf-[a-z0-9]+-[a-z0-9]{6,}|rds-[a-z0-9]{6,})' \
     "${SKILLS_ROOT}" 2>/dev/null || true)
   
   if [ -n "$IDS" ]; then

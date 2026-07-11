@@ -68,7 +68,7 @@ for dir in "${KNOWLEDGE_DIRS[@]}"; do
 done
 
 if [ -n "$FOUND_FILE" ]; then
-  LAST_MODIFIED=$(stat -f "%Sm" "$FOUND_FILE" 2>/dev/null || stat -c "%y" "$FOUND_FILE" 2>/dev/null || echo "unknown")
+  LAST_MODIFIED=$(stat -c "%y" "$FOUND_FILE" 2>/dev/null || stat -f "%Sm" "$FOUND_FILE" 2>/dev/null || echo "unknown")
   
   echo "Document: $DOC_TYPE"
   echo "Source: $FOUND_FILE"

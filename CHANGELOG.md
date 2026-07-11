@@ -5,6 +5,62 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] — 2026-07-11
+
+### Added
+
+#### Prompt Injection Input Filter
+- **`connectonion_qwen/injection_patterns.json`** — Runtime-loadable JSON file with 15 configurable regex patterns for detecting prompt injection attempts in tool output. Patterns classified into three severity levels: critical (reject entire content), high (redact matched text), medium (log warning, pass through).
+- **`_sanitize_injections()` in `plugins.py`** — Screens every tool result for injection patterns after truncation but before `[TOOL OUTPUT START]`/`[TOOL OUTPUT END]` boundary wrapping. Critical hits replace content with a block notice; high hits redact matched substrings in-place; medium hits log a warning. All detections emit audit log entries with full match context.
+- **`_load_injection_patterns()` / `_scan_for_injections()`** — Helper functions for pattern loading (cached after first read) and scanning. Invalid regexes are logged and skipped without crashing.
+- **GARAK-3 mitigation** — Adds a third defense layer (input filtering) on top of existing context isolation (boundary markers) and system prompt guardrails.
+
+#### SECURITY.md
+- **`SECURITY.md`** — Comprehensive security controls reference documenting threat model, prompt injection prevention (3-layer defense), HITL enforcement, audit trail, supply chain protection, credential protection, and SOC 2 / NIST CSF compliance mapping.
+
+### Fixed
+
+#### HITL Gate Bypass Bugs
+- **BUG-7 — `run_command` missing from HITL gate** — `run_command` was absent from `_STATE_CHANGING_TOOLS` in `plugins.py`, so the HITL approval plugin skipped it entirely despite a dry-run handler existing. Added `run_command` to the set so arbitrary bash commands now require operator confirmation.
+- **SEC-4 — Workflow engine bypasses HITL gate** — Phase agents in `workflows/_engine/runner.py` were created with `plugins=[]`, stripping all plugins including HITL approval. Fixed by conditionally wiring `hitl_approval_plugin` into phases that declare `requires-hitl: true` in their WORKFLOW.md frontmatter.
+
+#### Script Fixes
+- **BUG-8 — `get-knowledge.sh` stat order** — Swapped `stat -c` (Linux) before `stat -f` (macOS) so Linux systems don't fall through to the macOS path and emit a harmless but noisy error.
+- **BUG-9 — `block-waf-ips.sh` demo mode ignores arguments** — Moved argument parsing before the demo mode early return so demo output correctly reflects the IPs passed on the command line instead of echoing an empty list.
+- **BUG-10 — Broken `MODES.md` link** — Replaced non-existent `MODES.md` reference in `alibaba-security-ops/SKILL.md` with a reference to `.env.example`.
+- **BUG-11 — Overly permissive resource ID regex** — Tightened resource ID pattern in `validate-configuration.sh` from `{2,}` to `{6,}` and added `waf-[a-z0-9]+-` prefix structure, eliminating false positives on short hex strings.
+
+### Changed
+
+#### Documentation
+- **README.md** — Added Security section summarizing the five key control areas with a link to `SECURITY.md`. Added entry to Table of Contents. Added `SECURITY.md` to the directory tree.
+- **`blueteam.py`** — Welcome banner version updated to v3.0.4.
+
+---
+
+## [3.0.3] — 2026-07-08
+
+### Changed
+
+#### Scoped Auto-Approval CLI
+- **`--auto-approve` flag redesign** — Changed from a boolean `--auto-approve`/`--no-auto-approve` pair to a comma-delimited list of tool names (e.g. `--auto-approve execute_local_script,run_command`). Each listed tool bypasses HITL confirmation; unlisted tools still require approval.
+- **Default narrowed** — Defaults to `"execute_local_script"` only. Previously auto-approved ALL state-changing tools.
+- **`--auto-approve none`** — Special value to disable auto-approval entirely, requiring HITL confirmation for every state-changing action.
+- **`BooleanOptionalAction` removed** — No longer needed; flag now accepts a plain string.
+
+#### Plugin-Level Auto-Approval Gate
+- **`set_auto_approved_tools()`** — New setter in `plugins.py` that registers the auto-approved tool set from CLI args.
+- **`_auto_approved_tools`** — Module-level set checked by `hitl_approval()` before invoking the dry-run + approval flow. Tools in this set return immediately (no HITL, no dry-run).
+- **`hitl_approval()` scoping** — Auto-approve check happens after `_STATE_CHANGING_TOOLS` membership but before `_run_dry_run()` and `_request_approval()`, scoping HITL bypass to specific tools rather than a global toggle.
+
+#### TUI Wiring Simplified
+- **Always-on TUI callback** — `set_tui_approval_callback(_tui_approve)` is now unconditional in TUI mode. The old `lambda *_: True` bypass path is replaced by the plugin-level auto-approve gate.
+- **Headless/daemon parity** — `set_auto_approved_tools()` is called in `main()` before any mode dispatch, so headless and daemon modes respect the scoped auto-approve list.
+
+#### Documentation
+- **TOC added to README.md** — Full table of contents with anchor links to all major sections.
+- **CLI Options table** — New dedicated section documenting all 4 CLI flags with the updated `--auto-approve` behavior.
+
 ## [3.0.2] — 2026-07-08
 
 ### Added

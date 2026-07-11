@@ -14,18 +14,7 @@ elif [ -f "${BLUETEAM_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")/..}/.env" ]; then
   source "${BLUETEAM_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")/..}/.env" 2>/dev/null || true
 fi
 
-# ----- Demo mode: simulated response -----
-if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
-  echo '{"status": "ok", "mode": "demo", "message": "WAF IP block simulated (demo mode). No API calls made.", "ips_blocked": []}'
-  exit 0
-fi
-# ----- End demo mode -----
-
-source "$SCRIPT_DIR/_discover-region.sh"
-
-log() { if [ "${AGENT_MODE:-}" != "1" ]; then echo "$@"; fi; }
-
-# Parse arguments
+# Parse arguments (before mode check so demo output reflects them)
 IPS=()
 DRY_RUN=false
 for arg in "$@"; do
@@ -35,6 +24,18 @@ for arg in "$@"; do
     IPS+=("$arg")
   fi
 done
+
+# ----- Demo mode: simulated response -----
+if [ "${SECURITY_CENTER_MODE:-demo}" = "demo" ]; then
+  IPS_CSV=$(printf '"%s",' "${IPS[@]}" 2>/dev/null | sed 's/,$//' || true)
+  echo "{\"status\": \"ok\", \"mode\": \"demo\", \"message\": \"WAF IP block simulated (demo mode). No API calls made.\", \"ips_blocked\": [${IPS_CSV}]}"
+  exit 0
+fi
+# ----- End demo mode -----
+
+source "$SCRIPT_DIR/_discover-region.sh"
+
+log() { if [ "${AGENT_MODE:-}" != "1" ]; then echo "$@"; fi; }
 
 if [ ${#IPS[@]} -eq 0 ]; then
   echo "Usage: $0 <ip1> [ip2] ... [--dry-run]"

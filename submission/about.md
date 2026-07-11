@@ -69,7 +69,7 @@ The agent runtime uses ConnectOnion's `Agent` class with a custom LLM provider. 
 
 The agent processing flow:
 
-1. `QwenCloudLLM` sends messages + 19 built-in tool definitions to Qwen Cloud (with internal `stream=True`), plus any dynamically discovered MCP tools
+1. `QwenCloudLLM` sends messages + 39 built-in tool definitions to Qwen Cloud (with internal `stream=True`), plus any dynamically discovered MCP tools
 2. Stream is aggregated internally — reasoning content, tool call arguments, and text deltas are collected into a single `LLMResponse`
 3. ConnectOnion's `tool_executor` dispatches tool calls to plain Python functions
 4. Results feed back as tool messages; loop repeats until final answer
@@ -80,11 +80,23 @@ Key Qwen Cloud API features used:
 
 | Feature | Qwen Cloud API | Usage in Agent |
 |---------|----------------|----------------|
-| **Function calling** | `tools` parameter with auto-generated schemas | All 19 built-in tools + dynamic MCP tools as plain Python functions (type hints → JSON schema) |
+| **Function calling** | `tools` parameter with auto-generated schemas | All 39 built-in tools + dynamic MCP tools as plain Python functions (type hints → JSON schema) |
 | **Thinking mode** | `extra_body={"enable_thinking": true}` | Complex multi-step tool orchestration reasoning |
 | **Parallel tool calls** | `parallel_tool_calls=True` | Independent queries (e.g., assets + events simultaneously) |
 | **Streaming** | `stream=True` (internal aggregation) | Preserves thinking mode quality; aggregated before returning to ConnectOnion |
 | **Structured output** | `response_format={"type": "json_object"}` | Formal action proposals with guaranteed valid JSON |
+
+### Security & Prompt Injection Defense
+
+Since the agent processes external data from Security Center, WAF logs, and MCP servers, every tool result is potentially adversarial. The agent implements a three-layer defense against prompt injection:
+
+1. **Boundary markers** — Every tool result is wrapped in `[TOOL OUTPUT START]` / `[TOOL OUTPUT END]` delimiters by the compliance logger plugin. The system prompt explicitly instructs the model to treat everything between these markers as untrusted data — never as instructions, role assignments, or override commands.
+
+2. **Pattern-based input filtering** — Before boundary wrapping, the compliance logger scans tool output against 15 configurable regex patterns loaded from `injection_patterns.json`. Patterns are classified by severity: critical (role hijack, fake system prompts, boundary marker cloning) triggers full content rejection; high (auto-execution claims, HITL bypass instructions, credential exfil attempts) triggers in-place redaction; medium (data exfil commands, encoded payloads) triggers audit logging. All detections emit timestamped audit entries with full match context.
+
+3. **System prompt guardrails** — The agent's system prompt contains explicit instructions to treat all tool output as untrusted data, never interpret field values as instructions, and flag text resembling commands (`STOP`, `execute`, `override`, `pre-authorized`) as potential injection attempts.
+
+Workflow phase agents inherit these defenses: phases that declare `requires-hitl: true` in their WORKFLOW.md frontmatter receive the HITL approval plugin, ensuring state-changing tools require operator confirmation even when executed by sub-agents. See `SECURITY.md` for the full security control reference.
 
 ### MCP Server Integration (`connectonion_qwen/mcp.py`)
 
@@ -113,9 +125,9 @@ Structured incident response reports are generated via Pydantic models:
 
 The existing skills become the tool implementation layer:
 
-1. **blueteam-autopilot-ops:** 17 production CLI scripts wrapping Alibaba Cloud APIs across 5 services: Security Center (SAS), WAF 3.0, Simple Log Service (SLS), VPC, and STS. Each script supports both real and demo modes transparently.
+1. **blueteam-autopilot-ops:** 31 production CLI scripts wrapping Alibaba Cloud APIs across 7 services: Security Center (SAS), WAF 3.0, Simple Log Service (SLS), VPC, STS, RAM, and Cloud SIEM. Each script supports both real and demo modes transparently.
 
-2. **blueteam-autopilot-core:** Fixtures and references. 15 JSON fixture files for demo mode, MCP tool specifications, and compliance control mappings.
+2. **blueteam-autopilot-core:** Fixtures and references. 23 JSON fixture files for demo mode, MCP tool specifications, and compliance control mappings.
 
 3. **blueteam-autopilot-prep:** An 8-stage environment validator that checks CLI installation, credentials, RAM policies, service enablement, infrastructure, log delivery, config generation, and readiness before the agent ever touches a live API.
 
@@ -141,11 +153,11 @@ The existing skills become the tool implementation layer:
 
 ## Accomplishments that we're proud of
 
-**Zero-setup demo mode.** Bundling 15 JSON fixture files so the entire agent runs offline with no Alibaba Cloud credentials was one of the best design decisions. Judges and users can clone, `pip install`, add a Qwen Cloud API key, and start triaging in under 5 minutes. Demo mode is the default.
+**Zero-setup demo mode.** Bundling 23 JSON fixture files so the entire agent runs offline with no Alibaba Cloud credentials was one of the best design decisions. Judges and users can clone, `pip install`, add a Qwen Cloud API key, and start triaging in under 5 minutes. Demo mode is the default.
 
 **Built on Qwen Cloud + ConnectOnion.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, and structured output, delivered through the ConnectOnion framework's Agent class, plugin system, and Textual TUI. The agent isn't a wrapper around a chat API — it's a proper tool-orchestrating runtime with HITL plugins, compliance logging, and token tracking.
 
-**19 built-in tools + dynamic MCP tools.** The agent ships 37 registered tools across 8 categories (core, events, WAF, response, reporting, IAM forensics, vector memory, monitoring), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
+**39 built-in tools + dynamic MCP tools.** The agent ships 39 registered tools across 8 categories (core, events, WAF, response, reporting, IAM forensics, vector memory, monitoring), each wrapping a production CLI script that works identically in real and demo modes. On top of that, MCP server integration dynamically discovers and registers tools from external servers (CISO Assistant: 101 tools, Alibaba Cloud: 26 tools) at startup — making them available as first-class tools without code changes.
 
 **Structured incident response reports.** The `generate_incident_report` tool aggregates data from 9 sources (event detail, alerts, assets, vulnerabilities, response policies, WAF instance, WAF events, NIST CSF controls, SOC 2 controls) into a single structured context package. Pydantic models enforce the schema: attack chain stages, blast radius, investigation timeline, confidence ratings, and a complete audit trail. Reports are suitable for export to ticket systems, compliance audits, or management review.
 

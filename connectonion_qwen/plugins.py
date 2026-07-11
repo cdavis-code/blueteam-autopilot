@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import subprocess
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
+from pathlib import Path
 
 from connectonion import before_each_tool, after_each_tool
 from connectonion_qwen.config import SCRIPTS_DIR, FIXTURES_DIR, KNOWLEDGE_DIR, SECURITY_CENTER_MODE
@@ -43,6 +45,7 @@ _STATE_CHANGING_TOOLS = {
     "rotate_access_key",
     "delete_stale_user",
     "execute_local_script",
+    "run_command",
 }
 
 _MAX_OUTPUT_LENGTH = 4000
@@ -53,11 +56,26 @@ _MAX_DRY_RUN_DISPLAY = 500
 # When set, _request_approval uses this instead of terminal input().
 _tui_approval_callback: Callable | None = None
 
+# Auto-approved tools set — populated by CLI args (e.g. --auto-approve)
+# Tools in this set skip HITL confirmation, even though they are state-changing.
+_auto_approved_tools: set[str] = set()
+
 
 def set_tui_approval_callback(callback: Callable | None) -> None:
     """Register a TUI-aware approval callback (or None to use terminal input)."""
     global _tui_approval_callback
     _tui_approval_callback = callback
+
+
+def set_auto_approved_tools(tools: set[str]) -> None:
+    """Set which state-changing tools skip HITL confirmation.
+
+    Tools in this set are auto-approved and bypass the approval gate
+    entirely. The approval callback (TUI modal or terminal prompt) is
+    only triggered for state-changing tools NOT in this set.
+    """
+    global _auto_approved_tools
+    _auto_approved_tools = tools or set()
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +231,10 @@ def hitl_approval(agent) -> None:
     if tool_name not in _STATE_CHANGING_TOOLS:
         return
 
+    # Skip HITL if this tool is in the CLI-configured auto-approved set
+    if tool_name in _auto_approved_tools:
+        return
+
     arguments = pending.get("arguments", {})
 
     dry_result = _run_dry_run(tool_name, arguments)
@@ -225,6 +247,145 @@ def hitl_approval(agent) -> None:
                 "reason": "User denied approval. No action was taken.",
             })
         )
+
+
+# ---------------------------------------------------------------------------
+# Prompt Injection Filter — loads patterns from injection_patterns.json
+# ---------------------------------------------------------------------------
+
+_INJECTION_PATTERNS: list[dict] = []
+_PATTERNS_LOADED = False
+
+
+def _load_injection_patterns() -> list[dict]:
+    """Load injection detection patterns from the JSON pattern file.
+
+    Patterns are loaded once and cached. Each entry has:
+    - id: unique pattern identifier
+    - severity: critical | high | medium
+    - description: human-readable label
+    - regex: compiled re.Pattern
+    """
+    global _INJECTION_PATTERNS, _PATTERNS_LOADED
+    if _PATTERNS_LOADED:
+        return _INJECTION_PATTERNS
+
+    pattern_file = Path(__file__).parent / "injection_patterns.json"
+    if not pattern_file.exists():
+        logger.warning(f"Injection pattern file not found: {pattern_file}")
+        _PATTERNS_LOADED = True
+        return _INJECTION_PATTERNS
+
+    try:
+        data = json.loads(pattern_file.read_text(encoding="utf-8"))
+        for entry in data.get("patterns", []):
+            try:
+                compiled = re.compile(entry["regex"])
+                _INJECTION_PATTERNS.append({
+                    "id": entry["id"],
+                    "severity": entry.get("severity", "medium"),
+                    "description": entry.get("description", ""),
+                    "regex": compiled,
+                })
+            except re.error as exc:
+                logger.warning(f"Invalid regex in pattern '{entry.get('id')}': {exc}")
+        logger.info(f"Loaded {len(_INJECTION_PATTERNS)} injection detection patterns")
+    except (json.JSONDecodeError, KeyError) as exc:
+        logger.error(f"Failed to parse injection patterns: {exc}")
+
+    _PATTERNS_LOADED = True
+    return _INJECTION_PATTERNS
+
+
+def _scan_for_injections(text: str) -> list[dict]:
+    """Scan text for prompt injection patterns.
+
+    Returns a list of matches, each with:
+    - id: pattern identifier
+    - severity: critical | high | medium
+    - description: human-readable label
+    - match_text: the matched substring
+    """
+    patterns = _load_injection_patterns()
+    if not patterns:
+        return []
+
+    matches: list[dict] = []
+    for pat in patterns:
+        found = pat["regex"].search(text)
+        if found:
+            matches.append({
+                "id": pat["id"],
+                "severity": pat["severity"],
+                "description": pat["description"],
+                "match_text": found.group(),
+            })
+    return matches
+
+
+def _sanitize_injections(text: str, tool_name: str) -> str:
+    """Screen tool output for prompt injection patterns.
+
+    - critical: replace entire content with a rejection notice
+    - high: redact the offending line(s) and log
+    - medium: log warning but pass content through
+
+    Returns the (possibly sanitized) text.
+    """
+    matches = _scan_for_injections(text)
+    if not matches:
+        return text
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+    critical_hits = [m for m in matches if m["severity"] == "critical"]
+    high_hits = [m for m in matches if m["severity"] == "high"]
+    medium_hits = [m for m in matches if m["severity"] == "medium"]
+
+    # Log all detections for audit
+    for m in matches:
+        logger.warning(
+            f"[INJECTION DETECTED] {timestamp} | tool={tool_name} "
+            f"| pattern={m['id']} | severity={m['severity']} "
+            f"| match={m['match_text']!r}"
+        )
+
+    # Critical: reject entire content
+    if critical_hits:
+        pattern_ids = ", ".join(m["id"] for m in critical_hits)
+        logger.error(
+            f"[INJECTION BLOCKED] {timestamp} | tool={tool_name} "
+            f"| patterns=[{pattern_ids}] — content rejected entirely"
+        )
+        return (
+            "[PROMPT INJECTION DETECTED — CONTENT BLOCKED]\n"
+            f"The tool output contained {len(critical_hits)} critical injection "
+            f"pattern(s): {pattern_ids}.\n"
+            "The original content has been replaced with this notice.\n"
+            "Investigate the source of this data for potential adversarial input."
+        )
+
+    # High: redact offending lines
+    if high_hits:
+        pattern_ids = ", ".join(m["id"] for m in high_hits)
+        match_texts = {m["match_text"] for m in high_hits}
+        redacted = text
+        for mt in match_texts:
+            redacted = redacted.replace(mt, "[REDACTED — injection pattern]")
+        logger.warning(
+            f"[INJECTION REDACTED] {timestamp} | tool={tool_name} "
+            f"| patterns=[{pattern_ids}] — offending content redacted"
+        )
+        text = redacted
+
+    # Medium: logged above, content passes through
+    if medium_hits and not high_hits:
+        pattern_ids = ", ".join(m["id"] for m in medium_hits)
+        logger.info(
+            f"[INJECTION FLAG] {timestamp} | tool={tool_name} "
+            f"| patterns=[{pattern_ids}] — content passed through (medium severity)"
+        )
+
+    return text
 
 
 # ---------------------------------------------------------------------------
@@ -255,6 +416,10 @@ def compliance_logger(agent) -> None:
             result[:_MAX_OUTPUT_LENGTH]
             + "\n...[truncated for context window management]"
         )
+
+    # Screen for prompt injection patterns before boundary wrapping
+    if result is not None:
+        result = _sanitize_injections(result, info['tool_name'])
 
     # Wrap result in prompt-injection boundary delimiters so the LLM can
     # distinguish external untrusted data from trusted instruction content.

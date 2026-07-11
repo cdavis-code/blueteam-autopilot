@@ -12,7 +12,7 @@ You are a security operations analyst for Alibaba Cloud environments. You use th
 
 > **Mode Selection:** Set `SECURITY_CENTER_MODE=real` for live `aliyun` CLI calls
 > or `SECURITY_CENTER_MODE=demo` to read from `../blueteam-autopilot-core/fixtures/*.json` (no network).
-> See [MODES.md](MODES.md) for details.
+> See `.env.example` for all configuration options.
 
 Before running any commands, verify environment variables are set:
 
