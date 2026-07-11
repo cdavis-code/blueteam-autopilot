@@ -23,6 +23,11 @@ jobs:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-blueteam
 
+      - name: Install Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+
       - name: Determine release tag
         id: tag
         run: |
@@ -49,12 +54,20 @@ jobs:
           SHA="${{ steps.sha256.outputs.sha256 }}"
           FORMULA="homebrew-blueteam/Formula/blueteam-autopilot.rb"
           
-          # Update the URL and SHA256 in the formula
-          sed -i "s|url \"https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/.*\"|url \"https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/${TAG}.tar.gz\"|" "$FORMULA"
-          sed -i "s|sha256 \"\".*|sha256 \"${SHA}\"|" "$FORMULA"
+          # Update the URL (matches any version tag)
+          sed -i "s|url \"https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/[^\"]*\"|url \"https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/${TAG}.tar.gz\"|" "$FORMULA"
+          
+          # Update the SHA256 (matches any hash value, including empty)
+          sed -i "0,/sha256 \"[^\"]*\"/s/sha256 \"[^\"]*\"/sha256 \"${SHA}\"/" "$FORMULA"
           
           echo "Updated formula:"
           head -10 "$FORMULA"
+
+      - name: Update Python resource hashes
+        run: |
+          brew update-python-resources homebrew-blueteam/Formula/blueteam-autopilot.rb
+          echo "Updated Python resources:"
+          grep -A 2 "resource " homebrew-blueteam/Formula/blueteam-autopilot.rb | head -20
 
       - name: Commit and push to homebrew-blueteam
         run: |
