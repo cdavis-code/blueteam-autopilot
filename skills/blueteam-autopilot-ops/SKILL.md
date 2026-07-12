@@ -88,23 +88,23 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `ping.py` | Health check — CLI, credentials, region, API connectivity | `./ping.py` |
-| `get_account_context.py` | Region, Security Center edition, Agentic SOC status | `./get_account_context.py` |
+| `ping.py` | Health check — CLI, credentials, region, API connectivity | `python ping.py` |
+| `get_account_context.py` | Region, Security Center edition, Agentic SOC status | `python get_account_context.py` |
 
 ### Security Events
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list_events.py` | List Security Center events | `./list_events.py [time_range] [severity]` |
-| `get_event_detail.py` | Event deep-dive with attack chain | `./get_event_detail.py <event_id>` |
-| `list_alerts.py` | Alerts grouped by source (WAF, CWPP, etc.) | `./list_alerts.py <event_id>` |
+| `list_events.py` | List Security Center events | `python list_events.py [time_range] [severity]` |
+| `get_event_detail.py` | Event deep-dive with attack chain | `python get_event_detail.py <event_id>` |
+| `list_alerts.py` | Alerts grouped by source (WAF, CWPP, etc.) | `python list_alerts.py <event_id>` |
 
 ### Vulnerabilities
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list_vulnerabilities.py` | List detected vulnerabilities | `./list_vulnerabilities.py [severity] [asset_id] [vul_type] [page]` |
-| `get_vulnerability_detail.py` | Deep vuln info: CVE, description, fix | `./get_vulnerability_detail.py <vul_id>` |
+| `list_vulnerabilities.py` | List detected vulnerabilities | `python list_vulnerabilities.py [severity] [asset_id] [vul_type] [page]` |
+| `get_vulnerability_detail.py` | Deep vuln info: CVE, description, fix | `python get_vulnerability_detail.py <vul_id>` |
 
 ### Response Policies
 
@@ -112,31 +112,31 @@ Every MCP tool has a CLI fallback. Use these scripts when the MCP server is unav
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list_response_policies.py` | List Agentic SOC response policies | `./list_response_policies.py [scope]` |
-| `execute_response_policy.py` | Enable policy (dry-run by default) | `./execute_response_policy.py <policy_id> [event_id] [--real]` |
+| `list_response_policies.py` | List Agentic SOC response policies | `python list_response_policies.py [scope]` |
+| `execute_response_policy.py` | Enable policy (dry-run by default) | `python execute_response_policy.py <policy_id> [event_id] [--real]` |
 
 ### WAF (Web Application Firewall)
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `get_waf_instance.py` | Discover WAF instance in region | `./get_waf_instance.py` |
-| `list_waf_events.py` | WAF attack logs from SLS | `./list_waf_events.py [time_range] [attack_type]` |
-| `list_waf_top_rules.py` | Top 10 most triggered WAF rules | `./list_waf_top_rules.py [time_range]` |
-| `list_waf_top_ips.py` | Top 10 attacker IPs by hit count | `./list_waf_top_ips.py [time_range]` |
-| `verify_log_delivery.py` | Verify SLS log delivery | `./verify_log_delivery.py` |
+| `get_waf_instance.py` | Discover WAF instance in region | `python get_waf_instance.py` |
+| `list_waf_events.py` | WAF attack logs from SLS | `python list_waf_events.py [time_range] [attack_type]` |
+| `list_waf_top_rules.py` | Top 10 most triggered WAF rules | `python list_waf_top_rules.py [time_range]` |
+| `list_waf_top_ips.py` | Top 10 attacker IPs by hit count | `python list_waf_top_ips.py [time_range]` |
+| `verify_log_delivery.py` | Verify SLS log delivery | `python verify_log_delivery.py` |
 
 ### Assets
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list_assets.py` | List cloud assets (ECS) in Security Center | `./list_assets.py [criteria] [page]` |
+| `list_assets.py` | List cloud assets (ECS) in Security Center | `python list_assets.py [criteria] [page]` |
 
 ### Knowledge
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `list_knowledge.py` | List all available knowledge documents | `./list_knowledge.py` |
-| `get_knowledge.py` | Fetch a specific knowledge document | `./get_knowledge.py <document_type>` |
+| `list_knowledge.py` | List all available knowledge documents | `python list_knowledge.py` |
+| `get_knowledge.py` | Fetch a specific knowledge document | `python get_knowledge.py <document_type>` |
 
 ---
 
@@ -247,7 +247,7 @@ Alternatively, use MCP tools directly if available:
 
 1. Verify time range is correct (events may be outside window)
 2. Check Security Center edition supports event listing
-3. Try broader time range: `./list_events.py last24Hours`
+3. Try broader time range: `python list_events.py last24Hours`
 
 ### API Returns 403
 
@@ -257,12 +257,12 @@ Alternatively, use MCP tools directly if available:
 
 ### WAF Events Not Found
 
-1. Verify WAF instance exists: `./get_waf_instance.py`
-2. Check log delivery is enabled: `./verify_log_delivery.py`
+1. Verify WAF instance exists: `python get_waf_instance.py`
+2. Check log delivery is enabled: `python verify_log_delivery.py`
 3. Ensure WAF logs are flowing to SLS
 
 ### Knowledge Documents Not Found
 
-1. Run `./list_knowledge.py` to see search paths
+1. Run `python list_knowledge.py` to see search paths
 2. Set `KNOWLEDGE_DIR` to override: `export KNOWLEDGE_DIR=/path/to/knowledge`
 3. Check that document filenames match the registry (e.g., `compliance_nist.md`)
