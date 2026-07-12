@@ -5,6 +5,16 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.5] — 2026-07-12
+
+### Fixed
+
+- **Git clone fails on first run with stale directory** — `_sync_skills()` now cleans up any leftover partial clone before retrying. After a failed clone (e.g., network interruption), the stale `.git` directory previously caused subsequent runs to fail with exit 128.
+- **User `.env` preserved during skill sync** — If `~/.blueteam/.env` was created per setup instructions before the first run, it is now saved, the directory cleaned for a fresh clone, then `.env` is restored. Previously, `shutil.rmtree` would silently delete the user's configuration.
+- **Graceful fallback when git is unreachable** — If `git clone` fails entirely (air-gapped environments, restrictive firewalls), the agent now falls back to the `blueteam_data/` directory bundled in the pip package instead of crashing with `sys.exit(1)`.
+
+---
+
 ## [3.1.4] — 2026-07-12
 
 ### Added
