@@ -78,7 +78,7 @@ regardless of initial severity scoring.
 > **GRC Sync:** Compliance controls above may be sourced from a GRC tool (e.g., CISO Assistant Community)
 > via the knowledge skill's `grc_sync.py` mechanism. When GRC sync is enabled, the controls in
 > [blueteam-autopilot-knowledge](../blueteam-autopilot-knowledge/) are the authoritative source.
-> Run `python ./scripts/grc_sync.py --list` from the knowledge skill to check sync status.
+> Run `python scripts/grc_sync.py --list` from the knowledge skill to check sync status.
 
 > **GRC MCP Live Query:** When CISO Assistant or Vanta MCP servers are configured, the agent can
 > query live GRC data directly during incident response — checking control status, framework
