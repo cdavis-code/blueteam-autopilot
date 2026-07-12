@@ -42,14 +42,7 @@ blueteam
 # Install skills into your AI IDE (Qoder, Cursor, OpenCode, etc.)
 npx skills add cdavis-code/blueteam-autopilot --skill '*'
 
-# Configure API key
-mkdir -p ~/.blueteam
-echo 'DASHSCOPE_API_KEY="sk-..."' > ~/.blueteam/.env
-
-# Start using in your IDE chat:
-#   /blueteam-autopilot-core      — run the full agent
-#   /blueteam-autopilot-ops       — individual ops scripts
-#   /blueteam-autopilot-workflows — run specialist workflows
+# Start using in your IDE chat
 ```
 
 The skills integrate directly into your IDE's AI chat. You get the same 40 tools, 5 workflows, and HITL approval gates as the standalone TUI — all within your editor. Zero cloud credentials needed for demo mode.
