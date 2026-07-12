@@ -6,6 +6,24 @@ A 5-minute guided tour of BlueTeam's best features, all running in demo mode wit
 
 ## Setup (2 minutes)
 
+**Option A: Homebrew (macOS/Linux)**
+
+```bash
+# Install
+brew tap cdavis-code/blueteam
+brew trust cdavis-code/blueteam
+brew install blueteam-autopilot
+
+# Configure API key (only Qwen Cloud needed — no Alibaba Cloud account)
+mkdir -p ~/.blueteam
+echo 'DASHSCOPE_API_KEY="sk-..."' > ~/.blueteam/.env
+
+# Launch
+blueteam
+```
+
+**Option B: pip**
+
 ```bash
 # Install
 pip install blueteam-autopilot

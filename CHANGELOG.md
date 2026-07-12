@@ -5,6 +5,17 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.2] — 2026-07-11
+
+### Fixed
+
+#### Homebrew Installation
+- **Package discovery error** — `pyproject.toml` `[tool.setuptools.packages.find]` now uses auto-discovery with explicit `include`/`exclude` patterns, preventing setuptools from failing on empty `connectonion_qwen/providers/` directories (only contained `__pycache__/`, which is gitignored and absent from release tarballs)
+- **Homebrew workflow** — Removed `brew update-python-resources` step that failed on transitive dependencies without source distributions (e.g., `playwright`). The formula's 5 pinned resources are sufficient; pip resolves transitive deps from PyPI during install
+- **Workflow sed patterns** — Fixed sed regex for automatic URL and SHA256 updates in the Homebrew formula on release publish
+
+---
+
 ## [3.1.1] — 2026-07-11
 
 ### Added

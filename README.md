@@ -55,8 +55,9 @@ Get BlueTeam running in under 2 minutes with **zero Alibaba Cloud setup**. Demo 
 **Option A: Homebrew (macOS/Linux)**
 
 ```bash
-# 1. Add the tap and install
+# 1. Add the tap, trust it, and install
 brew tap cdavis-code/blueteam
+brew trust cdavis-code/blueteam
 brew install blueteam-autopilot
 
 # 2. Set your Qwen Cloud API key

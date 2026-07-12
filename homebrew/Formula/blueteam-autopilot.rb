@@ -3,8 +3,8 @@ class BlueteamAutopilot < Formula
 
   desc "SecOps agent powered by Qwen Cloud + ConnectOnion for multi-cloud security operations"
   homepage "https://github.com/cdavis-code/blueteam-autopilot"
-  url "https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/v3.1.0.tar.gz"
-  sha256 ""  # Fill after creating GitHub release: curl -sL <url> | shasum -a 256
+  url "https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/v3.1.1.tar.gz"
+  sha256 "d8b246e8d8ae5a934c0e9f52dde86b8a9c7b0b372829344b48c3cc946e5368de"
   license "MIT"
 
   depends_on "python@3.10"
@@ -12,31 +12,50 @@ class BlueteamAutopilot < Formula
 
   resource "connectonion" do
     url "https://files.pythonhosted.org/packages/source/c/connectonion/connectonion-1.1.0.tar.gz"
-    sha256 "a21803d79a9cfd944970158ba9a509ca34f983f02c8777d2e61ddae1c09b7a3e"
+    sha256 "5c42be1527feddbf8d5a4ec3e779a036095e039ac40b14b70bc2840d127406ab"
   end
 
   resource "mcp" do
     url "https://files.pythonhosted.org/packages/source/m/mcp/mcp-1.28.1.tar.gz"
-    sha256 "2726bca5e7193f61c5dde8b12500a6de2d9acf6d1a1c0be9e8c2e706437991df"
+    sha256 "d51e36a5f5644faea4f85ea649bfffa6bc6c26770d42798ad6a3de3d2ba69683"
   end
 
   resource "python-dotenv" do
-    url "https://files.pythonhosted.org/packages/source/p/python-dotenv/python-dotenv-1.2.2.tar.gz"
-    sha256 "1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a"
+    url "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz"
+    sha256 "2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3"
   end
 
   resource "libsql" do
     url "https://files.pythonhosted.org/packages/source/l/libsql/libsql-0.1.11.tar.gz"
-    sha256 "c8c00c5e4d0906ff682ab3cad8473ef36aaa34080bcc553a2e636a73e79d9c2b"
+    sha256 "101b6e60f5333434b3e6107bfe2cf24cd5d1317286ad262cb6489941abde77d4"
   end
 
   resource "pyyaml" do
     url "https://files.pythonhosted.org/packages/source/P/PyYAML/pyyaml-6.0.3.tar.gz"
-    sha256 "fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0"
+    sha256 "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f"
   end
 
   def install
-    virtualenv_install_with_resources
+    # Use virtualenv_install_with_resources but allow binary wheels for native packages
+    venv = virtualenv_create(libexec, "python3.10")
+    
+    # Install resources in order, allowing binary wheels for libsql (Rust package)
+    resources.each do |r|
+      if r.name == "libsql"
+        # Install libsql from PyPI to use pre-built wheels (has Rust extensions)
+        system "#{libexec}/bin/python", "-m", "pip", "install", 
+               "--no-deps", "--only-binary", "libsql", "libsql==0.1.11"
+      else
+        # Use build isolation for packages that need it (e.g., mcp requires hatchling)
+        r.stage do
+          system "#{libexec}/bin/python", "-m", "pip", "install", 
+                 "--no-deps", "."
+        end
+      end
+    end
+
+    # Install the main package (creates the blueteam entry point)
+    system "#{libexec}/bin/python", "-m", "pip", "install", "."
 
     # Link the blueteam entry point
     bin.install_symlink libexec/"bin/blueteam" => "blueteam"

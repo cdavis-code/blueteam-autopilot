@@ -136,8 +136,6 @@ The existing skills become the tool implementation layer:
 
 5. **blueteam-autopilot-reports:** Generates structured Markdown incident reports, action proposals, and vulnerability prioritization documents from JSON schemas and templates.
 
-6. **alibaba-security-ops:** The origin. The standalone CLI skill from which the project evolved.
-
 ## Challenges we ran into
 
 **API complexity.** The Security Center, WAF 3.0, and SLS APIs each have their own authentication patterns, pagination models, and versioning quirks. WAF 3.0 required a different API product name (`waf-openapi`) than expected, and SLS log queries needed a specific `From: aqs` parameter that wasn't documented in the main reference. Wrapping all 25+ API operations into clean, consistent CLI scripts took serious iteration.
@@ -154,7 +152,7 @@ The existing skills become the tool implementation layer:
 
 ## Accomplishments that we're proud of
 
-**Zero-setup demo mode.** Bundling 23 JSON fixture files so the entire agent runs offline with no Alibaba Cloud credentials was one of the best design decisions. Judges and users can clone, `pip install`, add a Qwen Cloud API key, and start triaging in under 5 minutes. Demo mode is the default.
+**Zero-setup demo mode.** Bundling 23 JSON fixture files so the entire agent runs offline with no Alibaba Cloud credentials was one of the best design decisions. Judges and users can install via Homebrew (`brew install blueteam-autopilot`) or `pip install`, add a Qwen Cloud API key, and start triaging in under 5 minutes. Demo mode is the default.
 
 **Built on Qwen Cloud + ConnectOnion.** The standalone agent leverages Qwen Cloud's function calling, thinking mode, parallel tool calls, and structured output, delivered through the ConnectOnion framework's Agent class, plugin system, and Textual TUI. The agent isn't a wrapper around a chat API — it's a proper tool-orchestrating runtime with HITL plugins, compliance logging, and token tracking.
 
@@ -171,6 +169,8 @@ The existing skills become the tool implementation layer:
 **SOC 2 compliance by design.** The "propose, don't execute" architecture means every state-changing action requires explicit human approval. This isn't a feature bolted on. It's the core design principle, and it made the architecture cleaner, not harder.
 
 **Cron and automation from day one.** The agent isn't limited to interactive use. The `--prompt` flag and stdin piping enable scheduled security checks, CI/CD integration, and scripted workflows. Clean stdout/stderr separation means output can be redirected to files, logs, or other tools without parsing hacks.
+
+**Homebrew distribution with auto-update.** A single `brew install blueteam-autopilot` sets up the agent, Python virtualenv, and all dependencies. The GitHub Actions workflow watches for new releases and automatically updates the formula SHA256 and resource hashes in the Homebrew tap, so users get the latest version with a standard `brew upgrade`.
 
 ## What we learned
 
