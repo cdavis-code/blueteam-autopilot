@@ -7,6 +7,7 @@ class BlueteamAutopilot < Formula
   sha256 "71f8b79712ee789ca51f0c582947bc05fc231ecd0c70ec806c41627c15ab1826"
   license "MIT"
 
+  depends_on "git"
   depends_on "python@3.12"
   depends_on "aliyun-cli" => :optional
 

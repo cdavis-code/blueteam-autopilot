@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -40,6 +41,8 @@ def _sync_skills() -> Path:
 
     On first run, clones the repo to ~/.blueteam/. On subsequent runs,
     pulls updates. If skills/ exists locally (git clone), uses that instead.
+    Falls back to the bundled blueteam_data/ in the installed package if
+    git is unavailable (e.g., air-gapped or restricted environments).
     """
     # Check if skills exist locally (user cloned the repo)
     local_skills = Path.cwd() / "skills"
@@ -60,7 +63,13 @@ def _sync_skills() -> Path:
             pass  # Continue with existing version
         return SYNC_DIR
 
-    # First run: clone repo
+    # First run: clone repo. Preserve user's .env if they created it per setup docs.
+    saved_env = None
+    if SYNC_DIR.exists():
+        env_file = SYNC_DIR / ".env"
+        if env_file.is_file():
+            saved_env = env_file.read_text()
+        shutil.rmtree(SYNC_DIR, ignore_errors=True)
     print(f"First run detected. Downloading skills to {SYNC_DIR}...")
     try:
         subprocess.run(
@@ -69,17 +78,27 @@ def _sync_skills() -> Path:
             check=True,
             capture_output=True,
         )
+        if saved_env is not None:
+            (SYNC_DIR / ".env").write_text(saved_env)
         print(f"Skills downloaded successfully.")
+        return SYNC_DIR
     except subprocess.CalledProcessError as e:
-        print(f"Failed to download skills: {e}")
-        print("You can manually clone: git clone https://github.com/cdavis-code/blueteam-autopilot.git")
-        sys.exit(1)
+        stderr = e.stderr.decode(errors="replace").strip() if e.stderr else "unknown error"
+        print(f"Git clone failed: {stderr}")
+        print(f"Falling back to bundled skills in the installed package.")
+        return _installed_package_root()
     except FileNotFoundError:
-        print("git not found. Please install git or clone manually:")
-        print("  git clone https://github.com/cdavis-code/blueteam-autopilot.git")
-        sys.exit(1)
+        print("git not found. Falling back to bundled skills in the installed package.")
+        return _installed_package_root()
 
-    return SYNC_DIR
+
+def _installed_package_root() -> Path:
+    """Return the package installation directory (site-packages).
+
+    Used as a fallback when git clone fails. blueteam_data/ is
+    bundled in the pip package and serves as the skills source.
+    """
+    return Path(__file__).resolve().parent
 
 
 # Sync skills before importing config (sets BLUETEAM_PROJECT_ROOT)
