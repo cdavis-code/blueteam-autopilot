@@ -1,6 +1,9 @@
 name: Update Homebrew Formula
 
 on:
+  push:
+    tags:
+      - 'v*'
   release:
     types: [published]
   workflow_dispatch:
@@ -33,8 +36,12 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "tag=${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
-          else
+          elif [ "${{ github.event_name }}" = "release" ]; then
             echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            # push event: extract tag from ref (refs/tags/vX.Y.Z -> vX.Y.Z)
+            TAG="${{ github.ref }}"
+            echo "tag=${TAG#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
       - name: Download release tarball and compute SHA256
