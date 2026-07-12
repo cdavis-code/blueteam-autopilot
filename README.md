@@ -61,8 +61,8 @@ brew trust cdavis-code/blueteam
 brew install blueteam-autopilot
 
 # 2. Set your Qwen Cloud API key
-mkdir -p ~/.blueteam 
-echo 'DASHSCOPE_API_KEY="sk-..."' > .env
+mkdir -p ~/.blueteam
+echo 'DASHSCOPE_API_KEY="sk-..."' > ~/.blueteam/.env
 
 # 3. Run the agent (skills auto-download on first run)
 blueteam
@@ -163,6 +163,7 @@ SECURITY_CENTER_MODE=real          # Switch to live APIs
 
 | Flag | Description |
 |------|-------------|
+| `--version` `-V` | Print version and exit |
 | *(none)* | Launch interactive TUI (default) |
 | `--prompt` `-p` | Run non-interactively with a prompt (cron/automation mode). Output to stdout, errors to stderr |
 | `--daemon` `-d` | Run as autonomous SOC daemon for continuous monitoring |
@@ -225,9 +226,9 @@ pip install blueteam-autopilot
 # OR: brew tap cdavis-code/blueteam && brew install blueteam-autopilot
 
 # 2. Configure Qwen Cloud API key and real mode
-mkdir -p ~/.blueteam && cd ~/.blueteam
-echo 'DASHSCOPE_API_KEY="sk-..."' > .env
-echo 'SECURITY_CENTER_MODE=real' >> .env
+mkdir -p ~/.blueteam
+echo 'DASHSCOPE_API_KEY="sk-..."' > ~/.blueteam/.env
+echo 'SECURITY_CENTER_MODE=real' >> ~/.blueteam/.env
 
 # 3. Configure aliyun CLI (if not already done)
 aliyun configure
@@ -238,7 +239,7 @@ blueteam
 # 5. Validate environment with the prep skill (skills auto-download on first run)
 # > /blueteam-autopilot-prep
 
-# 6. Start uing the agent 
+# 6. Start using the agent 
 # > Show me HIGH severity events from the last hour
 # > Deep-dive into event evt-xxx-yyy
 ```
@@ -347,7 +348,6 @@ The `.mcp.example.json` includes presets for:
 .
 ├── README.md                          # This file
 ├── SECURITY.md                        # Security controls reference
-├── BUGS.md                            # Known issues and security findings
 ├── LICENSE                            # MIT License
 ├── CHANGELOG.md                       # Version history
 ├── .env.example                       # Environment variable template
@@ -388,7 +388,7 @@ The `.mcp.example.json` includes presets for:
 │   ├── console-*.png                  # Alibaba Cloud console screenshots
 │   └── slides/                        # Demo video script + screenshots
 │
-├── blueteam_data/                     # Thin Python package (pip install fallback)
+├── blueteam_data/                     # Bundled Python package data (scripts, fixtures, knowledge, workflows)
 │   ├── __init__.py
 │   ├── scripts -> ../skills/blueteam-autopilot-ops/scripts
 │   ├── fixtures -> ../skills/blueteam-autopilot-core/fixtures

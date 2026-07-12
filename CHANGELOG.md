@@ -5,13 +5,32 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.6] — 2026-07-12
+
+### Changed
+
+- **Sparse git checkout** — First-run clone now uses `--filter=blob:none --sparse --no-checkout` + `git sparse-checkout set skills`, pulling only the `skills/` directory (~672 KB) instead of the full repo. Subsequent `git pull` respects the sparse configuration.
+- **Skills as single source of truth** — `_resolve_dir()` no longer falls back to `blueteam_data/`. The agent MUST use the `skills/` directory from repo sync. Tools report clear errors if skills are missing.
+- **Hard failure on git failure** — `_sync_skills()` now exits with `sys.exit(1)` when `git clone` fails or git is not installed. No silent fallback.
+- **Skills source printed at startup** — Every invocation prints the resolved project root (e.g., `Skills source: /home/deploy/.blueteam`) so users can confirm which directory is in use.
+
+### Added
+
+- **`git` dependency in Homebrew formula** — `depends_on "git"` ensures git is installed before `blueteam-autopilot` on systems where it's not bundled by default.
+
+### Removed
+
+- **`_installed_package_root()` function** — Deleted. The `blueteam_data/` pip fallback is no longer used as a runtime skills source.
+- **`blueteam_data/` fallback in `_resolve_dir()`** — Step 4 removed from the resolution chain. Resolution is now 3 steps: env var override → skills directory → `~/.blueteam/skills/`.
+
+---
+
 ## [3.1.5] — 2026-07-12
 
 ### Fixed
 
 - **Git clone fails on first run with stale directory** — `_sync_skills()` now cleans up any leftover partial clone before retrying. After a failed clone (e.g., network interruption), the stale `.git` directory previously caused subsequent runs to fail with exit 128.
 - **User `.env` preserved during skill sync** — If `~/.blueteam/.env` was created per setup instructions before the first run, it is now saved, the directory cleaned for a fresh clone, then `.env` is restored. Previously, `shutil.rmtree` would silently delete the user's configuration.
-- **Graceful fallback when git is unreachable** — If `git clone` fails entirely (air-gapped environments, restrictive firewalls), the agent now falls back to the `blueteam_data/` directory bundled in the pip package instead of crashing with `sys.exit(1)`.
 
 ---
 

@@ -10,7 +10,7 @@ Usage:
 
 from __future__ import annotations
 
-__version__ = "3.1.5"
+__version__ = "3.1.6"
 
 import argparse
 import json
@@ -63,7 +63,7 @@ def _sync_skills() -> Path:
             pass  # Continue with existing version
         return SYNC_DIR
 
-    # First run: clone repo. Preserve user's .env if they created it per setup docs.
+    # First run: clone repo with sparse checkout — only skills/ is needed.
     saved_env = None
     if SYNC_DIR.exists():
         env_file = SYNC_DIR / ".env"
@@ -73,8 +73,26 @@ def _sync_skills() -> Path:
     print(f"First run detected. Downloading skills to {SYNC_DIR}...")
     try:
         subprocess.run(
-            ["git", "clone", "--depth", "1", REPO_URL, str(SYNC_DIR)],
+            [
+                "git", "clone", "--depth", "1",
+                "--filter=blob:none", "--sparse", "--no-checkout",
+                REPO_URL, str(SYNC_DIR),
+            ],
             timeout=120,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "sparse-checkout", "set", "skills"],
+            cwd=SYNC_DIR,
+            timeout=30,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "checkout"],
+            cwd=SYNC_DIR,
+            timeout=30,
             check=True,
             capture_output=True,
         )
@@ -85,25 +103,17 @@ def _sync_skills() -> Path:
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.decode(errors="replace").strip() if e.stderr else "unknown error"
         print(f"Git clone failed: {stderr}")
-        print(f"Falling back to bundled skills in the installed package.")
-        return _installed_package_root()
+        print(f"Skills are required to run. Cannot start without them.")
+        sys.exit(1)
     except FileNotFoundError:
-        print("git not found. Falling back to bundled skills in the installed package.")
-        return _installed_package_root()
-
-
-def _installed_package_root() -> Path:
-    """Return the package installation directory (site-packages).
-
-    Used as a fallback when git clone fails. blueteam_data/ is
-    bundled in the pip package and serves as the skills source.
-    """
-    return Path(__file__).resolve().parent
+        print("git not found. Please install git to sync skills on first run.")
+        sys.exit(1)
 
 
 # Sync skills before importing config (sets BLUETEAM_PROJECT_ROOT)
 _project_root = _sync_skills()
 os.environ["BLUETEAM_PROJECT_ROOT"] = str(_project_root)
+print(f"Skills source: {_project_root}")
 
 from textual.widgets import Button, Input, Static
 from textual.containers import Horizontal, Vertical, VerticalScroll

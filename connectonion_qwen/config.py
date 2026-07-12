@@ -130,7 +130,9 @@ def _resolve_dir(subdir: str, fallback_skill: str = "") -> Path:
     1. BLUETEAM_PROJECT_ROOT env var (explicit override)
     2. skills/<skill>/<subdir> relative to project root (local or synced)
     3. ~/.blueteam/skills/<skill>/<subdir> (auto-synced location)
-    4. blueteam_data/<subdir> relative to this file (pip install fallback)
+
+    If no directory exists at any location, returns the local path so
+    tools can report clear errors rather than crashing silently.
     """
     # 1. Env var override
     env_root = os.environ.get("BLUETEAM_PROJECT_ROOT")
@@ -148,11 +150,6 @@ def _resolve_dir(subdir: str, fallback_skill: str = "") -> Path:
     synced = Path.home() / ".blueteam" / "skills" / fallback_skill / subdir
     if synced.is_dir():
         return synced
-
-    # 4. Package-relative blueteam_data (pip install fallback with symlinks)
-    candidate = _PROJECT_ROOT / "blueteam_data" / subdir
-    if candidate.is_dir():
-        return candidate
 
     # Return the local path even if missing — tools will report errors
     return _PROJECT_ROOT / "skills" / fallback_skill / subdir
