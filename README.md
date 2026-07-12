@@ -108,15 +108,23 @@ Demo mode reads from 23 bundled fixture files (`skills/blueteam-autopilot-core/f
 
 All 40 tools work in demo mode — threat hunting, IAM forensics, compliance audits, and incident response reports. The only difference: data comes from fixtures instead of live APIs.
 
-### Also Available: AI IDE Skills
-
-Prefer an AI IDE? Install as skills for Qoder, Cursor, or other IDEs — no API key needed:
+**Option C: Third-Party Agent Harness (AI IDE)**
 
 ```bash
-npx skills add cdavis-code/blueteam-autopilot --skill '*' -y
+# Install skills into your AI IDE (Qoder, Cursor, OpenCode, etc.)
+npx skills add cdavis-code/blueteam-autopilot --skill '*'
+
+# Configure API key
+mkdir -p ~/.blueteam
+echo 'DASHSCOPE_API_KEY="sk-..."' > ~/.blueteam/.env
+
+# Start using in your IDE chat:
+#   /blueteam-autopilot-core      — run the full agent
+#   /blueteam-autopilot-ops       — individual ops scripts
+#   /blueteam-autopilot-workflows — run specialist workflows
 ```
 
-That's it. Start typing `Show me recent security events` — the IDE handles the LLM.
+The skills integrate directly into your IDE's AI chat. You get the same 40 tools, 5 workflows, and HITL approval gates as the standalone TUI — all within your editor. Zero cloud credentials needed for demo mode.
 
 ---
 
