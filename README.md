@@ -1,6 +1,6 @@
 <div align="center">
 
-![Alibaba Blueteam](assets/banner.svg)
+![BlueTeam](assets/banner.svg)
 
 *Intelligent security operations with human-in-the-loop guardrails*
 
@@ -387,13 +387,6 @@ The `.mcp.example.json` includes presets for:
 │   ├── proof-of-deployment.md         # Alibaba Cloud deployment evidence
 │   ├── console-*.png                  # Alibaba Cloud console screenshots
 │   └── slides/                        # Demo video script + screenshots
-│
-├── blueteam_data/                     # Bundled Python package data (scripts, fixtures, knowledge, workflows)
-│   ├── __init__.py
-│   ├── scripts -> ../skills/blueteam-autopilot-ops/scripts
-│   ├── fixtures -> ../skills/blueteam-autopilot-core/fixtures
-│   ├── knowledge -> ../skills/blueteam-autopilot-knowledge/knowledge
-│   └── workflows/                      # WORKFLOW.md files (pip install fallback)
 │
 └── skills/                            # Canonical location for all runtime data
     ├── blueteam-autopilot-core/       # Core agent: role, tools, guardrails

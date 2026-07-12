@@ -3,8 +3,8 @@
 Each function is auto-converted to an OpenAI-compatible tool schema by
 ConnectOnion's tool_factory using type hints and docstrings.
 
-Under the hood, each tool dispatches to a bash script in
-blueteam_data/scripts/ via subprocess.
+Under the hood, each tool dispatches to a Python script in
+skills/blueteam-autopilot-ops/scripts/ via subprocess.
 """
 
 from __future__ import annotations

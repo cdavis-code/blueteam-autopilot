@@ -10,7 +10,7 @@ Usage:
 
 from __future__ import annotations
 
-__version__ = "3.1.6"
+__version__ = "3.1.7"
 
 import argparse
 import json
@@ -41,8 +41,7 @@ def _sync_skills() -> Path:
 
     On first run, clones the repo to ~/.blueteam/. On subsequent runs,
     pulls updates. If skills/ exists locally (git clone), uses that instead.
-    Falls back to the bundled blueteam_data/ in the installed package if
-    git is unavailable (e.g., air-gapped or restricted environments).
+    If git is unavailable, exits with an error — skills are required.
     """
     # Check if skills exist locally (user cloned the repo)
     local_skills = Path.cwd() / "skills"

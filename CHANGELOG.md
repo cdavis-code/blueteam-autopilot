@@ -1,9 +1,26 @@
 # Changelog
 
-All notable changes to the Alibaba Blueteam project will be documented in this file.
+All notable changes to the BlueTeam project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.1.7] — 2026-07-12
+
+### Removed
+
+- **`blueteam_data/` directory** — Deleted entirely. The directory was dead code after v3.1.6 made `skills/` the single source of truth. Removed 8 files (workflows, `__init__.py`).
+- **`blueteam_data*` from `pyproject.toml`** — Removed from `packages.find.include` and `[tool.setuptools.package-data]`. The package no longer bundles runtime data — `skills/` is the canonical source.
+
+### Fixed
+
+- **`submission/about.md` brand name** — "Alibaba Blueteam" → "BlueTeam" (2 occurrences).
+- **`tools.py` header comment** — "bash script in blueteam_data/scripts/" → "Python script in skills/…/scripts/".
+- **`blueteam.py` docstring** — Removed stale fallback mention: "Falls back to the bundled blueteam_data/" → "If git is unavailable, exits with an error".
+- **`README.md` directory tree** — Removed 7-line `blueteam_data/` block.
+- **`CHANGELOG.md` header** — "Alibaba Blueteam" → "BlueTeam".
+
+---
 
 ## [3.1.6] — 2026-07-12
 
