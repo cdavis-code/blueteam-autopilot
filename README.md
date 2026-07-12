@@ -370,13 +370,8 @@ The `.mcp.example.json` includes presets for:
 │       ├── aliyun/                    # Alibaba Cloud tools (40)
 │       └── aws/                       # AWS tools (13)
 │
-├── workflows/                         # Multi-agent workflow engine
-│   ├── _engine/                       # Engine core (parser.py, runner.py, context.py)
-│   ├── incident-response/             # 5-phase reactive incident handling
-│   ├── iam-forensic/                  # 4-phase IAM security audit
-│   ├── threat-hunt/                   # 4-phase proactive threat hunting
-│   ├── compliance-audit/              # 4-phase compliance gap analysis
-│   └── continuous-monitor/            # 3-phase autonomous SOC monitoring
+├── workflows/                         # Workflow engine code (Python runner)
+│   └── _engine/                       # Engine core (parser.py, runner.py, context.py)
 │
 ├── assets/
 │   ├── banner.svg                     # Project banner
@@ -393,11 +388,12 @@ The `.mcp.example.json` includes presets for:
 │   ├── console-*.png                  # Alibaba Cloud console screenshots
 │   └── slides/                        # Demo video script + screenshots
 │
-├── blueteam_data/                     # Thin Python package (symlinks to skills/)
+├── blueteam_data/                     # Thin Python package (pip install fallback)
 │   ├── __init__.py
 │   ├── scripts -> ../skills/blueteam-autopilot-ops/scripts
 │   ├── fixtures -> ../skills/blueteam-autopilot-core/fixtures
-│   └── knowledge -> ../skills/blueteam-autopilot-knowledge/knowledge
+│   ├── knowledge -> ../skills/blueteam-autopilot-knowledge/knowledge
+│   └── workflows/                      # WORKFLOW.md files (pip install fallback)
 │
 └── skills/                            # Canonical location for all runtime data
     ├── blueteam-autopilot-core/       # Core agent: role, tools, guardrails
@@ -428,6 +424,15 @@ The `.mcp.example.json` includes presets for:
     │   ├── schemas/                   # JSON schemas for structured reports
     │   └── scripts/                   # render-report.py
     │
+    ├── blueteam-autopilot-workflows/  # Workflow definitions (single source of truth)
+    │   ├── SKILL.md                   # Workflow catalog + script invocation guide
+    │   └── workflows/
+    │       ├── incident-response/WORKFLOW.md    # 5-phase reactive incident handling
+    │       ├── iam-forensic/WORKFLOW.md         # 4-phase IAM security audit
+    │       ├── threat-hunt/WORKFLOW.md          # 4-phase proactive threat hunting
+    │       ├── compliance-audit/WORKFLOW.md     # 4-phase compliance gap analysis
+    │       └── continuous-monitor/WORKFLOW.md   # 3-phase autonomous SOC monitoring
+    │
     └── blueteam-autopilot-compat/     # CLI compatibility validation
         ├── SKILL.md                   # Compatibility checker documentation
         ├── references/                # CLI command baseline (cli-baseline.json)
@@ -443,6 +448,7 @@ The `.mcp.example.json` includes presets for:
 | `blueteam-autopilot-prep` | Environment validation (8-stage, real-mode only) |
 | `blueteam-autopilot-knowledge` | Compliance controls, runbooks, GRC sync pipeline, trusted networks |
 | `blueteam-autopilot-reports` | Markdown incident report generation with JSON schemas + `generate_incident_report` tool |
+| `blueteam-autopilot-workflows` | 5 specialist workflows with executable phase instructions — incident response, IAM forensics, threat hunting, compliance audit, continuous monitoring |
 | `blueteam-autopilot-compat` | CLI compatibility validation — detects breaking changes in `aliyun` CLI commands, parameters, and response structures |
 
 ---
@@ -479,7 +485,7 @@ The `.mcp.example.json` includes presets for:
        │                                 └─── demo mode ──▶ fixtures/*.json
        │                                                     (zero network)
        │
-       ├─── workflows/ ──▶ 5 specialist workflows
+       ├─── skills/blueteam-autopilot-workflows/ ──▶ 5 specialist workflows
        │   ├── incident-response (5 phases)
        │   ├── iam-forensic (4 phases)
        │   ├── threat-hunt (4 phases)

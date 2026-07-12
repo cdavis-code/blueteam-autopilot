@@ -162,7 +162,7 @@ SCRIPTS_DIR: Path = _resolve_dir("scripts", "blueteam-autopilot-ops")
 FIXTURES_DIR: Path = _resolve_dir("fixtures", "blueteam-autopilot-core")
 KNOWLEDGE_DIR: Path = _resolve_dir("knowledge", "blueteam-autopilot-knowledge")
 PREP_SCRIPTS_DIR: Path = _resolve_dir("scripts", "blueteam-autopilot-prep")
-WORKFLOWS_DIR: Path = _PROJECT_ROOT / "workflows"
+WORKFLOWS_DIR: Path = _resolve_dir("workflows", "blueteam-autopilot-workflows")
 
 
 def validate() -> list[str]:

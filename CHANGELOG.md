@@ -5,6 +5,24 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.3] — 2026-07-11
+
+### Changed
+
+#### Skills-First Architecture
+- **Skills as single source of truth** — All runtime assets (scripts, fixtures, knowledge, workflows) now resolve through `_resolve_dir()` with skills-first priority: `skills/<skill>/<subdir>` → `~/.blueteam/skills/...` → `blueteam_data/<subdir>`
+- **Workflows consolidated in skills** — `workflows/` directory at repo root reduced to `_engine/` only (Python runner code). Workflow definition files moved to `skills/blueteam-autopilot-workflows/workflows/`, with `blueteam_data/workflows/` as the pip install fallback
+- **`WORKFLOWS_DIR` uses `_resolve_dir`** — Now follows the same skills-first resolution chain as scripts, fixtures, and knowledge directories
+- **New `blueteam-autopilot-workflows` skill** — Self-contained skill package for third-party IDE harnesses. Contains SKILL.md and enriched WORKFLOW.md files with concrete bash script invocations (no tool name translation layer needed)
+- **Five WORKFLOW.md files enriched** — All workflow phase instructions now include `python skills/blueteam-autopilot-ops/scripts/<name>.py` code blocks, making them executable by both the TUI agent and third-party harnesses
+
+### Fixed
+
+- **`injection_patterns.json` missing from pip package** — Added `"connectonion_qwen" = ["injection_patterns.json"]` to `[tool.setuptools.package-data]` so the prompt injection pattern file is included in `brew install` and `pip install` (was causing "Injection pattern file not found" error)
+- **Workflows missing from pip install** — `blueteam_data/workflows/*/WORKFLOW.md` added to `[tool.setuptools.package-data]` so `brew install` and `pip install` include workflow definitions
+
+---
+
 ## [3.1.2] — 2026-07-11
 
 ### Fixed

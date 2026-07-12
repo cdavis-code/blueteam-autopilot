@@ -7,7 +7,7 @@ class BlueteamAutopilot < Formula
   sha256 "d8b246e8d8ae5a934c0e9f52dde86b8a9c7b0b372829344b48c3cc946e5368de"
   license "MIT"
 
-  depends_on "python@3.10"
+  depends_on "python@3.12"
   depends_on "aliyun-cli" => :optional
 
   resource "connectonion" do
@@ -37,7 +37,7 @@ class BlueteamAutopilot < Formula
 
   def install
     # Use virtualenv_install_with_resources but allow binary wheels for native packages
-    venv = virtualenv_create(libexec, "python3.10")
+    venv = virtualenv_create(libexec, "python3.12")
     
     # Install resources in order, allowing binary wheels for libsql (Rust package)
     resources.each do |r|

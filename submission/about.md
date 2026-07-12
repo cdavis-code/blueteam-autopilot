@@ -37,7 +37,7 @@ Works in two modes: `demo` (default, offline fixture data, only needs a Qwen Clo
 
 A **standalone Python agent application** built on Qwen Cloud's OpenAI-compatible API and the **ConnectOnion** agent framework. The agent uses ConnectOnion's Agent class for tool orchestration, plugin lifecycle, and Textual TUI, with a custom `QwenCloudLLM` provider that preserves Qwen Cloud's thinking mode quality via internal streaming aggregation.
 
-### Multi-Agent Workflow Engine (`workflows/`)
+### Multi-Agent Workflow Engine (`skills/blueteam-autopilot-workflows/workflows/`)
 
 The v3.0 architecture introduces a declarative workflow engine that orchestrates specialist agents for complex investigations. Each workflow is defined as a WORKFLOW.md file with YAML frontmatter specifying phases, personas, and restricted tool sets per phase. The engine creates scoped Agent instances per phase with phase-specific system prompts.
 
@@ -135,6 +135,8 @@ The existing skills become the tool implementation layer:
 4. **blueteam-autopilot-knowledge:** Compliance controls (NIST CSF v2.0, SOC 2 Type II CC6), runbooks, trusted network profiles, and a GRC sync pipeline that pulls live framework data from CISO Assistant and Vanta MCP servers.
 
 5. **blueteam-autopilot-reports:** Generates structured Markdown incident reports, action proposals, and vulnerability prioritization documents from JSON schemas and templates.
+
+6. **blueteam-autopilot-workflows:** 5 specialist multi-phase security workflows (incident response, IAM forensic, threat hunt, compliance audit, continuous monitor). Each defined as a WORKFLOW.md with YAML frontmatter and enriched phase instructions containing concrete `python skills/blueteam-autopilot-ops/scripts/<name>.py` invocations, making them executable by both the TUI agent and third-party IDE harnesses without a tool name translation layer.
 
 ## Challenges we ran into
 
