@@ -3,8 +3,8 @@ class BlueteamAutopilot < Formula
 
   desc "SecOps agent powered by Qwen Cloud + ConnectOnion for multi-cloud security operations"
   homepage "https://github.com/cdavis-code/blueteam-autopilot"
-  url "https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/v3.1.1.tar.gz"
-  sha256 "d8b246e8d8ae5a934c0e9f52dde86b8a9c7b0b372829344b48c3cc946e5368de"
+  url "https://github.com/cdavis-code/blueteam-autopilot/archive/refs/tags/v3.1.4.tar.gz"
+  sha256 "b397ab7695ad3975fc68aa03b7e0a1ba96c2854d79dcbfe1911b6c5e9bea6b43"
   license "MIT"
 
   depends_on "python@3.12"

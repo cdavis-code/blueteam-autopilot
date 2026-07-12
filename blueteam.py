@@ -10,6 +10,8 @@ Usage:
 
 from __future__ import annotations
 
+__version__ = "3.1.4"
+
 import argparse
 import json
 import os
@@ -544,6 +546,11 @@ def _build_parser() -> argparse.ArgumentParser:
         f"Available: {', '.join(sorted(STATE_CHANGING_TOOLS))}. "
         "Use 'none' to require HITL for all. Default: execute_local_script",
     )
+    parser.add_argument(
+        "--version", "-V",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
     return parser
 
 
@@ -743,7 +750,7 @@ def main() -> None:
     # Build welcome message
     thinking_label = "on" if ENABLE_THINKING else "off"
     welcome = (
-        f"**BlueTeam v3.1.1** — SecOps Agent\n\n"
+        f"**BlueTeam v{__version__}** — SecOps Agent\n\n"
         f"Model: `{QWEN_MODEL}` | "
         f"Thinking: `{thinking_label}` | "
         f"Mode: `{SECURITY_CENTER_MODE}`\n\n"

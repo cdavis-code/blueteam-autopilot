@@ -5,6 +5,19 @@ All notable changes to the Alibaba Blueteam project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.4] — 2026-07-12
+
+### Added
+
+- **`--version` / `-V` CLI flag** — Prints the agent version and exits (`blueteam --version` → `blueteam 3.1.4`). Uses `__version__` module constant with `argparse`'s built-in `action="version"`.
+
+### Fixed
+
+- **Welcome banner shows stale version** — TUI welcome banner changed from hardcoded `v3.1.1` to dynamic `v{__version__}` interpolation. The banner now always reflects the actual release version without manual updates.
+- **Homebrew formula uses Python 3.10** — Switched `depends_on "python@3.10"` to `"python@3.12"` and `virtualenv_create(libexec, "python3.12")`. Resolves `google.api_core` `FutureWarning` deprecation notices and `jiter` dylib linkage failures (`Updated load commands do not fit in the header`) that occurred during `brew install`.
+
+---
+
 ## [3.1.3] — 2026-07-11
 
 ### Changed
