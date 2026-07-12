@@ -33,7 +33,7 @@ class RotateAccessKeyScript(BaseScript, DryRunMixin):
                     "status": "ok",
                     "user_name": user_name,
                     "old_key_id": access_key_id,
-                    "new_key_id": "LTAI5tDEMO123456789",
+                    "new_key_id": "DEMO-AK-123456789",
                     "message": "Access key rotated (demo mode)",
                 }, indent=2)
             return self.dry_run_message(

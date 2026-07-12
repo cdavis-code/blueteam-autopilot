@@ -28,7 +28,7 @@ This skill requires environment variables:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `LTAI5t...` |
+| `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `DEMO-AK-...` |
 | `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `HkfZ...` |
 | `ALIBABA_REGION` | Target region (optional — auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 

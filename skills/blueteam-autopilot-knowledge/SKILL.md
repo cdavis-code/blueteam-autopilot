@@ -259,7 +259,7 @@ Implements the provider contract against [CISO Assistant Community](https://gith
 | `/api/stored-libraries/` | `list_frameworks()` | GET |
 | `/api/requirement-nodes/?library=<id>` | `get_framework()` | GET |
 
-Auth: `POST /api/iam/login/` with `{"email":"...","password":"..."}` → `Authorization: Token <token>` header.
+Auth: `POST /api/iam/login/` with configured credentials → `Authorization: Token <token>` header.
 
 ### Adding a New Provider
 
