@@ -10,7 +10,7 @@ When Alibaba Cloud launched Agentic SOC, it solved the alert surfacing problem. 
 
 Security teams using Alibaba Cloud face a constant flood of Security Center alerts, WAF logs, and vulnerability reports. Manually triaging every event takes hours. Real attacks go uninvestigated in the meantime.
 
-Alibaba Blueteam is a standalone AI agent that automates the full triage cycle. While the interactive TUI is great for development and ad-hoc investigations, the primary production deployment is the autonomous SOC daemon (`--daemon`), which continuously monitors, triages, and escalates without human intervention.
+BlueTeam is a standalone AI agent that automates the full triage cycle. While the interactive TUI is great for development and ad-hoc investigations, the primary production deployment is the autonomous SOC daemon (`--daemon`), which continuously monitors, triages, and escalates without human intervention.
 
 1. **Discovers** security events from Agentic SOC and WAF
 2. **Investigates** each incident with deep-dive analysis (attack chain, CVEs, attacker IPs)
@@ -188,7 +188,7 @@ The existing skills become the tool implementation layer:
 
 **Headless mode changes the use cases.** Adding `--prompt` and stdin support wasn't just a CLI convenience — it unlocked cron jobs, CI/CD integration, and scripted security checks. The key insight was keeping the same agent runtime for both interactive and headless modes, just toggling `quiet=True` and skipping the TUI. Clean stdout/stderr separation makes the output pipe-friendly without any special handling.
 
-## What's next for Alibaba Blueteam
+## What's next for BlueTeam
 
 **More Alibaba Cloud services.** The current skill set covers Security Center, WAF 3.0, SLS, VPC, and STS. The next wave adds Cloud Firewall, ActionTrail, and OSS security monitoring, each following the same MCP tool pattern established here.
 
