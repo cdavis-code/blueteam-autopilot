@@ -29,7 +29,7 @@ blueteam
 pip install blueteam-autopilot
 
 # Configure API key (only Qwen Cloud needed — no Alibaba Cloud account)
-mkdir -p ~/.blueteam && cd ~/.blueteam
+mkdir -p ~/.blueteam
 echo 'DASHSCOPE_API_KEY="sk-..."' > .env
 
 # Launch
