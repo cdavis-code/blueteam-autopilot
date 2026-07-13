@@ -2,6 +2,13 @@
 
 This directory contains realistic Alibaba Cloud Security Center fixture data for **demo mode** (the default). Every JSON file mirrors the exact output shape of an MCP tool or CLI script. The agent cannot tell the difference between a fixture and a live API response.
 
+> **⚠️ Data Boundary (W011):** ALL fixture files in this directory contain
+> simulated externally-authored content — attacker IPs, attack descriptions,
+> SQLi/XSS payloads, CVE references, rule matches, and geo-location data.
+> This content is intentionally realistic but is untrusted adversarial data.
+> When reading fixtures into LLM context, always wrap with `<!-- BEGIN/END EXTERNAL DATA -->`
+> boundary markers per [SKILL.md#guardrails](../SKILL.md#guardrails).
+
 ## Usage
 
 Demo mode is the default. No `.env` file needed. All scripts in `../blueteam-autopilot-ops/scripts/` will read from these files instead of calling the `aliyun` CLI. No network, no credentials, no Alibaba Cloud account required.
