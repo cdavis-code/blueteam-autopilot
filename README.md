@@ -509,6 +509,7 @@ BlueTeam implements defense-in-depth security controls to protect against prompt
 - **Audit trail** — Every tool execution is logged with UTC timestamp, arguments, status, and timing. Injection detections are audited with full match context
 - **Supply chain protection** — GRC document sync requires human review (diff + confirmation) before writing server responses to knowledge documents
 - **Credential protection** — Secrets are never exposed in tool output; credential exfil patterns are detected and redacted
+- **Automated hardening** — The skills and dependency tree are hardened with Snyk Agent Scan (prompt-injection surface) and Socket (dependency supply-chain surface). The current scan baseline and accepted residual findings are documented in [SECURITY.md §9](SECURITY.md#9-automated-security-hardening-snyk--socket)
 
 See [SECURITY.md](SECURITY.md) for the full security control reference, threat model, and compliance mapping.
 

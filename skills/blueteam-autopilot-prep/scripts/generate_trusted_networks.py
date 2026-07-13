@@ -335,7 +335,7 @@ set -euo pipefail
 # Generated: {timestamp}
 #
 # Prerequisites:
-#   - aliyun CLI installed and configured (credentials in .env or shell)
+#   - aliyun CLI installed and configured (credentials via 'aliyun configure')
 #   - WAF protection mode set to Block (not Observe)
 # =============================================================================
 

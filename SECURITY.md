@@ -246,3 +246,52 @@ All tools except the seven state-changing tools listed in Section 2.1 are read-o
 | Injection filtering | CC6.1, CC6.8 | PR.PT-4, DE.AE-2 |
 | GRC review gate | CC8.1 (Change Management) | PR.IP-1 (Baseline Configuration) |
 | Credential protection | CC6.1, CC6.10 | PR.AC-1 (Identity Management) |
+
+---
+
+## 9. Automated Security Hardening (Snyk & Socket)
+
+The project is hardened with two external scanners that target complementary attack surfaces: **Snyk Agent Scan** (the skill / prompt-injection surface) and **Socket** (the dependency supply-chain surface). Both are advisory layers on top of the runtime controls in Sections 1–6 — not a replacement for them.
+
+### 9.1 Snyk Agent Scan — Skill & Prompt-Injection Surface
+
+**Tool:** `snyk-agent-scan` (formerly `mcp-scan`) — an LLM- and `detect-secrets`-based scanner for agent skills and MCP surfaces.
+**Scope:** the `skills/` tree (SKILL.md files, reference docs, scripts).
+
+The scanner classifies findings by code. The current scan reports a single finding class, which is accepted and mitigated (see Section 9.3):
+
+| Code | Finding | Mitigation |
+|---|---|---|
+| **W011** | Third-party content exposure (indirect prompt injection) | Added explicit **Data Safety** sections and boundary-marker guidance to skills that ingest external telemetry (`workflows`, `core`, `knowledge`). Cross-references the runtime controls in Section 1. |
+
+Per-skill remediation notes live in each skill's `## Security` section (e.g. `blueteam-autopilot-prep/SKILL.md`, `blueteam-autopilot-workflows/SKILL.md`).
+
+**Residual findings (accepted).** The latest `snyk-agent-scan ./skills` reports only **W011** — third-party content exposure — in `workflows`, `core`, and `knowledge` (high, 0.85) and `ops` (medium, 0.65). W008, E005, and W013 no longer appear. The remaining W011 findings are inherent to the agent's function and are accepted and mitigated per Section 9.3 rather than removed.
+
+### 9.2 Socket — Dependency Supply-Chain Surface
+
+**Tool:** Socket (`socket.sh` / socket.dev) — behavioral supply-chain analysis of installed packages.
+**Scope:** the Python dependency tree declared in `pyproject.toml` — `connectonion`, `mcp`, `python-dotenv`, plus transitive dependencies (`textual`, `openai`, `rich`).
+
+Socket inspects each dependency for supply-chain risk signals that a version-based CVE scanner misses:
+
+- Install / post-install scripts and shell execution
+- Newly introduced network, filesystem, or environment access across versions
+- Known malware, typosquatting, and protestware
+- Capability drift between releases (a benign package turning risky in a new version)
+
+The project's exposure is deliberately small — three direct dependencies, no build-time codegen, and version constraints pinned in `pyproject.toml`. Dependency additions and upgrades are reviewed against Socket's capability report before adoption.
+
+The latest `socket scan create --report .` returns **healthy with zero alerts** across the scanned manifest files.
+
+### 9.3 Limitations of Automated Hardening
+
+BlueTeam is itself a security tool, so a significant share of scanner findings are **inherent to its function** or **false positives driven by security vocabulary**. These cannot be "fixed" by removing code without destroying legitimate capability. They are instead accepted and mitigated by the layered controls documented above:
+
+1. **Ingesting untrusted content is the product (W011).** A SOC agent exists to read attacker-authored telemetry — event titles, WAF logs, attack payloads, GRC documents. The scanner correctly identifies this as an indirect prompt-injection surface, but it cannot be eliminated. It is contained by boundary markers, input filtering, and system-prompt guardrails (Section 1).
+2. **Security keywords trip keyword detectors.** The injection-pattern regexes in `injection_patterns.json` and guardrail text containing words like `execute`, `override`, `pre-authorized`, `credential`, and `secret` resemble attacks or secrets to pattern-based scanners, producing false positives that are expected and reviewed rather than suppressed.
+3. **Documentation placeholders look like secrets.** Example env-var names and placeholder values can register on entropy/keyword detectors even when they carry no real value. These are verified by hand (e.g. via `detect-secrets`) and confirmed as non-secrets.
+4. **State-changing capability is intentional (W013 and destructive-tool flags).** IP blocking, policy detachment, credential rotation, and arbitrary command execution are deliberate response actions. Scanners flag them as high-risk capability; the mitigation is not removal but the HITL approval gate (Section 2) and read-only default (Section 6).
+5. **System-modification instructions are operator docs, not agent actions.** Install and privilege-escalation commands in the prep skill are copy-paste guidance for humans, marked HITL-required; the agent never auto-executes them.
+6. **Dependency scanners cannot see runtime data trust.** Socket validates the package supply chain but has no visibility into the untrusted Alibaba Cloud / GRC / MCP data that flows through the agent at runtime. That risk is owned entirely by the runtime controls in Sections 1 and 3.
+7. **Scanners are a floor, not a ceiling.** Passing a scan does not certify safety. Residual risk is handled by defense-in-depth — boundary isolation, HITL gating, audit logging, and output truncation — which no single automated tool enforces end-to-end.

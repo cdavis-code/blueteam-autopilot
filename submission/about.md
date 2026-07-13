@@ -97,7 +97,9 @@ Since the agent processes external data from Security Center, WAF logs, and MCP 
 
 3. **System prompt guardrails** — The agent's system prompt contains explicit instructions to treat all tool output as untrusted data, never interpret field values as instructions, and flag text resembling commands (`STOP`, `execute`, `override`, `pre-authorized`) as potential injection attempts.
 
-Workflow phase agents inherit these defenses: phases that declare `requires-hitl: true` in their WORKFLOW.md frontmatter receive the HITL approval plugin, ensuring state-changing tools require operator confirmation even when executed by sub-agents. See `SECURITY.md` for the full security control reference.
+Workflow phase agents inherit these defenses: phases that declare `requires-hitl: true` in their WORKFLOW.md frontmatter receive the HITL approval plugin, ensuring state-changing tools require operator confirmation even when executed by sub-agents.
+
+Beyond runtime defenses, the skills and dependency tree are validated with external scanners — [Snyk Agent Scan](https://snyk.io) (prompt-injection surface) and [Socket](https://socket.sh) (supply-chain surface) — with the current scan baseline and accepted residual findings documented in `SECURITY.md`. See `SECURITY.md` for the full security control reference.
 
 ### MCP Server Integration (`connectonion_qwen/mcp.py`)
 

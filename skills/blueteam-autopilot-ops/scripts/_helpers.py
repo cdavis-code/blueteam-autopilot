@@ -71,9 +71,8 @@ def discover_region() -> str:
     raise RuntimeError(
         "Could not determine Alibaba Cloud region automatically.\n"
         "Options:\n"
-        "  1. Run 'aliyun configure' to set a default region\n"
-        "  2. Create a .env file with ALIBABA_REGION=ap-southeast-1\n"
-        "  3. Export: export ALIBABA_REGION=ap-southeast-1"
+        "  1. Run 'aliyun configure' to set a default region (recommended)\n"
+        "  2. Export an override for this session: export ALIBABA_REGION=ap-southeast-1"
     )
 
 

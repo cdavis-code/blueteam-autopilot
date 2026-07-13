@@ -42,15 +42,20 @@ Invoke this skill when:
 
 ## Configuration
 
-This skill requires environment variables:
+Alibaba Cloud credentials **and** the default region are configured once via
+`aliyun configure` and stored in `~/.aliyun/config.json`. They do **not** belong in
+`.env` — the AccessKey ID, AccessKey Secret, and region are all supplied during
+`aliyun configure` (Stage 1) and read from the CLI profile automatically.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `DEMO-AK-...` |
-| `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `EXAMPLE-SECRET-xxxxxxxxxxxxx` |
-| `ALIBABA_REGION` | Target region (optional — auto-discovered from `aliyun configure`) | `ap-southeast-1` |
+| Configured via `aliyun configure` | Description | Example |
+|-----------------------------------|-------------|---------|
+| AccessKey ID | RAM user AccessKey ID | `LTAI...` |
+| AccessKey Secret | RAM user AccessKey Secret | (entered at the prompt) |
+| Default region | Target region ID (not a display name like "Singapore") | `ap-southeast-1` |
 
-> **Note:** `ALIBABA_REGION` is auto-discovered from `aliyun configure`. Set it in `.env` only to override. If specified, it must be a valid region ID (e.g., `ap-southeast-1`), not a display name like "Singapore".
+> **Note:** `.env` holds only behavior flags such as `SECURITY_CENTER_MODE`. Scripts
+> discover the region from the `aliyun configure` profile; set the `ALIBABA_REGION`
+> shell/env variable only if you need to override it for a single command.
 
 ### Additional Local Tooling
 
@@ -83,7 +88,7 @@ Execute the following validation stages **in order**. The agent should **automat
 >
 > Only stages requiring console access (detection rules, manual verification) need user interaction.
 
-> **Region Handling:** Discover `ALIBABA_REGION` once in Stage 1 (via `aliyun configure get region`). The `run_command` tool automatically passes `.env` variables including `ALIBABA_REGION` to every command. Do NOT prefix commands with `export ALIBABA_REGION=...` — use the variable directly in the command body (e.g., `--region "$ALIBABA_REGION"`).
+> **Region Handling:** The region is stored in the `aliyun configure` profile. Discover it once in Stage 1 and export it for the session — `export ALIBABA_REGION=$(aliyun configure get region_id)` — then use `$ALIBABA_REGION` directly in later command bodies (e.g., `--region "$ALIBABA_REGION"`). It is **not** stored in `.env`.
 
 ---
 
@@ -125,14 +130,15 @@ choco install aliyun-cli
 
 **Documentation:** https://github.com/aliyun/aliyun-cli
 
-**After install, configure credentials:**
+**After install, configure credentials.** Run `aliyun configure` and enter your
+AccessKey ID, AccessKey Secret, and default region when prompted. These are stored
+in `~/.aliyun/config.json` — never in `.env`.
 ```bash
-aliyun configure set \
-  --profile blueteam \
-  --mode AK \
-  --access-key-id "$ALIBABA_ACCESS_KEY_ID" \
-  --access-key-secret "$ALIBABA_ACCESS_KEY_SECRET" \
-  --region "$ALIBABA_REGION"
+aliyun configure --mode AK
+# Prompts for AccessKey ID, AccessKey Secret, and default region.
+
+# Make the configured region available to later stages in this shell session:
+export ALIBABA_REGION=$(aliyun configure get region_id)
 ```
 
 **Check 1b:** Verify Python 3.10+ is installed.
@@ -162,10 +168,7 @@ python3 --version
 
 ```bash
 # Capture caller identity response
-CALLER_IDENTITY=$(aliyun sts GetCallerIdentity \
-  --access-key-id "$ALIBABA_ACCESS_KEY_ID" \
-  --access-key-secret "$ALIBABA_ACCESS_KEY_SECRET" \
-  --region "$ALIBABA_REGION" 2>&1)
+CALLER_IDENTITY=$(aliyun sts GetCallerIdentity 2>&1)
 echo "$CALLER_IDENTITY"
 
 # Extract the short RAM username from the Arn (e.g. acs:ram::<account-id>:user/alibaba-security-mcp → alibaba-security-mcp)
@@ -216,15 +219,10 @@ fi
 First, check which required policies are already attached to the RAM user.
 
 ```bash
-# Load environment variables if not already set
-if [ -z "$ALIBABA_ACCESS_KEY_ID" ]; then
-  if [ -f .env ]; then
-    source .env
-    echo "✓ Loaded environment variables from .env"
-  else
-    echo "⚠️  Environment variables not set. Please create a .env file or export them manually."
-    echo "   Required: ALIBABA_ACCESS_KEY_ID, ALIBABA_ACCESS_KEY_SECRET (ALIBABA_REGION auto-discovered if not set)"
-  fi
+# Ensure the region from the aliyun profile is available for the commands below
+: "${ALIBABA_REGION:=$(aliyun configure get region_id 2>/dev/null)}"
+if [ -z "$ALIBABA_REGION" ]; then
+  echo "⚠️  No credentials/region found. Run 'aliyun configure' to set your AccessKey and default region."
 fi
 
 # Attempt to list policies attached to the RAM user
@@ -405,7 +403,7 @@ export TEST_DOMAIN="ecs.yourdomain.com"
 dig +short CNAME $TEST_DOMAIN
 ```
 
-> **Note:** Domain info is persisted in `trusted-networks.md` and `sample_attack_traffic.py` by the generation script (Stage 7). No `.env` modification is needed — `.env` remains credentials-only.
+> **Note:** Domain info is persisted in `trusted-networks.md` and `sample_attack_traffic.py` by the generation script (Stage 7). No `.env` modification is needed — credentials and region live in the `aliyun configure` profile.
 
 **Expected:** Should return a CNAME ending in `*.aliyunwaf*.com` (e.g., `ecs.yourdomain.com.waf.alikunlun.com`).
 
@@ -707,9 +705,9 @@ Review the generated file and add any monitoring service IPs manually.
 | Error | Cause | Remedy |
 |-------|-------|--------|
 | `aliyun CLI not found` | Stage 1 not completed | Complete Stage 1 first |
-| `Could not determine region automatically` | `aliyun configure` not set | Run `aliyun configure` or set `ALIBABA_REGION` in `.env` |
+| `Could not determine region automatically` | `aliyun configure` not set | Run `aliyun configure` to set a default region |
 | `Forbidden.RAM` | Missing VPC/VPN permissions | Attach `AliyunVPCReadOnlyAccess` policy |
-| No VPCs discovered | Wrong region or no VPCs | Verify region matches your VPC location (`aliyun configure` or `.env`) |
+| No VPCs discovered | Wrong region or no VPCs | Verify the region in your `aliyun configure` profile matches your VPC location |
 
 **Post-generation action:**
 - The script auto-generates VPC/VPN trusted networks
@@ -1176,12 +1174,11 @@ Always check error messages for the correct parameter format when switching betw
 
 ### Environment Variables
 
-All scripts `source .env` from the project root automatically. If environment variables are not already set, the skill will attempt to load them from your `.env` file. Ensure it contains:
+All scripts `source .env` from the project root automatically. Credentials **and**
+the region are read from your `aliyun configure` profile (`~/.aliyun/config.json`),
+never from `.env`. The `.env` file only carries behavior flags:
 
 ```bash
-ALIBABA_ACCESS_KEY_ID="your-access-key-id"
-ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
-ALIBABA_REGION="ap-southeast-1"
 SECURITY_CENTER_MODE=real
 ```
 
@@ -1203,12 +1200,10 @@ The agent will automatically execute all validation and generation stages:
 
 If you prefer manual control, follow the validation stages in order:
 
-1. **Create `.env` with your credentials:**
+1. **Configure credentials and enable real mode:**
    ```bash
+   aliyun configure   # stores AccessKey ID, Secret, and region in ~/.aliyun/config.json
    cat > .env << 'EOF'
-   ALIBABA_ACCESS_KEY_ID="your-key"
-   ALIBABA_ACCESS_KEY_SECRET="your-secret"
-   ALIBABA_REGION="ap-southeast-1"
    SECURITY_CENTER_MODE=real
    EOF
    ```

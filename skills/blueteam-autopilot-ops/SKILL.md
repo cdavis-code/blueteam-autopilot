@@ -16,15 +16,10 @@ Operational CLI workflows wrapping `aliyun` commands for Security Center, WAF, a
 ## Prerequisites
 
 1. **aliyun CLI installed:** Verify with `aliyun version`
-2. **Credentials configured:** Create a `.env` file in your project root:
-   ```bash
-   ALIBABA_ACCESS_KEY_ID="your-access-key-id"
-   ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
-   ```
-   <!-- W008: Documentation placeholders only. 'your-access-key-id' and
-        'your-access-key-secret' are example values — replace with your
-        own Alibaba Cloud credentials. No real secrets are stored here. -->
-   > Region is auto-discovered from `aliyun configure`. Set `ALIBABA_REGION` in `.env` to override.
+2. **Credentials configured:** Run `aliyun configure` to store your AccessKey
+   credentials. They are kept in `~/.aliyun/config.json` (never in the repo) and
+   scripts pick them up automatically.
+   > Region is auto-discovered from your `aliyun configure` profile. Set the `ALIBABA_REGION` shell/env variable only to override it for a command; it is not stored in `.env`.
 3. **Security Center edition:** Agentic SOC features require Enterprise (4) or Ultimate (5)
    - Check edition: `aliyun sas describe-version-config --region "$ALIBABA_REGION"`
 
@@ -34,18 +29,17 @@ Operational CLI workflows wrapping `aliyun` commands for Security Center, WAF, a
 
 **Demo mode is the default.** All scripts read from `../blueteam-autopilot-core/fixtures/*.json` instead of calling `aliyun` CLI. No `.env` file or credentials required.
 
-To switch to real mode with live Alibaba Cloud API calls, create a `.env` file:
+To switch to real mode with live Alibaba Cloud API calls:
+
+1. Store your AccessKey credentials with `aliyun configure` (written to
+   `~/.aliyun/config.json`, never committed to the repo).
+2. Enable real mode in `.env`:
 
 ```bash
 cat > .env << 'EOF'
-ALIBABA_ACCESS_KEY_ID="your-access-key-id"
-ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
 SECURITY_CENTER_MODE=real
-# ALIBABA_REGION="ap-southeast-1"  # Optional — auto-discovered from aliyun CLI config
 EOF
 ```
-<!-- W008: All env var values above are documentation placeholders.
-     Replace with your own Alibaba Cloud credentials. No real secrets. -->
 
 Or export directly for temporary overrides:
 ```bash
@@ -211,10 +205,10 @@ See [references/edition-limits.md](references/edition-limits.md) for workarounds
 | Error | Cause | Remedy |
 |-------|-------|--------|
 | `aliyun: command not found` | CLI not installed | `brew install aliyun-cli` (macOS) |
-| `InvalidAccessKeyId.NotFound` | Wrong AccessKey ID | Check `.env` file, regenerate in RAM Console |
+| `InvalidAccessKeyId.NotFound` | Wrong AccessKey ID | Re-run `aliyun configure`, or regenerate the key in the RAM Console |
 | `SignatureDoesNotMatch` | Wrong AccessKey Secret | Copy secret again, no trailing whitespace |
 | `Forbidden.RAM` | Missing RAM policy | Attach `AliyunYundunSASReadOnlyAccess` policy |
-| `Could not determine region automatically` | No `aliyun configure` profile | Run `aliyun configure` or set `ALIBABA_REGION` in `.env` |
+| `Could not determine region automatically` | No `aliyun configure` profile | Run `aliyun configure` to set a default region |
 | API timeout (10s) | Basic edition limitation | Use SLS direct queries or upgrade edition |
 | `describe-susp-events: command not found` | Wrong API name format | Use lowercase with hyphens, not PascalCase |
 | Document not found | Knowledge dir not configured | Set `KNOWLEDGE_DIR` or check directory paths |
@@ -269,5 +263,5 @@ Alternatively, use MCP tools directly if available:
 ### Knowledge Documents Not Found
 
 1. Run `python list_knowledge.py` to see search paths
-2. Set `KNOWLEDGE_DIR` to override: `export KNOWLEDGE_DIR=/path/to/knowledge`
+2. Set the `KNOWLEDGE_DIR` environment variable to your knowledge directory to override the default search paths.
 3. Check that document filenames match the registry (e.g., `compliance_nist.md`)
