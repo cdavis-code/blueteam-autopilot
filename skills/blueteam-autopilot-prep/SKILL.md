@@ -47,7 +47,7 @@ This skill requires environment variables:
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `ALIBABA_ACCESS_KEY_ID` | RAM user AccessKey ID | `DEMO-AK-...` |
-| `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `HkfZ...` |
+| `ALIBABA_ACCESS_KEY_SECRET` | RAM user AccessKey Secret | `EXAMPLE-SECRET-xxxxxxxxxxxxx` |
 | `ALIBABA_REGION` | Target region (optional — auto-discovered from `aliyun configure`) | `ap-southeast-1` |
 
 > **Note:** `ALIBABA_REGION` is auto-discovered from `aliyun configure`. Set it in `.env` only to override. If specified, it must be a valid region ID (e.g., `ap-southeast-1`), not a display name like "Singapore".

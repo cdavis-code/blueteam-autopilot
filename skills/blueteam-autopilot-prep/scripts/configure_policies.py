@@ -59,7 +59,16 @@ def write_json_field(data: dict, path: str, new_value: str) -> None:
 
 
 def test_grc_connection(url: str, email: str, password: str) -> tuple[bool, str]:
-    """Test connection to CISO Assistant and get auth token."""
+    """Test connection to CISO Assistant and get auth token.
+
+    Args:
+        url: CISO Assistant base URL (HTTPS).
+        email: Admin email for authentication.
+        password: User-provided password via getpass (NEVER hardcoded).
+
+    Returns:
+        (success, token_or_error) tuple.
+    """
     try:
         import urllib.request
         import urllib.error
