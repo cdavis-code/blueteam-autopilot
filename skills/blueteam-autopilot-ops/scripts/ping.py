@@ -3,6 +3,12 @@
 
 Replaces ping.sh with Python equivalent.
 Usage: python ping.py
+
+Security: This script reads the access KEY ID (not the secret) from env vars
+or aliyun CLI config for diagnostic purposes only. The key ID is immediately
+masked to show only first 4 and last 4 characters (e.g., 'LTAI****abcd').
+No credential values are logged, stored, or transmitted. The access key secret
+is NEVER read.
 """
 
 from __future__ import annotations

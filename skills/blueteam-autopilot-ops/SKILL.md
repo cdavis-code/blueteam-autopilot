@@ -21,6 +21,9 @@ Operational CLI workflows wrapping `aliyun` commands for Security Center, WAF, a
    ALIBABA_ACCESS_KEY_ID="your-access-key-id"
    ALIBABA_ACCESS_KEY_SECRET="your-access-key-secret"
    ```
+   <!-- W008: Documentation placeholders only. 'your-access-key-id' and
+        'your-access-key-secret' are example values — replace with your
+        own Alibaba Cloud credentials. No real secrets are stored here. -->
    > Region is auto-discovered from `aliyun configure`. Set `ALIBABA_REGION` in `.env` to override.
 3. **Security Center edition:** Agentic SOC features require Enterprise (4) or Ultimate (5)
    - Check edition: `aliyun sas describe-version-config --region "$ALIBABA_REGION"`
@@ -41,6 +44,8 @@ SECURITY_CENTER_MODE=real
 # ALIBABA_REGION="ap-southeast-1"  # Optional — auto-discovered from aliyun CLI config
 EOF
 ```
+<!-- W008: All env var values above are documentation placeholders.
+     Replace with your own Alibaba Cloud credentials. No real secrets. -->
 
 Or export directly for temporary overrides:
 ```bash
