@@ -75,6 +75,7 @@ blueteam.py
 | `MAX_TOOL_ROUNDS` | Agent iteration limit | `50` |
 | `ALIBABA_REGION` | Override region auto-discovery | None (auto from `aliyun configure`) |
 | `MCP_CONFIG_PATH` | Optional GRC MCP server config | `.mcp.json` |
+| `BLUETEAM_FORCE_SYNC` | Force fresh skill download on startup | `0` (syncs on first run only) |
 
 Region is auto-discovered from `aliyun configure` output. Set `ALIBABA_REGION` to override.
 

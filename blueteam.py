@@ -10,7 +10,7 @@ Usage:
 
 from __future__ import annotations
 
-__version__ = "3.1.7"
+__version__ = "3.1.8"
 
 import argparse
 import json
@@ -40,29 +40,48 @@ def _sync_skills() -> Path:
     """Clone or update the skills repo. Returns the project root.
 
     On first run, clones the repo to ~/.blueteam/. On subsequent runs,
-    pulls updates. If skills/ exists locally (git clone), uses that instead.
-    If git is unavailable, exits with an error — skills are required.
+    fetches updates from origin. If skills/ exists locally (git clone),
+    uses that instead. If git is unavailable, exits with an error —
+    skills are required.
+
+    Set BLUETEAM_FORCE_SYNC=1 to force a fresh clone, discarding any
+    local changes in ~/.blueteam/.
     """
+    force_sync = os.environ.get("BLUETEAM_FORCE_SYNC", "").strip() == "1"
+
     # Check if skills exist locally (user cloned the repo)
     local_skills = Path.cwd() / "skills"
-    if (local_skills / "blueteam-autopilot-core" / "fixtures").is_dir():
+    if not force_sync and (local_skills / "blueteam-autopilot-core" / "fixtures").is_dir():
         return Path.cwd()
 
     # Check if already synced to ~/.blueteam/
-    if (SYNC_DIR / "skills" / "blueteam-autopilot-core" / "fixtures").is_dir():
-        # Pull updates (non-blocking, best-effort)
+    already_synced = (SYNC_DIR / "skills" / "blueteam-autopilot-core" / "fixtures").is_dir()
+    if not force_sync and already_synced:
+        # Fetch updates — use fetch+reset instead of pull for shallow-clone safety.
+        # This handles force-pushes and avoids merge conflicts on --depth 1 repos.
         try:
             subprocess.run(
-                ["git", "pull", "--quiet"],
+                ["git", "fetch", "--depth", "1", "origin", "main"],
                 cwd=SYNC_DIR,
                 timeout=30,
                 capture_output=True,
+                check=True,
             )
-        except Exception:
-            pass  # Continue with existing version
+            subprocess.run(
+                ["git", "reset", "--hard", "FETCH_HEAD"],
+                cwd=SYNC_DIR,
+                timeout=10,
+                capture_output=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            stderr = e.stderr.decode(errors="replace").strip() if e.stderr else "unknown error"
+            print(f"Warning: Skill sync failed ({stderr}). Using cached version.", file=sys.stderr)
+        except Exception as e:
+            print(f"Warning: Skill sync failed ({e}). Using cached version.", file=sys.stderr)
         return SYNC_DIR
 
-    # First run: clone repo with sparse checkout — only skills/ is needed.
+    # Force sync or first run: clone repo with sparse checkout — only skills/ is needed.
     saved_env = None
     if SYNC_DIR.exists():
         env_file = SYNC_DIR / ".env"

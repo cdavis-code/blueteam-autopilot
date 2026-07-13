@@ -910,7 +910,7 @@ Each GRC provider subclasses `BaseGRCProvider` in `_base.py`:
 
 | Provider Script | GRC Tool | Framework Count | Status |
 |----------------|----------|-----------------|--------|
-| `ciso_assistant.py` | [CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community) | 150+ built-in | ✅ Ready |
+| `ciso_assistant.py` | CISO Assistant Community (open-source GRC platform) | 150+ built-in | ✅ Ready |
 
 **CISO Assistant Community API endpoints used:**
 - `POST /api/iam/login/` — Token-based authentication

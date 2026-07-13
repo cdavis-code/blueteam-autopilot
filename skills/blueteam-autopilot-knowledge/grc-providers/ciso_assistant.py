@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """CISO Assistant Community — GRC Provider.
 
-Integrates with the CISO Assistant Community GRC platform by intuitem.
-GitHub: https://github.com/intuitem/ciso-assistant-community
+Integrates with the CISO Assistant Community GRC platform by intuitem
+(open-source, community edition).
 
 API:
     POST /api/iam/login/         — Authenticate (returns token)

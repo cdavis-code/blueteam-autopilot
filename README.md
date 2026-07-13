@@ -47,7 +47,7 @@ Get BlueTeam running in under 2 minutes with **zero Alibaba Cloud setup**. Demo 
 
 ### Prerequisites
 
-- **Python 3.10+** ([python.org](https://python.org))
+- **Python 3.12+** ([python.org](https://python.org))
 - **Qwen Cloud API key** ([free tier](https://dashscope-intl.aliyuncs.com))
 
 ### Install & Run
@@ -93,7 +93,7 @@ npx skills add cdavis-code/blueteam-autopilot --skill '*'
 
 The skills integrate directly into your IDE's AI chat. You get the same 40 tools, 5 workflows, and HITL approval gates as the standalone TUI — all within your editor. Zero cloud credentials needed for demo mode.
 
-On first run, all skills and demo fixtures are automatically downloaded to `~/.blueteam/`. Subsequent runs pull updates. No manual `git clone` needed.
+On first run, all skills and demo fixtures are automatically downloaded to `~/.blueteam/`. Subsequent runs fetch and apply updates from the repo. No manual `git clone` needed. Set `BLUETEAM_FORCE_SYNC=1` to force a fresh download.
 
 ### Try These Prompts
 
@@ -220,6 +220,7 @@ The `aliyun` CLI stores credentials in `~/.aliyun/config.json`. The agent's scri
 | `SECURITY_CENTER_MODE` | Execution mode (`demo` or `real`) | `real` |
 | `QWEN_BASE_URL` | DashScope API endpoint override | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | `ALIBABA_REGION` | Optional override (auto-discovered from `aliyun configure`) | `ap-southeast-1` |
+| `BLUETEAM_FORCE_SYNC` | Force fresh skill download from repo (default: auto-update on each run) | `1` |
 
 ```bash
 # 1. Install the package (choose one)

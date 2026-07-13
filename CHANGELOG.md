@@ -5,6 +5,25 @@ All notable changes to the BlueTeam project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.8] — 2026-07-12
+
+### Security
+
+- **Snyk E005 remediation** — Removed direct GitHub URLs to `intuitem/ciso-assistant-community` from 4 files (core, knowledge, prep skills). Replaced with plain-text references to avoid suspicious-download-detection false positives.
+- **Indirect prompt injection hardening (W011)** — Added explicit Data Safety sections to `mcp-tools.md` for both Core Tools and GRC Tools, warning that all MCP tool output originates from untrusted external systems and is never interpreted as instructions. Cross-references existing SKILL.md Guardrails.
+
+### Changed
+
+- **Robust skill sync** — Replaced fragile `git pull` (silently failed on shallow-clone force-pushes) with `git fetch --depth 1 origin main` + `git reset --hard FETCH_HEAD`. Sync errors now log warnings to stderr instead of being silently swallowed.
+- **`BLUETEAM_FORCE_SYNC` env var** — Setting `BLUETEAM_FORCE_SYNC=1` forces a fresh clone of `~/.blueteam/` on startup, bypassing all cached checks.
+
+### Documentation
+
+- Added `BLUETEAM_FORCE_SYNC` to `.env.example`, `AGENTS.md` key configuration table, and `README.md` environment variable table.
+- Removed `uv --directory /path/to/ciso-assistant-community/cli` path-specific command from `mcp-tools.md`, replaced with generic `uv run ca_mcp.py`.
+
+---
+
 ## [3.1.7] — 2026-07-12
 
 ### Removed

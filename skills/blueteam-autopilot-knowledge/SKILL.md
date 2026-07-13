@@ -251,7 +251,7 @@ All providers inherit from `grc-providers/_base.py` `BaseGRCProvider` ABC. The b
 
 **File:** `grc-providers/ciso_assistant.py`
 
-Implements the provider contract against [CISO Assistant Community](https://github.com/intuitem/ciso-assistant-community):
+Implements the provider contract against CISO Assistant Community (open-source GRC platform by intuitem):
 
 | API Endpoint | Used By | Method |
 |-------------|---------|--------|

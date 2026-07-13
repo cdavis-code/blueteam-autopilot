@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blueteam-autopilot"
-version = "3.1.7"
+version = "3.1.8"
 description = "SecOps Agent powered by Qwen Cloud + ConnectOnion for multi-cloud security operations"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 dependencies = [
     "connectonion>=1.0.0",
