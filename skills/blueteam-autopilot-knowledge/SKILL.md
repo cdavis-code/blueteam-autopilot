@@ -38,6 +38,71 @@ For routine triage, use the condensed context in [blueteam-autopilot-core](../bl
 
 ---
 
+## Security
+
+> **WARNING:** This skill handles external data from GRC platforms, webhooks,
+> and dynamically-loaded provider plugins. The following security controls
+> are designed to limit exposure — misconfiguring them can introduce risk.
+
+### Data Boundary
+
+All GRC-sourced content ingested from external APIs is wrapped in
+`<!-- BEGIN GRC EXTERNAL DATA -->` / `<!-- END GRC EXTERNAL DATA -->`
+HTML comment markers in the generated Markdown. The agent's guardrails
+([blueteam-autopilot-core](../blueteam-autopilot-core/SKILL.md#guardrails))
+treat all content inside these markers as untrusted data. **Never remove
+or edit these markers** — they are the prompt injection defense perimeter.
+
+### SSL Verification
+
+**Never disable SSL verification in production.** The default in
+`policies.json` is `verify_ssl: true`. Setting it to `false` exposes
+GRC API connections to man-in-the-middle attacks. Only disable for
+local development against self-signed certificates on `localhost`.
+
+### Webhook Receiver
+
+The `grc_webhook.py` listener executes `grc_sync.py` in response to
+external webhook events. Access is gated by:
+1. A static allowlist: only policy IDs declared in `policies.json` are
+   accepted — unrecognized library names are silently dropped.
+2. The `framework_update` event requires an exact library-name match
+   against the policies manifest.
+
+**Do not expose the webhook to untrusted networks.** It is designed for
+internal CI/CD pipelines or authenticated GRC platform callbacks.
+
+### Dynamic Provider Loading
+
+The `grc-providers/_base.py` module uses `__import__` to dynamically
+load provider classes from the `grc-providers/` directory based on
+configuration in `policies.json`. Only providers explicitly registered
+in `policies.json` are loaded. **Do not add untrusted provider files**
+to the `grc-providers/` directory — they will be executed at import time.
+
+### Credential Handling
+
+GRC credentials (API tokens, emails, passwords) are:
+- Read from environment variables (`GRC_API_TOKEN`, `GRC_EMAIL`),
+  never hardcoded.
+- Transmitted only to the configured `GRC_BASE_URL` via HTTPS POST.
+- Validated with a connection test before any data is fetched.
+
+**Verify your `GRC_BASE_URL`** — a misconfigured or malicious URL
+could exfiltrate credentials. For production, always use the official
+CISO Assistant instance URL with TLS enabled.
+
+### External Data Sanitization
+
+Content ingested from GRC APIs undergoes basic sanitization before
+being written to documents: HTML tags (`<p>`, `<br>`, `</p>`) are
+stripped, and descriptions are truncated at 500 characters. No
+executable content (scripts, iframes, JavaScript) is preserved.
+Boundary markers (see Data Boundary above) provide defense-in-depth
+against indirect prompt injection.
+
+---
+
 ## Document Catalog
 
 ### Compliance Controls

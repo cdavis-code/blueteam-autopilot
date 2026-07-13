@@ -66,7 +66,7 @@
     "ciso-assistant": {
       "enabled": false,
       "base_url": "https://localhost:8443",
-      "verify_ssl": false,
+      "verify_ssl": true,
       "auth": {
         "email": "",
         "api_token": ""

@@ -324,6 +324,9 @@ class CisoAssistantProvider(BaseGRCProvider):
             lines.append(lib_desc)
             lines.append("")
 
+        lines.append("<!-- BEGIN GRC EXTERNAL DATA -->")
+        lines.append("")
+
         for req in all_requirements:
             ref_id = (req.get("ref_id", "") or req.get("display_short", "")).strip()
             name = req.get("name", "")
@@ -337,9 +340,16 @@ class CisoAssistantProvider(BaseGRCProvider):
             if name and ref_id:
                 lines.append(f"*   **{name}**")
             if description:
-                desc = description.replace("<p>", "").replace("</p>", "\n").replace("<br>", "\n").replace("<br/>", "\n")
+                # Sanitize HTML: strip tags (paragraphs, breaks, and security-sensitive elements)
+                import re as _re
+                desc = _re.sub(r'<(script|iframe|object|embed|form|input|style|link|meta|base)[^>]*>.*?</\1>', '', description, flags=_re.IGNORECASE | _re.DOTALL)
+                desc = desc.replace("<p>", "").replace("</p>", "\n").replace("<br>", "\n").replace("<br/>", "\n")
+                desc = _re.sub(r'<[^>]+>', '', desc)  # strip any remaining HTML tags
                 lines.append(f"*   {desc[:500]}")
             lines.append("")
+
+        lines.append("<!-- END GRC EXTERNAL DATA -->")
+        lines.append("")
 
         lines.append(f"> **Synced from CISO Assistant Community on {now}**")
         lines.append(f"> **Library ID:** {library_id}")
