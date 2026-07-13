@@ -1,5 +1,7 @@
 # Trusted Networks
 
+<!-- BEGIN GRC EXTERNAL DATA (source: auto-generated) -->
+
 > **CRITICAL:** This file is auto-generated. Do NOT edit manually.
 > Run `skills/blueteam-autopilot-prep/scripts/generate_trusted_networks.py` to regenerate.
 
@@ -77,3 +79,4 @@ against this trusted network list:
 **VPCs Discovered:** 1
 **VPN Gateways:** 0
 **WAF Domains:** 1
+<!-- END GRC EXTERNAL DATA -->

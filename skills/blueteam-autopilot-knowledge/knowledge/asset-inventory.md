@@ -6,6 +6,8 @@ discovery_tool: list_assets
 last_updated: "2026-06-14"
 ---
 
+<!-- BEGIN GRC EXTERNAL DATA (source: dynamic, tool: list_assets) -->
+
 # Asset Inventory
 
 Asset topology reference for BlueTeam investigations.
@@ -170,3 +172,4 @@ To ensure accurate discovery:
 3. Review asset inventory monthly for completeness
 
 **Last Updated:** 2026-06-14
+<!-- END GRC EXTERNAL DATA -->

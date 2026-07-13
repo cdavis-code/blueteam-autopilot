@@ -5,6 +5,8 @@ source: manual
 last_updated: "2026-06-14"
 ---
 
+<!-- BEGIN GRC EXTERNAL DATA (source: manual, type: runbook) -->
+
 # INTERNAL RUNBOOK: WAF PERIMETER THREAT TRIAGE AND RECOVERY
 **Document ID:** RUN-SEC-042  
 **Version:** 2026.1  
@@ -33,3 +35,4 @@ If an attack chain is successfully verified, the threat must be mitigated to pre
 ## 3. Rollback & Post-Incident Logging
 1. Document the mitigation actions, total blocked request count, and signature types.
 2. Export the final ticket state to the centralized tracker platform for audit evidence collection.
+<!-- END GRC EXTERNAL DATA -->

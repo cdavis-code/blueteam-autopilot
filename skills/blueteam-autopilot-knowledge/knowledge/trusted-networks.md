@@ -1,5 +1,7 @@
 # Trusted Networks
 
+<!-- BEGIN GRC EXTERNAL DATA (source: auto-generated, tool: generate_trusted_networks.py) -->
+
 > **CRITICAL:** This file is auto-generated. Do NOT edit manually.
 > Run `python skills/blueteam-autopilot-prep/scripts/generate_trusted_networks.py` to regenerate.
 
@@ -21,3 +23,4 @@ at generation time.
 
 | Network | CIDR | Purpose |
 |---------|------|---------|
+<!-- END GRC EXTERNAL DATA -->

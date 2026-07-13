@@ -116,7 +116,15 @@ def main() -> int:
             print(f"  {doc}")
         return 1
 
-    print(doc_path.read_text())
+    content = doc_path.read_text()
+    # Wrap with boundary markers for prompt injection defense (W011).
+    # All GRC-sourced and knowledge documents contain externally-authored
+    # content from third-party APIs, webhooks, and auto-generated sources.
+    # These markers are the primary defense perimeter — the agent's guardrails
+    # treat everything between them as untrusted external data.
+    print(f"<!-- BEGIN GRC EXTERNAL DATA (source: {doc_type}, provider: {get_policy_source(doc_type)}) -->")
+    print(content)
+    print("<!-- END GRC EXTERNAL DATA -->")
     return 0
 
 

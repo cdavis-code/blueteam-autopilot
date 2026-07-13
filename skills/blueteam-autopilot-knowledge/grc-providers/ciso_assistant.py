@@ -59,6 +59,8 @@ library_id: demo-nist-csf-v2
 sync_date: "2026-06-16"
 ---
 
+<!-- BEGIN GRC EXTERNAL DATA (demo) -->
+
 # NIST Cybersecurity Framework (CSF) v2.0
 ## Source: CISO Assistant Community (demo mode)
 
@@ -78,6 +80,7 @@ sync_date: "2026-06-16"
 *   **Requirement:** Mitigation strategies must balance operational availability against data risk. Perimeter containment via IP ACL adjustments is authorized for known-malicious behavior profiles.
 
 > **Demo notice:** This content is fixture data for testing. Run with GRC_MODE=real against a live CISO Assistant instance for real framework data.
+<!-- END GRC EXTERNAL DATA -->
 """
 
 DEMO_FRAMEWORK_CONTENT_SOC2 = """---
@@ -89,6 +92,8 @@ framework: SOC2
 library_id: demo-soc2
 sync_date: "2026-06-16"
 ---
+
+<!-- BEGIN GRC EXTERNAL DATA (demo) -->
 
 # SOC 2 Type II — CC6 Logical Access Controls
 ## Source: CISO Assistant Community (demo mode)
@@ -104,6 +109,7 @@ sync_date: "2026-06-16"
 *   **Requirement:** Threat detection mechanisms must be continuously active across all production nodes. Automated blocking mechanisms must be initiated for verified attack patterns. Every automated mitigation action must be traceable to an authoritative system event log and authenticated by an explicit administrative validation window.
 
 > **Demo notice:** This content is fixture data for testing. Run with GRC_MODE=real against a live CISO Assistant instance for real framework data.
+<!-- END GRC EXTERNAL DATA -->
 """
 
 

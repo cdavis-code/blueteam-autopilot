@@ -7,6 +7,8 @@ framework: NIST CSF v2.0
 last_updated: "2026-06-14"
 ---
 
+<!-- BEGIN GRC EXTERNAL DATA (provider: ciso-assistant, framework: NIST CSF v2.0) -->
+
 # ENTERPRISE COMPLIANCE FRAMEWORK: NIST CSF EXCERPT
 ## Functional Category: Detect (DE) & Respond (RS)
 
@@ -21,3 +23,4 @@ last_updated: "2026-06-14"
 ### RS.RP-1: Response Planning Implementation
 *   **Control Objective:** Response processes and procedures are executed and maintained to ensure a timely response to detected cybersecurity events.
 *   **Requirement:** Mitigation strategies must balance operational availability against data risk. Perimeter containment via IP ACL adjustments or automated blacklist implementation is authorized for known-malicious behavior profiles.
+<!-- END GRC EXTERNAL DATA -->

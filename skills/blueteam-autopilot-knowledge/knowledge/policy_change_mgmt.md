@@ -5,6 +5,8 @@ source: manual
 last_updated: "2026-06-14"
 ---
 
+<!-- BEGIN GRC EXTERNAL DATA (source: manual, type: policy) -->
+
 # CHANGE MANAGEMENT POLICY: SECURITY OPERATIONS
 **Document ID:** POL-SEC-010  
 **Version:** 2026.1  
@@ -96,3 +98,4 @@ All change events must produce an auditable trail:
 
 This evidence supports SOC 2 Type II audit requirements and must be retained
 for a minimum of 12 months.
+<!-- END GRC EXTERNAL DATA -->
