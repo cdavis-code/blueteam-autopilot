@@ -14,6 +14,24 @@ Environment readiness skill for **BlueTeam for Alibaba Cloud**. Guides users thr
 > In demo mode, skip to Stage 8 and report "Environment simulation active —
 > all stages would pass with a properly configured environment."
 
+## Security
+
+### Snyk W013: System Service Modification Risk
+
+This skill contains instructions for installing system-level tools (`aliyun` CLI, Python) and configuring host environments. These are **documentation for human operators**, not instructions for autonomous agent execution.
+
+**Mitigations:**
+
+1. **Human-in-the-loop required for all install commands.** The agent MUST NOT auto-execute `brew install`, `apt install`, `sudo`, `choco install`, `winget install`, or any other package manager or privilege-escalation command. All such commands are explicitly marked with `⚠️ HUMAN-IN-THE-LOOP REQUIRED` and require the operator to copy-paste and execute them manually.
+
+2. **Agent scope is limited to read-only validation.** The agent's autonomous role is to run existing `aliyun` CLI queries and the prep scripts (`generate_trusted_networks.py`, `validate_configuration.py`, `configure_policies.py`). These scripts only query Alibaba Cloud APIs and write configuration files within the project directory — they never modify the host system.
+
+3. **No state-changing cloud operations.** This skill only performs API reads (`Describe*`, `List*`, `Get*` calls). The one exception — `modify-resource-log-status` in Stage 5.2 — toggles WAF log collection and is documented with explicit user confirmation steps.
+
+4. **Demo mode is safe by default.** All script execution in demo mode reads only from local fixture files with zero network or system modifications.
+
+5. **Agent guidance vs. operator action.** Throughout this skill, commands the agent may execute autonomously use the `bash` code fence without a warning prefix. Commands requiring operator action are marked with `⚠️ HUMAN-IN-THE-LOOP REQUIRED` and a note that the agent must present them for manual execution only.
+
 ## When to Use
 
 Invoke this skill when:
@@ -54,10 +72,14 @@ Execute the following validation stages **in order**. The agent should **automat
 
 > **Autonomous Operation Mode:**
 > This skill is designed to run automatically during environment setup. The agent will:
-> 1. Detect and validate prerequisites
+> 1. Detect and validate prerequisites (check versions, NOT install software)
 > 2. Generate environment-specific configuration files
 > 3. Validate the complete setup
 > 4. Report any issues requiring manual attention
+>
+> **⚠️ The agent MUST NOT auto-install software.** If a prerequisite is missing (aliyun CLI, Python),
+> present the install command to the operator for manual execution. Never run `brew install`,
+> `apt install`, `sudo`, `choco install`, `winget install`, or any package manager command.
 >
 > Only stages requiring console access (detection rules, manual verification) need user interaction.
 
@@ -73,14 +95,16 @@ Execute the following validation stages **in order**. The agent should **automat
 which aliyun && aliyun version
 ```
 
-**If missing**, provide OS-specific installation instructions:
+**If missing**, present installation instructions to the operator for manual execution:
 
 #### macOS (Homebrew)
+> ⚠️ **HUMAN-IN-THE-LOOP REQUIRED** — Agent MUST present this for manual execution only.
 ```bash
 brew install aliyun-cli
 ```
 
 #### Linux (direct download)
+> ⚠️ **HUMAN-IN-THE-LOOP REQUIRED** — Agent MUST present this for manual execution only. Requires `sudo`.
 ```bash
 # Download latest release
 curl -fsSL https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz -o aliyun-cli.tgz
@@ -90,6 +114,7 @@ aliyun version
 ```
 
 #### Windows (Chocolatey or direct download)
+> ⚠️ **HUMAN-IN-THE-LOOP REQUIRED** — Agent MUST present this for manual execution only.
 ```powershell
 # Using Chocolatey
 choco install aliyun-cli
@@ -120,10 +145,12 @@ python3 --version
 
 **If missing or version < 3.10:**
 
+> ⚠️ **HUMAN-IN-THE-LOOP REQUIRED** — All install commands below must be executed by the operator, NOT the agent.
+
 | Error | Cause | Remedy |
 |-------|-------|--------|
-| `python3: command not found` | Python not installed | macOS: `brew install python3` / Linux: `sudo apt install python3` / Windows: `winget install Python.Python.3.12` |
-| `Python 3.9.x` (or lower) | Incompatible version | Install Python 3.10+: `brew install python@3.12` (macOS) or download from [python.org](https://www.python.org/downloads/) |
+| `python3: command not found` | Python not installed | macOS: `brew install python3` (operator only) / Linux: `sudo apt install python3` (operator only) / Windows: `winget install Python.Python.3.12` (operator only) |
+| `Python 3.9.x` (or lower) | Incompatible version | Install Python 3.10+: `brew install python@3.12` (macOS, operator only) or download from [python.org](https://www.python.org/downloads/) |
 
 > **Why 3.10+?** BlueTeam uses Python 3.10 union syntax (`X | Y`) in type hints and requires `connectonion>=1.0.0` which depends on Python 3.10+.
 
